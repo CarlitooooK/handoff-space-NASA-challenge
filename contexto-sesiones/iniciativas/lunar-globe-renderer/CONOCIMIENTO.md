@@ -21,7 +21,7 @@ Fase 1 del proyecto: un globo lunar detallado, estilo Google Earth, **desarrolla
 
 - Cesium solo crea el cielo estrellado por defecto con el elipsoide terrestre; con `Ellipsoid.MOON` hay que configurar el `SkyBox` a mano (`src/sky.ts`). Sin eso no hay estrellas.
 - Un billboard con `sizeInMeters` a 1e8–1e9 m se renderiza como una línea; se resolvió con tamaño en píxeles recalculado por fotograma desde el FOV, que conserva el tamaño angular.
-- La proyección de PSR (`polar_x_m`, `polar_y_m`) es estereográfica polar sobre esfera de 1 737,4 km: x = ρ·sin λ, y = −ρ·cos λ, ρ = 2R·tan(π/4 + φ/2). Coincide con el ejemplo de `contracts/lunar-landing-api-contract.md` dentro del redondeo de la latitud (≈0,2 %).
+- La proyección de PSR (`polar_x_m`, `polar_y_m`) es la del CRS de LOLA (estereográfica polar sobre esfera de 1 737,4 km): x = ρ·sin λ, y = **+**ρ·cos λ, ρ = 2R·tan(π/4 + φ/2). Verificada contra `GET /sites` de la API en vivo (10 sitios polares, error 0,0000 km, 2026-11-14). Una primera versión del globo usaba y = −ρ·cos λ por calibrarse con un ejemplo del contrato que tenía Y invertido (corregido en el PR #2, D-012); ya está corregida en el globo.
 - La capa polar de Moon Trek `LRO_WAC_Mosaic_SPole60_100m_v02` existe (`trek.nasa.gov/tiles/Moon/SP/…`) en metros polares (±1 095 km); Cesium no la acepta sin reproyectar.
 - Distancias del cielo: el Sol real queda fuera del plano lejano de Cesium; se coloca a 9e8 m conservando el tamaño angular. La Tierra va a 384 400 km (media).
 
