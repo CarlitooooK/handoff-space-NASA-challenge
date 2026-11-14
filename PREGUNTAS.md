@@ -44,6 +44,15 @@ Quien responde llena **Respuesta**, **Respondió** y la fecha, mueve la entrada 
 - **Respuesta:** _pendiente_
 - **Respondió:** —
 
+### P-009: Coordenadas de IM-2 en `GET /sites`
+
+- **Pregunta:** El backend en vivo sirve `clps-im2-mons-mouton` en `lat -84.79, lon 31.2`. LROC publica el sitio objetivo de IM-2 en `-84.78°, 29.13° E` (https://www.lroc.asu.edu/images/1401), y NASA indica que Athena quedó a unos 400 m de ese objetivo. Los dos puntos están a unos 5,7 km. ¿De qué fuente sale `31.2`? Si no hay una, ¿se puede corregir a la de LROC?
+- **Contexto:** `GET /api/v1/sites`; en la consola, la pantalla Missions recrea IM-2 con las coordenadas de LROC y cita la fuente. Si se mantienen las dos, el pin del catálogo y el de la misión caen en lugares distintos del globo.
+- **Bloquea:** no. Mientras tanto la consola usa las de LROC.
+- **Preguntó:** Frontend (`frontend-console`) · 2026-11-14
+- **Respuesta:** _pendiente_
+- **Respondió:** —
+
 ---
 
 ## Respondidas

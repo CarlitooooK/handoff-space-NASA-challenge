@@ -3,37 +3,36 @@
 **Última actualización:** 2026-11-14 · **Responsable:** Equipo Frontend (consola) · **Repo / componente:** `luna-landing-navigator-console`
 
 ## En una línea
-Fase 1 lista: la consola corre completa contra el mock (selector de sitio, evaluación, veredicto, KPIs, terreno 3D, Sol/Tierra y scrubber); falta profundizar cada carril y probarla contra el backend en vivo.
+Fase 1 de pantallas lista en PR (render de fondo con paneles glass, `docs/ideas/console-ui-figma.md`), probada contra el mock y contra el backend en vivo; falta conectar el globo por `postMessage` y la capa PSR.
 
 ## Estado actual
 | Pieza | Estado |
 | --- | --- |
 | Scaffold (React/TS/Vite, Tailwind, R3F, Zustand, Vitest) | Hecho |
-| Tipos desde `contracts/openapi.json` + cliente API con errores por `code` | Hecho |
-| Shell 30/70, sidebar básico, veredicto y KPIs | Hecho (básico) |
-| Visor 3D: malla de terreno + luces Sol/Tierra | Hecho (básico; sin ver renderizado en navegador) |
-| Timeline scrubber (0 red) | Hecho (sin pistas Gantt) |
-| Perfil de horizonte 2D, capa PSR, modos de cámara, toggles | No iniciado |
-| Comparador (`POST /compare`) | No iniciado |
-| Prueba contra backend en vivo | No iniciado |
+| Tipos desde `contracts/openapi.json` v1.1 + cliente API con errores por `error.code` (incluye `ERR_NOT_FOUND`) | Hecho (consola `#3`, pendiente de fusionar) |
+| Cascarón: render de fondo, paneles glass, rail, top bar, pantalla completa con paneles plegados | Hecho (consola `#2`, pendiente de fusionar) |
+| Simulate en niveles Simple y Detailed, timeline con pistas Gantt y horizonte 360° | Hecho (`#2`) |
+| Comparador (`POST /compare`, 2 a 5 escenarios) | Hecho (`#2`) |
+| Historial propio en `localStorage` y recrear misiones reales con fuentes citadas | Hecho (`#2`) |
+| Fondo según D-013: globo sin sitio evaluado, escena local al evaluar | Hecho (`#2`; el iframe se monta solo con `VITE_GLOBE_URL`) |
+| Prueba contra backend en vivo | Hecho (`#3`: 13 sitios, `ErrorResponse`) |
+| Puente con el globo (`postMessage`, D-011) | No iniciado |
+| Capa PSR (`GET /psr/nearby`) y modos de cámara en la escena local | No iniciado |
 | Optimización "solo fecha → solo `/evaluate`" | No iniciado |
-| Integración del globo lunar (iframe + `postMessage`, D-011) | No iniciado (el globo vive en `iniciativas/lunar-globe-renderer/`) |
 | Video demo y AI Tool Disclosure | No iniciado |
 
 ## Pendientes (en orden de valor)
-1. Verificar visualmente la escena 3D (escala de luces, cámara, exageración vertical) y ajustar.
-2. Probar contra el backend en vivo (errores `{detail}` y sitios Apollo con `lat` fuera de `-90..-80`; ver `docs/06`).
-3. Integrar el globo lunar (D-011): `<iframe>` + mensajes desde el store; el origen de la consola debe estar en la lista de orígenes permitidos del globo. Protocolo en el `README.md` del repo del globo (fuente única) y plan en `iniciativas/lunar-globe-renderer/HANDOFF.md`.
-4. Perfil de horizonte 2D y capa PSR (`GET /psr/nearby`).
-5. Comparador de 2 a 5 escenarios con los errores `ERR_SCENARIO_LIMIT_EXCEEDED` y `ERR_DUPLICATE_SCENARIOS`.
-6. Pistas Gantt, modos de cámara y toggles de capas.
-7. Asignar carriles entre las dos personas (ver Notas).
+1. Revisar y fusionar consola `#2` y luego `#3` (va apilado sobre `#2`).
+2. Puente con el globo: `SET_SITES`, `SELECT_SITE`, `SET_SUN_LOCAL`, `SET_EARTH_LOCAL`, `SET_PSR` y eventos de entrada, con timeout de `READY` (`docs/11` §3 y §9). Fase 3 opcional con un interruptor (`SET_VEHICLES`, rotulado de §6b).
+3. Capa PSR y modos de cámara en la escena local.
+4. Respuesta a `P-009` (coordenadas de IM-2): hasta entonces Missions usa las de LROC.
+5. Asignar carriles entre las dos personas (ver Notas).
 
 ## Cómo retomar
 1. Lee `_compartido/frontend-console.md` y `CONOCIMIENTO.md`.
-2. Clona `luna-landing-navigator-console` y sigue `CLAUDE.md`: `npm run sync:handoff` antes de implementar.
+2. Clona `luna-landing-navigator-console` y sigue su `CLAUDE.md`: `npm run sync:handoff` antes de implementar.
 3. Antes de seguir, revisa `../../../PREGUNTAS.md` y `../../../contracts/`: pueden haber cambiado.
 
 ## Notas
-- Carriles propuestos en `docs/ideas/frontend-architecture-guide.md`; **la asignación entre personas está sin definir** (se anota en el `CLAUDE.md` de la consola).
-- `P-001` a `P-005` respondidas el 2026-11-14 (ver `PREGUNTAS.md`). El mock aún rechaza `lat` fuera de `[-90,-80]`, así que Apollo no se prueba offline.
+- El layout de render a pantalla completa sustituye al shell 30/70 de `docs/ideas/frontend-architecture-guide.md`; ambos son ideas no vinculantes.
+- Carriles en el `CLAUDE.md` de la consola; **la asignación entre personas está sin definir**.
