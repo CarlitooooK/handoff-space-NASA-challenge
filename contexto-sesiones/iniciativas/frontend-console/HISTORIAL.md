@@ -3,6 +3,7 @@
 Cronología, de lo más nuevo a lo más viejo. Fechas absolutas. No se borra: se agrega.
 
 ## 2026-11-14
+- `HANDOFF.md` actualizado a pedido de Carlo: consola `#2`, `#3` y `#4` fusionadas; el puente deja de ser pendiente; pendientes reordenados (despliegue del globo, capa PSR, opcionales del globo, `P-009`).
 - El puente con el globo quedó fusionado en la consola (PR #4, `a000db2`): `globeProtocol.ts`, `globeBridge.ts`, `useGlobeBridge.ts`, `useGlobeStore` y los botones de escena. Ya no hay que construirlo; guía en `docs/11` §10. El `HANDOFF.md` de esta iniciativa aún lista el puente como pendiente: lo actualiza su responsable.
 - Se revisó el handoff hasta `7988348` (contrato v1.1, D-010, D-012, D-013, fases 2 y 3 del globo): la consola copia el contrato, reconoce `ERR_NOT_FOUND` y detecta el mock por `/health` (consola `#3`). D-012 no la afecta: no usa coordenadas polares.
 - Se implementó la fase 1 de pantallas con el render de fondo y paneles glass (consola `#2`), probada contra el mock y el backend en vivo.

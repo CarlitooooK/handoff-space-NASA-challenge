@@ -18,7 +18,7 @@ Herramienta intuitiva para evaluar y comparar rápidamente sitios y fechas de at
 | Contrato de API (`contracts/lunar-landing-api-contract.md` + `contracts/openapi.json`) | Listo (v1.1 alineado con OpenAPI) |
 | Guía de Consumo Frontend (`FRONTEND_API_GUIDE.md`) | Lista |
 | Servidor mock autónomo zero-dependency (`mock/`) | Listo (`mock/server.js` + `mock/package.json` en puerto 3000, `8` sitios) |
-| Frontend (Visor 2D/3D & Dashboard) | En curso: fase 1 mockeada, ver [`frontend-console`](contexto-sesiones/iniciativas/frontend-console/HANDOFF.md) |
+| Frontend (Visor 2D/3D & Dashboard) | Fase 1 fusionada, con puente al globo; faltan capa PSR y despliegue del globo, ver [`frontend-console`](contexto-sesiones/iniciativas/frontend-console/HANDOFF.md) |
 | Globo lunar 3D (CesiumJS), repo [`luna-render-nasa-space-challenge`](https://github.com/CarlitooooK/luna-render-nasa-space-challenge) | Fase 1 lista y verificada; falta integrarlo en la consola, ver [`lunar-globe-renderer`](contexto-sesiones/iniciativas/lunar-globe-renderer/HANDOFF.md) |
 | Handoff de iniciativas de sesión | Activo ([`contexto-sesiones/`](contexto-sesiones/README.md)) |
 
