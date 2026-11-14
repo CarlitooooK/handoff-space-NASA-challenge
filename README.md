@@ -19,6 +19,7 @@ Herramienta intuitiva para evaluar y comparar rápidamente sitios y fechas de at
 | Guía de Consumo Frontend (`FRONTEND_API_GUIDE.md`) | Lista |
 | Servidor mock autónomo zero-dependency (`mock/`) | Listo (`mock/server.js` en puerto 3000) |
 | Frontend (Visor 2D/3D & Dashboard) | En curso: fase 1 mockeada, ver [`frontend-console`](contexto-sesiones/iniciativas/frontend-console/HANDOFF.md) |
+| Globo lunar 3D (CesiumJS, proyecto aparte) | Fase 1 lista y verificada; falta integrarlo en la consola, ver [`lunar-globe-renderer`](contexto-sesiones/iniciativas/lunar-globe-renderer/HANDOFF.md) |
 | Handoff de iniciativas de sesión | Activo ([`contexto-sesiones/`](contexto-sesiones/README.md)) |
 
 ## Estructura del Repositorio: Handoff vs. Contexto de Sesiones
