@@ -30,7 +30,7 @@ Fase 1 del globo lista y verificada en navegador (CesiumJS + teselas NASA Moon T
 
 ## Pendientes (en orden de valor)
 1. Responder `P-007` (vista global sin sitio; no bloquea) y probar `SET_PSR` con datos reales.
-2. Frontend: usar y extender el puente ya fusionado (guía en `docs/11-integracion-globo-consola.md`): `<iframe>` + `SET_SITES` desde `GET /sites`, `SELECT_SITE` al elegir sitio, `SET_SUN_LOCAL` con `timeline[stepIndex].sun_vector_3d`.
+2. Frontend: usar y extender el puente ya fusionado en la consola (guía en `docs/11-integracion-globo-consola.md` §10). Opcional: interruptor de `SET_VEHICLES`, indicador de carga con `LOADING`, HUD con `SCENE_PHASE`/`SCENE_TELEMETRY`, integrar con Missions.
 3. Terreno de mayor detalle en el polo: depende de `P-008` (teselas del DEM de 80 m del backend). Sin respuesta, queda el DEM global.
 4. Pulido si hay tiempo: astronauta con pose o animación, rocas o cráteres pequeños en el suelo, y probar la escena en una GPU real (la prueba usó render por software).
 5. Probar con el backend en vivo y medir rendimiento en la máquina de la demo.
