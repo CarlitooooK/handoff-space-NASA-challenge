@@ -66,8 +66,8 @@ El Figma pide un render siempre de fondo y paneles de vidrio encima. La propuest
 | Mensaje del globo | Acción en la consola |
 | --- | --- |
 | `READY` | Enviar el estado actual completo (sitios, selección, sol) |
-| `SITE_CLICKED` | Igual que elegir en el selector: `select` y `evaluate` |
-| `GLOBE_CLICKED` | Punto libre: `select` con esas coordenadas y `evaluate`. El contrato acepta cualquier `lat` en `[-90, 90]` (D-010) |
+| `SITE_CLICKED` | Igual que elegir en el selector: solo `select`. Evaluar sigue siendo decisión del usuario (botón Run simulation) |
+| `GLOBE_CLICKED` | Punto libre: `select` con esas coordenadas ("Custom pin"), sin evaluar. El contrato acepta cualquier `lat` en `[-90, 90]` (D-010) |
 | `ANIMATION_COMPLETE` | Actualizar el estado de reproducción |
 | `SCENE_PHASE {phase}` | `arrival`, `descent`, `landed`, `done`: sincronizar paneles y botones (p. ej. mostrar "Exit scene" al terminar) |
 | `SCENE_TELEMETRY {t,altM,vMps}` | HUD del descenso. **Es ilustrativa** (desaceleración constante): rotular como "Sample data"/"Illustrative" |

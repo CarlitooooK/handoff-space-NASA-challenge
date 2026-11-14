@@ -45,6 +45,9 @@ Fase 1 del proyecto: un globo lunar detallado, estilo Google Earth, **desarrolla
 - Sin validación, un mensaje con `lat` no numérico producía posiciones NaN y Cesium detenía el render. Todo mensaje del puente se valida ahora (`src/embed.ts`) y las opciones de la escena también (`sanitizeSceneOptions`).
 - Si llegaba `SET_SUN_LOCAL` en plena escena, la luz física pisaba la luz de escena y el suelo se oscurecía. Corregido: durante la escena solo se reorienta la luz clave.
 
+- Al desmontarse el iframe (la consola pasa a la escena local), el globo pierde todo su estado: el puente reenvía sitios, Sol/Tierra, PSR y selección en cada `READY`. Si hay una escena pedida, la inicia en lugar de volar al sitio.
+- La consola evaluada con la API en vivo (2026-12-21T00:00Z, 2 días, paso 60 min) en IM-2 Mons Mouton da `GO`; en otra fecha del mismo sitio el Sol estaba bajo el horizonte (`NO-GO`). El estado depende de la fecha.
+
 ## Supuestos sin verificar
 - `sun_vector_3d` es un vector hacia el Sol en el marco local del sitio con la convención D-008; la conversión a marco fijo lunar se probó solo con un vector mock.
 - El rendimiento en el equipo de la demo (GPU real) no se midió; la prueba corrió con renderizado por software.

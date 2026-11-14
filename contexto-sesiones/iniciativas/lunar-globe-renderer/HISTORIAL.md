@@ -3,6 +3,8 @@
 Cronología, de lo más nuevo a lo más viejo. Fechas absolutas. No se borra: se agrega.
 
 ## 2026-11-14
+- Puente construido en la consola (rama `feat/globe-bridge`, commit local `b8551d4`, sin subir): `globeProtocol.ts`, `globeBridge.ts` (9 pruebas), `useGlobeBridge.ts`, `useGlobeStore`, botón "Landing scene"/"Exit scene". Probado de extremo a extremo (consola en `:5175`, globo en `:5174`, API en vivo): enlace `ready`, evaluación real de IM-2 Mons Mouton (`GO`, Sol 6,46°), escena `arrival > descent > done`, scrubber en plena escena sin romper nada, "Exit scene" vuelve al sitio. Con el globo caído, a los 8 s el fondo vuelve al placeholder y la consola sigue viva.
+- Decisión de diseño al integrar: `SITE_CLICKED` y `GLOBE_CLICKED` solo seleccionan; no evalúan (como el selector). `docs/11` lo refleja.
 - Escena configurable desde la consola (`9d5076a` del repo del globo): validación de opciones (`lat`, `lon`, `startAltM`, `durationS`, `distanceM`, `headingDeg`) y de todos los mensajes del puente, `SCENE_ERROR`, y la luz de escena ya no se pisa si llega un `SET_SUN_LOCAL` en plena escena. Probado con el globo en un iframe y mensajes por `postMessage` desde `http://localhost:5173`.
 - Escena de alunizaje (`2a7cac3` del repo del globo), a pedido de Carlo: la fase 3 se veía confusa (arco de 100 km visto desde arriba, módulo diminuto). Ahora es una secuencia continua en plano horizontal, desde la vista global hasta el astronauta; `PLAY_LANDING_SCENE`, `SCENE_PHASE`, `SCENE_TELEMETRY`. Se añadió textura procedural de regolito.
 - Errores encontrados al construirla (ver `CONOCIMIENTO.md`): `minimumLevel` en una capa global bloquea Cesium; longitudes 0–360 devuelven altura 0 en `sampleTerrain`; la cámara quedaba bajo el terreno dibujado.
