@@ -18,6 +18,7 @@ Hay dos URLs públicas (Cloudflare, HTTPS, sin VPN). Las dos se publican **solo*
 | Novedades v1.2 (sección 9) | ❌ `/psr` y `/ephemeris` dan `404`; no hay `checks`, `grid.source` ni líneas de tiempo en `/compare` | ✅ todas |
 | Swagger / OpenAPI | `<URL>/docs` · `<URL>/openapi.json` | `<URL>/docs` · `<URL>/openapi.json` |
 
+- Las dos sirven **datos reales** de la base de datos del servidor (sitios y PSR en PostGIS), de los DEM LOLA y de los kernels SPICE; ninguna es un mock. El mock de este repo (`mock/server.js`) solo corre en local (`localhost:3000`) para trabajar sin internet y devuelve valores simulados.
 - Las dos son *Quick Tunnels*: si el servidor reinicia el túnel, el subdominio cambia. Consulta siempre [`docs/07`](07-ambientes-y-pruebas.md).
 - Para usar las novedades antes de que la URL actual pase al backend nuevo, apunta `VITE_API_BASE_URL` a la URL nueva **o** haz detección de capacidades (sección 8.5).
 

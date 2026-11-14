@@ -14,6 +14,8 @@ Ambientes activos del Backend, servidor mock autónomo y cómo verificar o consu
 
 El Frontend solo consume las URLs públicas de esta tabla o el mock local; no necesita acceso al servidor.
 
+> **Datos reales vs. mock:** las dos URLs públicas sirven siempre **datos reales** de la base de datos del servidor (PostGIS: sitios y PSR), de los DEM LOLA y de los kernels SPICE; ninguna usa el mock. El mock (`mock/server.js`) no está publicado en ninguna URL: solo corre en la máquina de quien lo arranca (`localhost:3000`), para trabajar sin internet, y sus valores son simulados. Para distinguirlos en una respuesta de `/terrain/patch` (v1.2): `grid.source` es `"lola_polar"` o `"lola_global"` con datos reales y `"synthetic"` en el mock.
+
 ### Versión del contrato por ambiente
 
 | Ambiente | Contrato | Nota |
