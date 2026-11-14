@@ -63,7 +63,7 @@ Quien responde llena **Respuesta**, **Respondió** y la fecha, mueve la entrada 
 - **Contexto:** Manejo de errores en el cliente (`src/core/api/errors.ts`); hoy soporta ambos formatos. Decidimos por `error.code` (AGENTS.md).
 - **Bloquea:** no
 - **Preguntó:** Frontend (luna-landing-navigator-console) · 2026-11-14
-- **Respuesta:** Se alineó el backend en vivo (`spaceapps-api` en `desktop`) y [`contracts/openapi.json`](contracts/openapi.json) con [`docs/06-contrato-y-errores.md`](docs/06-contrato-y-errores.md) y `AGENTS.md`: ahora **tanto el backend en vivo como `mock/server.js` emiten `{ "error": { "code": "ERR_*", "message": "...", "details": ... } }`** (`ErrorResponse` en `contracts/openapi.json` para respuestas `400`, `404`, `422` y `503`; el backend en vivo conserva además `detail` opcional para retrocompatibilidad). Se actualizaron `FRONTEND_API_GUIDE.md`, `contracts/lunar-landing-api-contract.md`, `contracts/openapi.json` y `docs/06-contrato-y-errores.md`. En `src/core/api/errors.ts`, decide siempre por `error.code` (y conserva el fallback a `detail` o HTTP status únicamente como respaldo defensivo).
+- **Respuesta:** La API pública (URL en [`docs/07-ambientes-y-pruebas.md`](docs/07-ambientes-y-pruebas.md)) y el mock responden los errores `400`, `404`, `422` y `503` con `{ "error": { "code": "ERR_*", "message": "...", "details": ... } }` (`ErrorResponse` en [`contracts/openapi.json`](contracts/openapi.json)). Decide siempre por `error.code` según el catálogo de [`docs/06-contrato-y-errores.md`](docs/06-contrato-y-errores.md); `detail` puede venir por compatibilidad y solo sirve como respaldo.
 - **Respondió:** Backend / Integración · 2026-11-14
 
 ### P-002: URL base del mock
@@ -72,7 +72,7 @@ Quien responde llena **Respuesta**, **Respondió** y la fecha, mueve la entrada 
 - **Contexto:** `docs/07`, tabla de variables de entorno. Usamos `http://localhost:3000/api/v1`.
 - **Bloquea:** no
 - **Preguntó:** Frontend (luna-landing-navigator-console) · 2026-11-14
-- **Respuesta:** Sí, el valor correcto es `http://localhost:3000/api/v1` (el mock atiende bajo `/api/v1/*` y el cliente concatena `/sites`, `/evaluate`, etc. sobre `VITE_API_BASE_URL`). Corregido y mantenido como fuente única en [`docs/07-ambientes-y-pruebas.md`](docs/07-ambientes-y-pruebas.md).
+- **Respuesta:** Para el mock, sí: `http://localhost:3000/api/v1`. Pero el ambiente para integrar y para la demo es la **API pública HTTPS** de [`docs/07-ambientes-y-pruebas.md`](docs/07-ambientes-y-pruebas.md): pon esa URL base (ya termina en `/api/v1`) en `VITE_API_BASE_URL`. No requiere VPN, Tailscale ni acceso al servidor, y tiene CORS abierto. El mock queda solo para trabajar sin internet. Si la URL pública cambia, solo cambian `docs/07` y tu `.env`.
 - **Respondió:** Backend / Integración · 2026-11-14
 
 ### P-003: Rango de latitud permitido
@@ -81,7 +81,7 @@ Quien responde llena **Respuesta**, **Respondió** y la fecha, mueve la entrada 
 - **Contexto:** Validación de entrada y selección de sitios Apollo en el selector. Hoy no validamos el rango en el cliente.
 - **Bloquea:** no
 - **Preguntó:** Frontend (luna-landing-navigator-console) · 2026-11-14
-- **Respuesta:** La regla vigente y unificada en backend en vivo (`spaceapps-api`), `mock/server.js`, `contracts/openapi.json`, [`docs/01-alcance.md`](docs/01-alcance.md) y [`docs/06-contrato-y-errores.md`](docs/06-contrato-y-errores.md) es **`lat` en `[-90.0, 90.0]`** y **`lon` en `[-180.0, 360.0]`** para `/terrain/patch`, `/evaluate`, `/compare` y `/psr/nearby`. En el Polo Sur `[-90.0, -80.0]` el backend usa LOLA `40 m/px` y fuera de esa franja usa el DEM global `ldem_64.tif` (`64 ppd`). Se actualizó `mock/server.js` para aceptar `[-90.0, 90.0]` e incluir `apollo-11`, `apollo-15` y `apollo-17` (`8` sitios en mock; `13` en backend en vivo). Cualquier valor fuera de `[-90.0, 90.0]` devuelve `422` con `ERR_INVALID_COORDINATES`.
+- **Respuesta:** `lat` en `[-90.0, 90.0]` y `lon` en `[-180.0, 360.0]` para `/terrain/patch`, `/evaluate`, `/compare` y `/psr/nearby`, igual en la API pública y en el mock. `/sites` incluye los sitios Apollo (`apollo-11`, `apollo-15`, `apollo-17`): `13` sitios en la API pública y `8` en el mock. Fuera de rango responde `422` con `ERR_INVALID_COORDINATES`. El Polo Sur (`lat <= -80`) tiene más resolución de terreno que el resto de la Luna.
 - **Respondió:** Backend / Integración · 2026-11-14
 
 ### P-004: Estado real de `mock/`
@@ -90,7 +90,7 @@ Quien responde llena **Respuesta**, **Respondió** y la fecha, mueve la entrada 
 - **Contexto:** Desarrollo local con el mock; aislamos la copia con `.handoff/package.json` (lo escribe `scripts/sync-handoff.sh`).
 - **Bloquea:** no
 - **Preguntó:** Frontend (luna-landing-navigator-console) · 2026-11-14
-- **Respuesta:** Sí: `mock/server.js` está implementado, operativo y alineado al contrato v1.1 (`8` sitios, `lat [-90.0, 90.0]`, fechas `1900..2050`, errores `ErrorResponse`). Se eliminó la iniciativa duplicada `handoff-api-frontend/` consolidando el estado único en [`README.md`](README.md), [`mock/README.md`](mock/README.md), [`docs/07-ambientes-y-pruebas.md`](docs/07-ambientes-y-pruebas.md) y [`contexto-sesiones/iniciativas/lunar-landing-navigator/HANDOFF.md`](contexto-sesiones/iniciativas/lunar-landing-navigator/HANDOFF.md). Además se añadió [`mock/package.json`](mock/package.json) con `{"type": "commonjs"}` dentro de `mock/` para evitar fallos cuando se ejecuta o sincroniza desde proyectos ESM (`"type": "module"`).
+- **Respuesta:** Sí: el mock está operativo y alineado al contrato v1.1 (`8` sitios, `lat [-90.0, 90.0]`, fechas `1900..2050`, `ErrorResponse`). [`mock/package.json`](mock/package.json) declara `{"type": "commonjs"}` para que no falle desde proyectos ESM. Es para trabajar sin internet; la integración se hace contra la API pública (`P-002`). Se eliminó la iniciativa duplicada `handoff-api-frontend/`; el estado vive en [`contexto-sesiones/iniciativas/lunar-landing-navigator/HANDOFF.md`](contexto-sesiones/iniciativas/lunar-landing-navigator/HANDOFF.md).
 - **Respondió:** Backend / Integración · 2026-11-14
 
 ### P-005: Dependencia de `openapi-typescript` con TypeScript 7
@@ -99,5 +99,5 @@ Quien responde llena **Respuesta**, **Respondió** y la fecha, mueve la entrada 
 - **Contexto:** Generación de tipos (`npm run gen:types`). Hoy se ejecuta vía `npx`.
 - **Bloquea:** no
 - **Preguntó:** Frontend (luna-landing-navigator-console) · 2026-11-14
-- **Respuesta:** Se acepta y recomienda ejecutar `npx openapi-typescript contracts/openapi.json -o src/types/api.d.ts` bajo demanda (sin instalar `openapi-typescript` en `package.json`), evitando degradar TypeScript en Vite. Documentado en [`docs/07-ambientes-y-pruebas.md`](docs/07-ambientes-y-pruebas.md); además [`contracts/openapi.json`](contracts/openapi.json) ya incluye los esquemas `ErrorResponse` y `ErrorDetail` si desean regenerar `src/types/api.d.ts`.
+- **Respuesta:** Sí, ejecútalo con `npx openapi-typescript contracts/openapi.json -o src/types/api.d.ts` bajo demanda, sin instalarlo en `package.json` ni bajar TypeScript. También puedes generarlo desde el esquema en vivo: `/openapi.json` sobre la URL pública de [`docs/07-ambientes-y-pruebas.md`](docs/07-ambientes-y-pruebas.md). Ambos incluyen `ErrorResponse` y `ErrorDetail`.
 - **Respondió:** Backend / Integración · 2026-11-14
