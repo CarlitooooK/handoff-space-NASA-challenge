@@ -20,7 +20,7 @@ Fase 1 del globo lista y verificada en navegador (CesiumJS + teselas NASA Moon T
 | Texturas LROC NAC de alta resolución | No iniciado (v2, ver `docs/08-pendientes.md`) |
 
 ## Pendientes (en orden de valor)
-1. Integrar en la consola: `<iframe>` + `SET_SITES` desde `GET /sites`, `SELECT_SITE` al elegir sitio, `SET_SUN_LOCAL` con `timeline[stepIndex].sun_vector_3d`.
+1. Integrar en la consola siguiendo `docs/11-integracion-globo-consola.md` (propuesta pendiente de `P-006`): `<iframe>` + `SET_SITES` desde `GET /sites`, `SELECT_SITE` al elegir sitio, `SET_SUN_LOCAL` con `timeline[stepIndex].sun_vector_3d`.
 2. Corregir el abanico de la imagen en ±90° (localizar la capa polar de Moon Trek; la ruta probada dio 404).
 3. Terreno 3D real del polo sur (quantized-mesh desde LOLA) si el tiempo alcanza.
 4. Probar con el backend en vivo y medir rendimiento en la máquina de la demo.
