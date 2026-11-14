@@ -6,21 +6,40 @@ Documentación de interfaz de comunicación (Request/Response) entre el Frontend
 
 ## 1. Reglas Generales del Contrato
 
-### 1.1 Estándares de Comunicación y URLs Base
-* **Base URL Pública (HTTPS — Cloudflare Quick Tunnel, sin Tailscale):** `https://chart-owned-alabama-choices.trycloudflare.com/api/v1`
-  * **Swagger UI:** `https://chart-owned-alabama-choices.trycloudflare.com/docs`
-  * **ReDoc:** `https://chart-owned-alabama-choices.trycloudflare.com/redoc`
-  * **OpenAPI JSON:** `https://chart-owned-alabama-choices.trycloudflare.com/openapi.json` (copia en [`contracts/openapi.json`](openapi.json))
-* **Base URL Directa (Tailscale):** `http://100.66.139.125:8000/api/v1`
+### 1.1 Estándares de Comunicación y Ambientes
+* **URLs activas, variables de entorno y comandos de prueba:** consultar la fuente única en [`docs/07-ambientes-y-pruebas.md`](../docs/07-ambientes-y-pruebas.md).
+* **Esquema OpenAPI 3.1.0:** [`contracts/openapi.json`](openapi.json).
 * **CORS:** Habilitado abierto (`allow_origins=["*"]`) para llamadas directas desde `localhost` o producción.
-* **Formato de intercambio:** `application/json`
-* **Formato de fechas:** ISO-8601 en UTC estricto (`YYYY-MM-DDTHH:mm:ssZ`).
+* **Formato de intercambio:** `application/json` (UTF-8)
+* **Formato de fechas:** ISO-8601 en UTC estricto (`YYYY-MM-DDTHH:mm:ssZ`), rango soportado **`1900-01-01` a `2050-12-31`**.
 * **Códigos de Estado HTTP:**
   * `200 OK`: Cálculo o consulta exitosa.
-  * `422 Unprocessable Entity`: Parámetros fuera de rango (latitud fuera de límites, resolución inválida, menos de 2 escenarios en `/compare`, etc.).
-  * `500 Internal Server Error` / `503 Service Unavailable`: Falla al procesar datasets LOLA/SPICE o indisponibilidad de base de datos.
+  * `400 Bad Request`: JSON malformado o ausencia de campos obligatorios del payload (`ERR_INVALID_PAYLOAD`).
+  * `404 Not Found`: Ruta o recurso inexistente (`ERR_NOT_FOUND`).
+  * `422 Unprocessable Entity`: Parámetros fuera de rango o regla de dominio inválida (`ERR_INVALID_COORDINATES`, `ERR_DATE_OUT_OF_RANGE`, `ERR_SCENARIO_LIMIT_EXCEEDED`, `ERR_DUPLICATE_SCENARIOS`, `ERR_INVALID_PAYLOAD`).
+  * `500 Internal Server Error` / `503 Service Unavailable`: Falla al procesar datasets LOLA/SPICE o indisponibilidad de base de datos (`ERR_TERRAIN_UNAVAILABLE`, `ERR_UPSTREAM_SERVICE`).
 
-### 1.2 Sistemas de Referencia Espacial
+### 1.2 Formato Estándar de Errores
+Tanto el backend en vivo (`spaceapps-api`) como el mock (`mock/server.js`) emiten el envoltorio unificado `ErrorResponse`:
+
+```json
+{
+  "error": {
+    "code": "ERR_INVALID_COORDINATES",
+    "message": "lat: Input should be greater than or equal to -90",
+    "details": {
+      "field": "lat",
+      "value": -95,
+      "allowed_range": [-90.0, 90.0]
+    }
+  },
+  "detail": "..."
+}
+```
+
+El cliente debe decidir el comportamiento por `error.code` según el catálogo completo en [`docs/06-contrato-y-errores.md`](../docs/06-contrato-y-errores.md).
+
+### 1.3 Sistemas de Referencia Espacial
 
 | Sistema | Ejes / Parámetros | Rango / Convención |
 |---|---|---|
@@ -67,8 +86,8 @@ Catálogo curado de sitios candidatos de aterrizaje (`10` del Polo Sur Artemis I
       "category": "Artemis III",
       "lat": -89.66,
       "lon": 222.7,
-      "polar_x_m": -6975.1,
-      "polar_y_m": 7569.4,
+      "polar_x_m": -6991.8,
+      "polar_y_m": -7576.9,
       "elevation_m": 2048.5,
       "slope_deg": 6.4,
       "nearest_psr_km": 1.8,
@@ -98,8 +117,8 @@ Malla de elevación y pendientes alrededor de una coordenada para el renderizado
   "center": {
     "lat": -89.66,
     "lon": 222.7,
-    "polar_x_m": -6975.1,
-    "polar_y_m": 7569.4,
+    "polar_x_m": -6991.8,
+    "polar_y_m": -7576.9,
     "elevation_m": 2048.5,
     "slope_deg": 6.4
   },
@@ -278,8 +297,8 @@ Retorna polígonos GeoJSON de Regiones Permanentemente Sombreadas (PSRs) en form
   "center": {
     "lat": -89.66,
     "lon": 222.7,
-    "polar_x_m": -6975.1,
-    "polar_y_m": 7569.4
+    "polar_x_m": -6991.8,
+    "polar_y_m": -7576.9
   },
   "radius_km": 25.0,
   "count": 1,
@@ -294,9 +313,9 @@ Retorna polígonos GeoJSON de Regiones Permanentemente Sombreadas (PSRs) en form
         "coordinates": [
           [
             [
-              [-6500.0, 7200.0],
-              [-6400.0, 7100.0],
-              [-6500.0, 7200.0]
+              [-6500.0, -7200.0],
+              [-6400.0, -7100.0],
+              [-6500.0, -7200.0]
             ]
           ]
         ]

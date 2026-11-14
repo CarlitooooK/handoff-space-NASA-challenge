@@ -26,15 +26,6 @@ Quien responde llena **Respuesta**, **Respondió** y la fecha, mueve la entrada 
 
 ## Abiertas
 
-### P-006: Qué se ve de fondo en la consola: globo, escena local o ambos por modo
-
-- **Pregunta:** El Figma (`docs/ideas/console-ui-figma.md`) asume un render siempre de fondo, hoy la escena local de terreno en Three.js. El globo de D-011 (CesiumJS por iframe) también quiere ser fondo. ¿Se acepta la propuesta de `docs/11-integracion-globo-consola.md`: globo en la vista global (sin sitio o modo Explore) y escena local al evaluar, un solo render visible a la vez, y el reparto de responsabilidades de la sección 1?
-- **Contexto:** `docs/11-integracion-globo-consola.md`, carril 1 y 3 de la consola, hueco del iframe en el cascarón.
-- **Bloquea:** no (el iframe y el puente `useGlobeBridge` se pueden construir ya).
-- **Preguntó:** Globo (`lunar-globe-renderer`) · 2026-11-14
-- **Respuesta:** _pendiente_
-- **Respondió:** —
-
 ### P-007: Dirección del Sol y la Tierra para la vista global (sin sitio)
 
 - **Pregunta:** El globo (fase 2) dibuja el Sol y la Tierra en el cielo lunar a partir de `sun_vector_3d` / `earth_vector_3d`, pero hoy solo existen dentro de `POST /evaluate`, que exige un sitio. ¿Puede el backend exponer, para una fecha UTC, las direcciones del Sol y de la Tierra vistas desde el **centro de la Luna** en el marco fijo lunar (`MOON_ME`), por ejemplo `GET /api/v1/ephemeris?utc=…`? Idealmente también la distancia a la Tierra, que hoy el globo fija en la media de 384 400 km.
@@ -57,13 +48,23 @@ Quien responde llena **Respuesta**, **Respondió** y la fecha, mueve la entrada 
 
 ## Respondidas
 
+### P-006: Qué se ve de fondo en la consola: globo, escena local o ambos por modo
+
+- **Pregunta:** El Figma (`docs/ideas/console-ui-figma.md`) asume un render siempre de fondo, hoy la escena local de terreno en Three.js. El globo de D-011 (CesiumJS por iframe) también quiere ser fondo. ¿Se acepta la propuesta de `docs/11-integracion-globo-consola.md`: globo en la vista global (sin sitio o modo Explore) y escena local al evaluar, un solo render visible a la vez, y el reparto de responsabilidades de la sección 1?
+- **Contexto:** `docs/11-integracion-globo-consola.md`, carril 1 y 3 de la consola, hueco del iframe en el cascarón.
+- **Bloquea:** no (el iframe y el puente `useGlobeBridge` se pueden construir ya).
+- **Preguntó:** Globo (`lunar-globe-renderer`) · 2026-11-14
+- **Respuesta:** Se acepta `docs/11`: globo en la vista global (sin sitio o en Explore), escena local al evaluar, un solo render visible a la vez y el reparto de la sección 1 (D-013). Verificado contra la API pública de [`docs/07-ambientes-y-pruebas.md`](docs/07-ambientes-y-pruebas.md): ya entrega lo que necesita el puente sin cambios de contrato. `/sites` da los `13` sitios con `id`, `name`, `category`, `lat` y `lon` (`SET_SITES`). `/evaluate` da `status` para los pines y `timeline[].sun_vector_3d` / `earth_vector_3d` en D-008 (`SET_SUN_LOCAL`, `SET_EARTH_LOCAL`), y acepta cualquier punto de `GLOBE_CLICKED` en `[-90, 90]` (respuestas < 0.5 s). `/psr/nearby` da los polígonos para `SET_PSR`. Notas para cada parte: (1) **Globo:** `polarSouthToLatLon` (`src/geo.ts`) usa `y = −ρ·cos λ`, calibrado con el ejemplo anterior del contrato. Según D-012 es `y = +ρ·cos λ` (`lon = atan2(x, y)`), que es lo que ya devuelve la API pública: sin ese cambio `SET_PSR` dibuja los PSR reflejados (Shackleton cae en lon ≈ 317° en vez de 222.7°). La constante `SAMPLE` de `src/main.ts` tiene la `z` con el signo contrario al de la API (Shackleton el 2026-12-01: `[0.842, 0.029, -0.539]`); la conversión D-008 → ENU de `setSunFromLocal` está bien. (2) **Consola:** `SET_SUN_LOCAL` lleva `{lat, lon, vector}` del sitio evaluado (README del globo). Fuera del Polo Sur (`lat > -80`) el terreno tiene menos resolución: para esos sitios usa `size_km` de 30 a 40 en `/terrain/patch`. `SET_TRAJECTORY` sigue como "Sample data" (no hay endpoint). (3) **Demo:** las teselas vienen de `trek.nasa.gov`; pruébalas en la red del evento. La vista global sin sitio se trata en `P-007`.
+- **Respondió:** Backend / Integración · 2026-11-14 (Frontend confirma al revisar el PR)
+
+
 ### P-001: Formato de error del backend en vivo
 
 - **Pregunta:** `docs/06-contrato-y-errores.md` documenta `{ error: { code, message, details } }` y el mock lo cumple, pero `contracts/openapi.json` solo define `HTTPValidationError` (`{ detail }`) y `FRONTEND_API_GUIDE.md` lee `detail`. ¿Qué formato devuelve el backend en vivo y se emiten los `ERR_*` de `docs/06`?
 - **Contexto:** Manejo de errores en el cliente (`src/core/api/errors.ts`); hoy soporta ambos formatos. Decidimos por `error.code` (AGENTS.md).
 - **Bloquea:** no
 - **Preguntó:** Frontend (luna-landing-navigator-console) · 2026-11-14
-- **Respuesta:** El backend en vivo (`spaceapps-api` en `desktop`, FastAPI) **no** emite el wrapper `{ error: { code, message, details } }`; devuelve el formato estándar de FastAPI `{ "detail": [...] }` (`HTTPValidationError` en validaciones Pydantic) o `{ "detail": "..." }` en errores `HTTPException` (verificado en vivo el `2026-11-14` con `422` en `/terrain/patch` y `/evaluate`). El servidor mock (`mock/server.js`) sí emite `{ error: { code, message, details } }`. Mantener en el cliente (`errors.ts`) el soporte dual (`error.code` cuando exista, o HTTP status + `detail` para el backend en vivo) es lo correcto. Actualizado en `docs/06-contrato-y-errores.md`.
+- **Respuesta:** La API pública (URL en [`docs/07-ambientes-y-pruebas.md`](docs/07-ambientes-y-pruebas.md)) y el mock responden los errores `400`, `404`, `422` y `503` con `{ "error": { "code": "ERR_*", "message": "...", "details": ... } }` (`ErrorResponse` en [`contracts/openapi.json`](contracts/openapi.json)). Decide siempre por `error.code` según el catálogo de [`docs/06-contrato-y-errores.md`](docs/06-contrato-y-errores.md); `detail` puede venir por compatibilidad y solo sirve como respaldo.
 - **Respondió:** Backend / Integración · 2026-11-14
 
 ### P-002: URL base del mock
@@ -72,7 +73,7 @@ Quien responde llena **Respuesta**, **Respondió** y la fecha, mueve la entrada 
 - **Contexto:** `docs/07`, tabla de variables de entorno. Usamos `http://localhost:3000/api/v1`.
 - **Bloquea:** no
 - **Preguntó:** Frontend (luna-landing-navigator-console) · 2026-11-14
-- **Respuesta:** Sí, el valor correcto es `http://localhost:3000/api/v1` (el mock atiende bajo `/api/v1/*` y `apiFetch` concatena `/sites`, `/evaluate`, etc. sobre `VITE_API_BASE_URL`). Corregido en `docs/07-ambientes-y-pruebas.md`.
+- **Respuesta:** Para el mock, sí: `http://localhost:3000/api/v1`. Pero el ambiente para integrar y para la demo es la **API pública HTTPS** de [`docs/07-ambientes-y-pruebas.md`](docs/07-ambientes-y-pruebas.md): pon esa URL base (ya termina en `/api/v1`) en `VITE_API_BASE_URL`. No requiere VPN, Tailscale ni acceso al servidor, y tiene CORS abierto. El mock queda solo para trabajar sin internet. Si la URL pública cambia, solo cambian `docs/07` y tu `.env`.
 - **Respondió:** Backend / Integración · 2026-11-14
 
 ### P-003: Rango de latitud permitido
@@ -81,7 +82,7 @@ Quien responde llena **Respuesta**, **Respondió** y la fecha, mueve la entrada 
 - **Contexto:** Validación de entrada y selección de sitios Apollo en el selector. Hoy no validamos el rango en el cliente.
 - **Bloquea:** no
 - **Preguntó:** Frontend (luna-landing-navigator-console) · 2026-11-14
-- **Respuesta:** La regla vigente en el backend en vivo (`spaceapps-api`) y en `contracts/openapi.json` es **`lat` en `[-90.0, 90.0]`** para `/terrain/patch`, `/evaluate`, `/compare` y `/psr/nearby`: el Polo Sur `[-90.0, -80.0]` usa LOLA `40 m/px` y fuera de esa franja usa el DEM global `ldem_64.tif` (`64 ppd`), habilitando los 3 sitios Apollo de `/sites` (verificado en vivo el `2026-11-14` con Apollo 11 `lat=0.674, lon=23.473` en `/terrain/patch` devolviendo `200 OK`, y `lat=-95` devolviendo `422`). Actualizado en `docs/06-contrato-y-errores.md`; pendiente únicamente ampliar ese rango en `mock/server.js` si se prueban sitios Apollo contra el mock offline.
+- **Respuesta:** `lat` en `[-90.0, 90.0]` y `lon` en `[-180.0, 360.0]` para `/terrain/patch`, `/evaluate`, `/compare` y `/psr/nearby`, igual en la API pública y en el mock. `/sites` incluye los sitios Apollo (`apollo-11`, `apollo-15`, `apollo-17`): `13` sitios en la API pública y `8` en el mock. Fuera de rango responde `422` con `ERR_INVALID_COORDINATES`. El Polo Sur (`lat <= -80`) tiene más resolución de terreno que el resto de la Luna.
 - **Respondió:** Backend / Integración · 2026-11-14
 
 ### P-004: Estado real de `mock/`
@@ -90,7 +91,7 @@ Quien responde llena **Respuesta**, **Respondió** y la fecha, mueve la entrada 
 - **Contexto:** Desarrollo local con el mock; aislamos la copia con `.handoff/package.json` (lo escribe `scripts/sync-handoff.sh`).
 - **Bloquea:** no
 - **Preguntó:** Frontend (luna-landing-navigator-console) · 2026-11-14
-- **Respuesta:** Sí: `mock/server.js` está implementado y funcional. Se actualizó `contexto-sesiones/iniciativas/handoff-api-frontend/HANDOFF.md` para alinearlo con `README.md` y se documentó en `mock/README.md` y `docs/07-ambientes-y-pruebas.md` que `mock/server.js` es CommonJS y requiere ejecutarse fuera de un paquete ESM (`"type": "module"`) o con un `package.json` local `{"type": "commonjs"}`.
+- **Respuesta:** Sí: el mock está operativo y alineado al contrato v1.1 (`8` sitios, `lat [-90.0, 90.0]`, fechas `1900..2050`, `ErrorResponse`). [`mock/package.json`](mock/package.json) declara `{"type": "commonjs"}` para que no falle desde proyectos ESM. Es para trabajar sin internet; la integración se hace contra la API pública (`P-002`). Se cerró la iniciativa duplicada `handoff-api-frontend/` (se conserva su historial); el estado vive en [`contexto-sesiones/iniciativas/lunar-landing-navigator/HANDOFF.md`](contexto-sesiones/iniciativas/lunar-landing-navigator/HANDOFF.md).
 - **Respondió:** Backend / Integración · 2026-11-14
 
 ### P-005: Dependencia de `openapi-typescript` con TypeScript 7
@@ -99,5 +100,5 @@ Quien responde llena **Respuesta**, **Respondió** y la fecha, mueve la entrada 
 - **Contexto:** Generación de tipos (`npm run gen:types`). Hoy se ejecuta vía `npx`.
 - **Bloquea:** no
 - **Preguntó:** Frontend (luna-landing-navigator-console) · 2026-11-14
-- **Respuesta:** Se acepta y recomienda ejecutarlo vía `npx` bajo demanda sin añadir `openapi-typescript` a `package.json`, para no forzar un downgrade de TypeScript en el scaffold de Vite. Documentado en `docs/07-ambientes-y-pruebas.md`.
+- **Respuesta:** Sí, ejecútalo con `npx openapi-typescript contracts/openapi.json -o src/types/api.d.ts` bajo demanda, sin instalarlo en `package.json` ni bajar TypeScript. También puedes generarlo desde el esquema en vivo: `/openapi.json` sobre la URL pública de [`docs/07-ambientes-y-pruebas.md`](docs/07-ambientes-y-pruebas.md). Ambos incluyen `ErrorResponse` y `ErrorDetail`.
 - **Respondió:** Backend / Integración · 2026-11-14

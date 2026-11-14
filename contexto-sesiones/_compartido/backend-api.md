@@ -2,10 +2,10 @@
 
 API REST de FastAPI en `desktop` que sirve topografía LOLA multi-resolución, polígonos PSR de PostGIS, horizonte topográfico 360° y efemérides SPICE de Sol y Tierra para el Frontend 2D/3D. Documento transversal: lo que no cambia entre sesiones.
 
-Verificado el `2026-11-14` consultando `GET /api/v1/health`, `422` en `/terrain/patch` y `/evaluate`, y `200 OK` en `/terrain/patch` para Apollo 11 (`lat=0.674, lon=23.473`), además de leer `contracts/openapi.json` y `FRONTEND_API_GUIDE.md`.
+Verificado el `2026-11-14` consultando en vivo `/api/v1/health`, `200 OK` en Apollo 11 `/terrain/patch` (`lat=0.674, lon=23.473`), errores unificados `{ error: { code, message, details } }` (`400`/`404`/`422`), `14/14` tests unitarios del motor en `spaceapps-api`, y regenerando `contracts/openapi.json`.
 
 ## Dónde vive
-- **Servidor en vivo (`desktop`):** Contenedores Docker `spaceapps-api`, `spaceapps-postgres`, `spaceapps-cloudflared`. Ver URLs activas (túnel HTTPS y Tailscale) en [`docs/07-ambientes-y-pruebas.md`](../../docs/07-ambientes-y-pruebas.md).
+- **Servidor en vivo (`desktop`):** Contenedores Docker `spaceapps-api`, `spaceapps-postgres`, `spaceapps-cloudflared`, más stack de CI/CD `spaceapps-woodpecker-server`, `spaceapps-woodpecker-agent` y `spaceapps-ci-cloudflared`. Ver URLs activas (túnel HTTPS y Tailscale) en [`docs/07-ambientes-y-pruebas.md`](../../docs/07-ambientes-y-pruebas.md).
 - **Repo paralelo `AxelT456/lunar_landing_site_navigator_api` (`64cdae2`):** Scaffolding FastAPI + Pydantic v2 (`app/api/`, `app/schemas/`, `app/domain/`, `app/core/`) con lógica sintética en memoria (`app/infrastructure/` vacío; sin `rasterio`, `skyfield` ni `psycopg`) acotado a `lat [-90, -80]` y `10` sitios. **No** es el servicio productivo que corre en `desktop`.
 - **Cómo probarlo:** ver comandos `curl` y `npx openapi-typescript` en [`docs/07-ambientes-y-pruebas.md`](../../docs/07-ambientes-y-pruebas.md).
 
@@ -29,12 +29,12 @@ Verificado el `2026-11-14` consultando `GET /api/v1/health`, `422` en `/terrain/
 - Ambientes y variables recomendadas: `docs/07-ambientes-y-pruebas.md`
 
 ## Cosas que muerden
-- **Formato de errores distinto al mock (`P-001`):** El backend en vivo (FastAPI) devuelve `{ detail: ... }` (`HTTPValidationError` o string), no `{ error: { code, message, details } }` como `mock/server.js`. Ver [`docs/06-contrato-y-errores.md`](../../docs/06-contrato-y-errores.md).
+- **Formato de errores unificado (`P-001` resuelto):** Tanto el backend en vivo (`spaceapps-api`, FastAPI) como `mock/server.js` emiten `{ error: { code, message, details } }` (`ErrorResponse` en `contracts/openapi.json`; `spaceapps-api` conserva además `detail` por compatibilidad). Decidir el manejo de errores por `error.code` (ver [`docs/06-contrato-y-errores.md`](../../docs/06-contrato-y-errores.md)).
 - **Subdominio efímero de Cloudflare Quick Tunnel:** Si `spaceapps-cloudflared` o `desktop` se reinician, cambia el subdominio `*.trycloudflare.com`. Siempre leer la URL base desde `.env`, nunca hardcodearla en componentes (ver [`docs/07-ambientes-y-pruebas.md`](../../docs/07-ambientes-y-pruebas.md)).
-- **Parámetro `resolution` en `/terrain/patch`:** Solo acepta `64`, `128` o `256`; cualquier otro entero devuelve `422 Unprocessable Entity`.
+- **Parámetro `resolution` en `/terrain/patch`:** Solo acepta `64`, `128` o `256`; cualquier otro entero devuelve `422 Unprocessable Entity` (`ERR_INVALID_PAYLOAD`).
 - **Alineación 3D en Three.js:** `grid.elevations_m` viene de Norte (`-Z`) a Sur (`+Z`) y Oeste (`-X`) a Este (`+X`). Requiere `geometry.rotateX(-Math.PI / 2)` en `THREE.PlaneGeometry` para coincidir 1:1 con `[+X Este, +Y Arriba, -Z Norte]` de `sun_vector_3d` y `earth_vector_3d`.
 - **Eje Y en mapa 2D polar:** `+Y` en `polar_y_m` apunta hacia `0°` (hacia la Tierra). En `<svg>`/`<canvas>` debe invertirse (`screenY = cy - polar_y_m * scale`).
-- **Mínimo/máximo en `/compare`:** Requiere entre `2` y `5` escenarios (`422` si se envían menos de 2 o más de 5).
+- **Mínimo/máximo y unicidad en `/compare`:** Requiere entre `2` y `5` escenarios (`ERR_SCENARIO_LIMIT_EXCEEDED`) y sin escenarios duplicados (`ERR_DUPLICATE_SCENARIOS`).
 
 ## Seguridad
 - La API es pública de solo lectura/cálculo para datos abiertos NASA; no maneja tokens de usuario ni API keys privadas.

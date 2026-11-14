@@ -6,7 +6,7 @@
 
 ## En una línea
 
-Infraestructura de especificación (10 documentos en `docs/`), contrato canónico de API (`contracts/lunar-landing-api-contract.md`) y servidor mock autónomo (`mock/server.js`) finalizados; el equipo de frontend está 100% desbloqueado para construir el visor 3D y dashboard de forma desacoplada.
+Infraestructura contractual (10 documentos en `docs/`, contrato `contracts/lunar-landing-api-contract.md` v1.1 + `contracts/openapi.json`, guía `FRONTEND_API_GUIDE.md`), servidor mock (`mock/server.js` + `mock/package.json`) y backend API en vivo (`spaceapps-api` en `desktop`) unificados y listos para integrar con `frontend-console`.
 
 ---
 
@@ -15,39 +15,39 @@ Infraestructura de especificación (10 documentos en `docs/`), contrato canónic
 | Pieza | Estado |
 | --- | --- |
 | **Documentación técnica y contexto (`docs/00` a `docs/10`)** | Hecho |
-| **Contrato de API formal (`contracts/lunar-landing-api-contract.md`)** | Hecho (v1.0 congelado) |
-| **Servidor Mock Zero-Dependency (`mock/server.js`)** | Hecho (Node.js nativo en puerto 3000) |
-| **Visor 3D Topográfico y Célico (Three.js / WebGL)** | Desbloqueado · Listo para maquetación |
-| **Dashboard UI, KPIs y Timeline Slider (60 FPS)** | Desbloqueado · Listo para maquetación |
-| **Motor científico SPICE/Horizons & LOLA DEM backend** | Desbloqueado · Desarrollo desacoplado |
+| **Contrato de API formal (`contracts/` + `openapi.json`)** | Hecho (v1.1 alineado con backend y mock) |
+| **Backend API REST en vivo (`spaceapps-api` en `desktop` + túnel HTTPS)** | Hecho (6 endpoints, `13` sitios, `ErrorResponse` unificado) |
+| **Stack de CI/CD en `desktop` (Woodpecker CI + `spaceapps-ci-cloudflared`)** | Listo (pendiente conectar webhooks de repos GitHub) |
+| **Servidor Mock Zero-Dependency (`mock/server.js` + `mock/package.json`)** | Hecho (CommonJS en puerto 3000, `8` sitios, `lat [-90, 90]`) |
+| **Consola Frontend (`luna-landing-navigator-console`)** | En curso: fase 1 mockeada completa, ver [`frontend-console`](../frontend-console/HANDOFF.md) |
 | **Guion de Pitch, Video y AI Tool Disclosure** | Desbloqueado · En curso |
 
 ---
 
 ## Pendientes (en orden de valor)
 
-1. **Lienzo 3D en Three.js (`web/3d-viewer`):** Generar la malla a partir de `elevations_m`, colorear con mapa de pendientes `slopes_deg`, posicionar `DirectionalLight` según `sun_vector_3d` y proyectar sombras rasantes sobre el relieve.
-2. **Timeline Slider y scrubbing en memoria (`web/timeline`):** Vincular el slider interactivo para que recorra el arreglo en memoria `timeline[]` a 60 FPS actualizando los contadores de tiempo regresivo a ocaso (*sunset*) y *earthset*.
-3. **Selector y Mapa Polar 2D (`web/polar-map`):** Proyección polar estereográfica con marcadores de sitios curados (`GET /api/v1/sites`) y polígonos GeoJSON de sombra permanente (`GET /api/v1/psr/nearby`).
-4. **Modal de Comparación de Escenarios (`web/compare`):** Tabla comparativa de 2 a 5 alternativas con semáforo GO/NO-GO alimentada por `POST /api/v1/compare`.
+1. **Integración en vivo de Frontend y Fase 2 (`luna-landing-navigator-console`):** Verificación visual del visor 3D, prueba contra la URL HTTPS en vivo de [`docs/07-ambientes-y-pruebas.md`](../../../docs/07-ambientes-y-pruebas.md), perfil 2D de horizonte, capa PSR (`/psr/nearby`), comparador (`/compare`) y regeneración de tipos si se requiere `ErrorResponse`. Detalle en [`frontend-console/HANDOFF.md`](../frontend-console/HANDOFF.md).
+2. **Integrar el PR de alineación de este repo** (contrato v1.1, mock, `PREGUNTAS.md`, D-012) y regenerar `api.d.ts` en frontend si consume `ErrorResponse` desde `contracts/openapi.json`.
+3. **Backend oficial (`AxelT456/lunar_landing_site_navigator_api`) antes de reemplazar a `spaceapps-api`:** ya tiene la proyección LOLA (`#2`) y el seed de PostGIS (`#1`), pero aún no cumple el contrato en dos puntos: responde errores `{ detail }` en lugar de `ErrorResponse` (`P-001`) y rechaza `lat > -80` (`P-003`). Tampoco lee la DB (`DATABASE_URL`) ni sirve el catálogo de `landing_sites`. Hasta cerrarlo, el ambiente en vivo de [`docs/07`](../../../docs/07-ambientes-y-pruebas.md) sigue siendo `spaceapps-api`.
+4. **Conectar pipelines en Woodpecker CI:** conectar `.woodpecker.yml` del backend oficial para desplegarlo en `desktop` (red `spaceapps-net`, junto a la DB) solo después del punto 3.
 5. **Entregables de Comunicación:** Grabación de demo interactiva (video ≤ 2 minutos) y redacción del *AI Tool Disclosure* conforme a la rúbrica oficial de NASA Space Apps.
 
 ---
 
 ## Cómo retomar
 
-1. Lee [`CONOCIMIENTO.md`](file:///Users/axeltapia/personal/NASA/handoff-space-NASA-challenge/contexto-sesiones/iniciativas/lunar-landing-navigator/CONOCIMIENTO.md) y [`docs/02-arquitectura.md`](file:///Users/axeltapia/personal/NASA/handoff-space-NASA-challenge/docs/02-arquitectura.md).
-2. Levanta el servidor mock local:
+1. Lee [`CONOCIMIENTO.md`](CONOCIMIENTO.md), [`../../_compartido/backend-api.md`](../../_compartido/backend-api.md) y [`../../../docs/07-ambientes-y-pruebas.md`](../../../docs/07-ambientes-y-pruebas.md).
+2. Para desarrollo offline con el mock local (ya incluye `mock/package.json` CommonJS):
    ```bash
    node mock/server.js
    ```
-   (Escucha en `http://localhost:3000` con CORS habilitado).
-3. Conecta el cliente web apuntando las llamadas REST a `http://localhost:3000/api/v1/...`.
-4. Antes de modificar endpoints o tipos de datos, consulta [`PREGUNTAS.md`](file:///Users/axeltapia/personal/NASA/handoff-space-NASA-challenge/PREGUNTAS.md) y [`contracts/lunar-landing-api-contract.md`](file:///Users/axeltapia/personal/NASA/handoff-space-NASA-challenge/contracts/lunar-landing-api-contract.md).
+   (Escucha en `http://localhost:3000`, base `/api/v1`, con CORS habilitado).
+3. Para apuntar al backend real o regenerar tipos con `contracts/openapi.json`, sigue las variables y comandos de [`../../../docs/07-ambientes-y-pruebas.md`](../../../docs/07-ambientes-y-pruebas.md).
+4. Antes de modificar endpoints o tipos de datos, consulta [`../../../PREGUNTAS.md`](../../../PREGUNTAS.md) y [`../../../contracts/lunar-landing-api-contract.md`](../../../contracts/lunar-landing-api-contract.md).
 
 ---
 
 ## Notas
 
-- El servidor mock provee elevaciones, pendientes y vectores astronómicos matemáticamente coherentes con el relieve del polo sur lunar. No requiere instalación de paquetes npm.
-- Todo desarrollo de interfaz debe manejar errores basándose exclusivamente en `error.code` según la matriz definida en [`docs/06-contrato-y-errores.md`](file:///Users/axeltapia/personal/NASA/handoff-space-NASA-challenge/docs/06-contrato-y-errores.md).
+- Tanto el backend en vivo (`spaceapps-api`) como `mock/server.js` aceptan `lat` en `[-90.0, 90.0]` (`13` sitios en backend en vivo; `8` sitios en mock incluyendo Apollo 11, 15 y 17) y fechas UTC entre `1900` y `2050`.
+- Todo desarrollo de interfaz debe manejar errores basándose exclusivamente en `error.code` (`ErrorResponse`) según la matriz definida en [`../../../docs/06-contrato-y-errores.md`](../../../docs/06-contrato-y-errores.md).
