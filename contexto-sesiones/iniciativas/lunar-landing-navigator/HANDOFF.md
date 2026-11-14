@@ -27,9 +27,10 @@ Infraestructura contractual (10 documentos en `docs/`, contrato `contracts/lunar
 ## Pendientes (en orden de valor)
 
 1. **Integración en vivo de Frontend y Fase 2 (`luna-landing-navigator-console`):** Verificación visual del visor 3D, prueba contra la URL HTTPS en vivo de [`docs/07-ambientes-y-pruebas.md`](../../../docs/07-ambientes-y-pruebas.md), perfil 2D de horizonte, capa PSR (`/psr/nearby`), comparador (`/compare`) y regeneración de tipos si se requiere `ErrorResponse`. Detalle en [`frontend-console/HANDOFF.md`](../frontend-console/HANDOFF.md).
-2. **Revisión y commit de cambios pendientes en este repo:** Validar el working tree local antes de autorizar commit/push y regenerar `api.d.ts` en frontend si consume `ErrorResponse` desde `contracts/openapi.json`.
-3. **Conectar pipelines en Woodpecker CI:** Una vez definidos los repositorios finales de backend/frontend en GitHub, conectar `.woodpecker.yml` para despliegue automático en `desktop`. (Nota: `AxelT456/lunar_landing_site_navigator_api` `64cdae2` sigue siendo solo scaffolding en memoria con `app/infrastructure/` vacío; la API productiva actual vive en `desktop`.)
-4. **Entregables de Comunicación:** Grabación de demo interactiva (video ≤ 2 minutos) y redacción del *AI Tool Disclosure* conforme a la rúbrica oficial de NASA Space Apps.
+2. **Integrar el PR de alineación de este repo** (contrato v1.1, mock, `PREGUNTAS.md`, D-012) y regenerar `api.d.ts` en frontend si consume `ErrorResponse` desde `contracts/openapi.json`.
+3. **Backend oficial (`AxelT456/lunar_landing_site_navigator_api`) antes de reemplazar a `spaceapps-api`:** ya tiene la proyección LOLA (`#2`) y el seed de PostGIS (`#1`), pero aún no cumple el contrato en dos puntos: responde errores `{ detail }` en lugar de `ErrorResponse` (`P-001`) y rechaza `lat > -80` (`P-003`). Tampoco lee la DB (`DATABASE_URL`) ni sirve el catálogo de `landing_sites`. Hasta cerrarlo, el ambiente en vivo de [`docs/07`](../../../docs/07-ambientes-y-pruebas.md) sigue siendo `spaceapps-api`.
+4. **Conectar pipelines en Woodpecker CI:** conectar `.woodpecker.yml` del backend oficial para desplegarlo en `desktop` (red `spaceapps-net`, junto a la DB) solo después del punto 3.
+5. **Entregables de Comunicación:** Grabación de demo interactiva (video ≤ 2 minutos) y redacción del *AI Tool Disclosure* conforme a la rúbrica oficial de NASA Space Apps.
 
 ---
 

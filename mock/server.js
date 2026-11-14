@@ -15,6 +15,7 @@ const http = require('http');
 const url = require('url');
 
 const PORT = parseInt(process.env.PORT || '3000', 10);
+const MOON_RADIUS_M = 1737400.0;
 
 // ============================================================================
 // Curated Polar Sites Catalog
@@ -26,8 +27,8 @@ const CURATED_SITES = [
     category: 'Artemis III',
     lat: -89.66,
     lon: 222.7,
-    polar_x_m: -6975.1,
-    polar_y_m: 7569.4,
+    polar_x_m: -6991.8,
+    polar_y_m: -7576.9,
     elevation_m: 2048.5,
     slope_deg: 6.4,
     nearest_psr_km: 1.8,
@@ -39,8 +40,8 @@ const CURATED_SITES = [
     category: 'Artemis III / CLPS',
     lat: -85.99,
     lon: 357.2,
-    polar_x_m: 23512.0,
-    polar_y_m: -81204.0,
+    polar_x_m: -5942.4,
+    polar_y_m: 121501.1,
     elevation_m: 5020.0,
     slope_deg: 8.2,
     nearest_psr_km: 14.2,
@@ -52,8 +53,8 @@ const CURATED_SITES = [
     category: 'Artemis III Candidate',
     lat: -87.40,
     lon: 354.8,
-    polar_x_m: 12450.0,
-    polar_y_m: -42100.0,
+    polar_x_m: -7146.8,
+    polar_y_m: 78529.7,
     elevation_m: -320.0,
     slope_deg: 7.1,
     nearest_psr_km: 0.8,
@@ -65,8 +66,8 @@ const CURATED_SITES = [
     category: 'Artemis III Candidate',
     lat: -84.50,
     lon: 85.6,
-    polar_x_m: 82140.0,
-    polar_y_m: 115200.0,
+    polar_x_m: 166414.7,
+    polar_y_m: 12804.9,
     elevation_m: 1250.0,
     slope_deg: 5.8,
     nearest_psr_km: 6.5,
@@ -78,8 +79,8 @@ const CURATED_SITES = [
     category: 'CLPS / Robotic Lander',
     lat: -88.80,
     lon: 124.0,
-    polar_x_m: -18400.0,
-    polar_y_m: 31200.0,
+    polar_x_m: 30168.1,
+    polar_y_m: -20348.7,
     elevation_m: 1850.0,
     slope_deg: 9.1,
     nearest_psr_km: 3.2,
@@ -136,21 +137,21 @@ const PSR_DATABASE = [
     area_km2: 182.4,
     lat: -89.67,
     lon: 129.78,
-    polar_x_m: -6500.0,
-    polar_y_m: 7200.0,
+    polar_x_m: 7690.2,
+    polar_y_m: -6402.7,
     geometry: {
       type: 'MultiPolygon',
       coordinates: [
         [
           [
-            [-6500.0, 7200.0],
-            [-6400.0, 7500.0],
-            [-6100.0, 7800.0],
-            [-5800.0, 7600.0],
-            [-5700.0, 7100.0],
-            [-6000.0, 6800.0],
-            [-6400.0, 6900.0],
-            [-6500.0, 7200.0]
+            [7690.2, -6402.7],
+            [7790.2, -6102.7],
+            [8090.2, -5802.7],
+            [8390.2, -6002.7],
+            [8490.2, -6502.7],
+            [8190.2, -6802.7],
+            [7790.2, -6702.7],
+            [7690.2, -6402.7]
           ]
         ]
       ]
@@ -162,19 +163,19 @@ const PSR_DATABASE = [
     area_km2: 245.8,
     lat: -87.45,
     lon: 355.20,
-    polar_x_m: 12000.0,
-    polar_y_m: -41500.0,
+    polar_x_m: -6471.4,
+    polar_y_m: 77066.1,
     geometry: {
       type: 'MultiPolygon',
       coordinates: [
         [
           [
-            [11500.0, -41000.0],
-            [12500.0, -40800.0],
-            [13200.0, -41800.0],
-            [12800.0, -42500.0],
-            [11800.0, -42200.0],
-            [11500.0, -41000.0]
+            [-6971.4, 77566.1],
+            [-5971.4, 77766.1],
+            [-5271.4, 76766.1],
+            [-5671.4, 76066.1],
+            [-6671.4, 76366.1],
+            [-6971.4, 77566.1]
           ]
         ]
       ]
@@ -186,18 +187,18 @@ const PSR_DATABASE = [
     area_km2: 320.1,
     lat: -88.10,
     lon: 45.30,
-    polar_x_m: 38000.0,
-    polar_y_m: 21000.0,
+    polar_x_m: 40956.0,
+    polar_y_m: 40529.4,
     geometry: {
       type: 'MultiPolygon',
       coordinates: [
         [
           [
-            [37500.0, 20500.0],
-            [38800.0, 21200.0],
-            [39200.0, 22000.0],
-            [38100.0, 21800.0],
-            [37500.0, 20500.0]
+            [40456.0, 40029.4],
+            [41756.0, 40729.4],
+            [42156.0, 41529.4],
+            [41056.0, 41329.4],
+            [40456.0, 40029.4]
           ]
         ]
       ]
@@ -209,18 +210,18 @@ const PSR_DATABASE = [
     area_km2: 198.6,
     lat: -87.30,
     lon: 77.00,
-    polar_x_m: 65000.0,
-    polar_y_m: 18000.0,
+    polar_x_m: 79789.4,
+    polar_y_m: 18420.8,
     geometry: {
       type: 'MultiPolygon',
       coordinates: [
         [
           [
-            [64500.0, 17500.0],
-            [65800.0, 18200.0],
-            [66000.0, 19000.0],
-            [64900.0, 18700.0],
-            [64500.0, 17500.0]
+            [79289.4, 17920.8],
+            [80589.4, 18620.8],
+            [80789.4, 19420.8],
+            [79689.4, 19120.8],
+            [79289.4, 17920.8]
           ]
         ]
       ]
@@ -231,6 +232,19 @@ const PSR_DATABASE = [
 // ============================================================================
 // Scientific Helper Functions
 // ============================================================================
+
+/**
+ * Projects lat/lon to LOLA south polar stereographic metres
+ * (+proj=stere +lat_0=-90 +lon_0=0 +R=1737400): +X toward 90° E, +Y toward 0° E.
+ */
+function latLonToPolarXY(lat, lon) {
+  const r = 2.0 * MOON_RADIUS_M * Math.tan(((90.0 + lat) * Math.PI) / 360.0);
+  const lonRad = (lon * Math.PI) / 180.0;
+  return [
+    parseFloat((r * Math.sin(lonRad)).toFixed(1)),
+    parseFloat((r * Math.cos(lonRad)).toFixed(1))
+  ];
+}
 
 /**
  * Validates lunar coordinates across the full Moon (-90.0 to 90.0 lat, -180.0 to 360.0 lon).
@@ -669,8 +683,8 @@ const server = http.createServer(async (req, res) => {
         center: {
           lat,
           lon,
-          polar_x_m: parseFloat((-6975.1 * (lat / -89.66)).toFixed(1)),
-          polar_y_m: parseFloat((7569.4 * (lon / 222.7)).toFixed(1)),
+          polar_x_m: latLonToPolarXY(lat, lon)[0],
+          polar_y_m: latLonToPolarXY(lat, lon)[1],
           elevation_m: grid.elevations_m[Math.floor(grid.elevations_m.length / 2)],
           slope_deg: grid.slopes_deg[Math.floor(grid.slopes_deg.length / 2)]
         },
@@ -836,8 +850,8 @@ const server = http.createServer(async (req, res) => {
         center: {
           lat,
           lon,
-          polar_x_m: parseFloat((-6975.1 * (lat / -89.66)).toFixed(1)),
-          polar_y_m: parseFloat((7569.4 * (lon / 222.7)).toFixed(1))
+          polar_x_m: latLonToPolarXY(lat, lon)[0],
+          polar_y_m: latLonToPolarXY(lat, lon)[1]
         },
         radius_km: radiusKm,
         count: nearbyPsrs.length,

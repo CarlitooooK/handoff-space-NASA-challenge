@@ -86,8 +86,8 @@ Catálogo curado de sitios candidatos de aterrizaje (`10` del Polo Sur Artemis I
       "category": "Artemis III",
       "lat": -89.66,
       "lon": 222.7,
-      "polar_x_m": -6975.1,
-      "polar_y_m": 7569.4,
+      "polar_x_m": -6991.8,
+      "polar_y_m": -7576.9,
       "elevation_m": 2048.5,
       "slope_deg": 6.4,
       "nearest_psr_km": 1.8,
@@ -117,8 +117,8 @@ Malla de elevación y pendientes alrededor de una coordenada para el renderizado
   "center": {
     "lat": -89.66,
     "lon": 222.7,
-    "polar_x_m": -6975.1,
-    "polar_y_m": 7569.4,
+    "polar_x_m": -6991.8,
+    "polar_y_m": -7576.9,
     "elevation_m": 2048.5,
     "slope_deg": 6.4
   },
@@ -297,8 +297,8 @@ Retorna polígonos GeoJSON de Regiones Permanentemente Sombreadas (PSRs) en form
   "center": {
     "lat": -89.66,
     "lon": 222.7,
-    "polar_x_m": -6975.1,
-    "polar_y_m": 7569.4
+    "polar_x_m": -6991.8,
+    "polar_y_m": -7576.9
   },
   "radius_km": 25.0,
   "count": 1,
@@ -313,9 +313,9 @@ Retorna polígonos GeoJSON de Regiones Permanentemente Sombreadas (PSRs) en form
         "coordinates": [
           [
             [
-              [-6500.0, 7200.0],
-              [-6400.0, 7100.0],
-              [-6500.0, 7200.0]
+              [-6500.0, -7200.0],
+              [-6400.0, -7100.0],
+              [-6500.0, -7200.0]
             ]
           ]
         ]
