@@ -5,4 +5,4 @@ Un trabajo con inicio y fin (una funcionalidad, un análisis, una migración, un
 ## Activas y completadas
 
 - [`lunar-landing-navigator/`](lunar-landing-navigator/HANDOFF.md) — Infraestructura de handoff, documentación de 10 guías, contrato de API y servidor mock autónomo para el reto NASA Space Apps.
-
+- [`frontend-console/`](frontend-console/HANDOFF.md) — Consola web React (dashboard, visor 3D y timeline) construida contra el contrato y el mock.

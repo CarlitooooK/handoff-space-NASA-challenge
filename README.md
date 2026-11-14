@@ -18,7 +18,7 @@ Herramienta intuitiva para evaluar y comparar rápidamente sitios y fechas de at
 | Contrato de API (`contracts/lunar-landing-api-contract.md` + `contracts/openapi.json`) | Listo (v1.0 congelado) |
 | Guía de Consumo Frontend (`FRONTEND_API_GUIDE.md`) | Lista |
 | Servidor mock autónomo zero-dependency (`mock/`) | Listo (`mock/server.js` en puerto 3000) |
-| Frontend (Visor 2D/3D & Dashboard) | Desbloqueado (listo para construir contra el mock o API en vivo) |
+| Frontend (Visor 2D/3D & Dashboard) | En curso: fase 1 mockeada, ver [`frontend-console`](contexto-sesiones/iniciativas/frontend-console/HANDOFF.md) |
 | Handoff de iniciativas de sesión | Activo ([`contexto-sesiones/`](contexto-sesiones/README.md)) |
 
 ## Estructura del Repositorio: Handoff vs. Contexto de Sesiones
@@ -66,6 +66,7 @@ El estado del trabajo y lo aprendido en cada sesión viven en [`contexto-sesione
 - **Iniciativas activas:**
   - [`contexto-sesiones/iniciativas/lunar-landing-navigator/HANDOFF.md`](contexto-sesiones/iniciativas/lunar-landing-navigator/HANDOFF.md) — Infraestructura general del handoff, mock server y documentación.
   - [`contexto-sesiones/iniciativas/handoff-api-frontend/HANDOFF.md`](contexto-sesiones/iniciativas/handoff-api-frontend/HANDOFF.md) — Despliegue de API en vivo, túnel Cloudflare y guía de consumo.
+  - [`contexto-sesiones/iniciativas/frontend-console/HANDOFF.md`](contexto-sesiones/iniciativas/frontend-console/HANDOFF.md) — Consola web React: dashboard, visor 3D y timeline contra el mock/API.
 
 ## Cómo empezar
 
