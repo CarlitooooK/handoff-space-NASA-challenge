@@ -28,6 +28,8 @@ Para mantener la claridad del proyecto, este repositorio separa estrictamente do
 1. **El Handoff (`docs/`, `contracts/`, `mock/`):** Es el **acuerdo técnico y contractual** que define *qué se construye*, bajo qué reglas científicas y cómo se comunican las piezas. Es la fuente de verdad inmutable para quien desarrolla el sistema.
 2. **El Contexto de Sesiones (`contexto-sesiones/`):** Es la **memoria viva y bitácora de trabajo** entre sesiones (desarrolladores o agentes). Documenta el avance (`HISTORIAL.md`), el relevo de tareas (`HANDOFF.md` de la sesión) y lo aprendido (`CONOCIMIENTO.md`).
 
+> **Qué va en cada capa, cuándo se escribe y cómo evitar duplicar:** [`COMO-USAR-ESTE-REPO.md`](COMO-USAR-ESTE-REPO.md). Léelo antes de escribir.
+
 ---
 
 ## 1. El Handoff (Plan Oficial de Documentación)

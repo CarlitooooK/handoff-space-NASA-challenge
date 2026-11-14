@@ -52,6 +52,7 @@ contexto-sesiones/
 - [`../PREGUNTAS.md`](../PREGUNTAS.md): preguntas entre las partes, con respuesta. Si una sesión genera una duda, va ahí y se cita por id (`P-007`).
 - [`../docs/`](../docs/): las reglas estables del proyecto y el acuerdo entre las partes.
 - Este directorio: lo que se **aprendió** y el **estado** del trabajo. No repite `docs/`; lo cita.
+- Para decidir **dónde** escribir cada cosa, en qué momento y cómo no duplicar: [`../COMO-USAR-ESTE-REPO.md`](../COMO-USAR-ESTE-REPO.md).
 
 ## Convenciones
 

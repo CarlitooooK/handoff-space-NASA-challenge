@@ -29,10 +29,14 @@ Si eres un agente que desarrolla `<nombre-del-proyecto>` (la parte `<cliente | a
 
 `<Lista lo que queda fuera de alcance para que nadie lo construya por error. Ver docs/01-alcance.md.>`
 
-## Contexto de sesiones
+## Dónde escribir (no dupliques)
 
-El estado del trabajo y lo aprendido viven en [`contexto-sesiones/`](contexto-sesiones/README.md).
+Este repo tiene dos capas. **Lee [`COMO-USAR-ESTE-REPO.md`](COMO-USAR-ESTE-REPO.md) antes de escribir**; manda sobre este resumen.
 
-- **Al empezar:** lee su README y el `HANDOFF.md` de la iniciativa. Revisa también `PREGUNTAS.md` y `contracts/`.
-- **Al terminar:** actualiza el `HANDOFF.md` (estado y pendientes, con fecha), agrega a `HISTORIAL.md` lo que hiciste y lleva a `_compartido/` lo que sirva fuera de la iniciativa.
-- **Nunca** escribas secretos, tokens, llaves ni datos personales ahí. Separa lo verificado de lo supuesto.
+- **Handoff** (`docs/`, `contracts/`, `mock/`, `PREGUNTAS.md`): el **acuerdo** entre las partes. Solo lo acordado o verificado. Lo edita el dueño del tema.
+- **Contexto de sesiones** ([`contexto-sesiones/`](contexto-sesiones/README.md)): la **memoria** del trabajo: estado, hallazgos, cronología y supuestos marcados como tales. Lo edita quien trabaja la sesión.
+- **Un dato vive en un solo lugar; los demás lo citan** (por ruta o id), nunca lo copian. Busca antes de escribir.
+- **Al empezar:** `git pull --rebase`, lee `contexto-sesiones/README.md` y el `HANDOFF.md` de tu iniciativa, y revisa `PREGUNTAS.md` y `contracts/`.
+- **Al terminar:** reescribe el `HANDOFF.md` de tu iniciativa, agrega arriba en `HISTORIAL.md` y, si aprendiste algo general, súbelo a `_compartido/`.
+- **No** edites `docs/` ni `contracts/` de una parte que no es tuya: pregunta en `PREGUNTAS.md`.
+- **Nunca** secretos, tokens, llaves ni datos personales, en ninguna capa. Separa lo verificado de lo supuesto.
