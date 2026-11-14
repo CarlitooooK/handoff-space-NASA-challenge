@@ -21,7 +21,7 @@ Fase 1 lista: la consola corre completa contra el mock (selector de sitio, evalu
 
 ## Pendientes (en orden de valor)
 1. Verificar visualmente la escena 3D (escala de luces, cámara, exageración vertical) y ajustar.
-2. Probar contra el backend en vivo y resolver `P-001` (formato de error) y `P-003` (rango de latitud).
+2. Probar contra el backend en vivo (errores `{detail}` y sitios Apollo con `lat` fuera de `-90..-80`; ver `docs/06`).
 3. Perfil de horizonte 2D y capa PSR (`GET /psr/nearby`).
 4. Comparador de 2 a 5 escenarios con los errores `ERR_SCENARIO_LIMIT_EXCEEDED` y `ERR_DUPLICATE_SCENARIOS`.
 5. Pistas Gantt, modos de cámara y toggles de capas.
@@ -34,4 +34,4 @@ Fase 1 lista: la consola corre completa contra el mock (selector de sitio, evalu
 
 ## Notas
 - Carriles propuestos en `docs/ideas/frontend-architecture-guide.md`; **la asignación entre personas está sin definir** (se anota en el `CLAUDE.md` de la consola).
-- Preguntas abiertas de esta iniciativa: `P-001` a `P-005`.
+- `P-001` a `P-005` respondidas el 2026-11-14 (ver `PREGUNTAS.md`). El mock aún rechaza `lat` fuera de `[-90,-80]`, así que Apollo no se prueba offline.

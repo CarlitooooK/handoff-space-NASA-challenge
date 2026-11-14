@@ -26,10 +26,11 @@ React 19 + TypeScript + Vite, Tailwind v4, Three.js con React Three Fiber/drei y
 - Backend: `_compartido/backend-api.md`. Mock: `mock/README.md`.
 
 ## Cosas que muerden
-- `mock/server.js` es CommonJS; dentro de un proyecto `"type": "module"` falla con `require is not defined`. La consola aísla su copia con un `package.json` `{"type":"commonjs"}` dentro de `.handoff/` (`P-004`).
+- `mock/server.js` es CommonJS; dentro de un proyecto `"type": "module"` falla con `require is not defined`. La consola aísla su copia con un `package.json` `{"type":"commonjs"}` dentro de `.handoff/` (`P-004`, documentado en `mock/README.md`).
 - `openapi-typescript@7` pide `typescript@^5`; con Vite reciente (TS 7) se ejecuta vía `npx`, sin instalarlo (`P-005`).
 - El mock sirve bajo `/api/v1/*`, aunque `docs/07` da `http://localhost:3000` como base (`P-002`).
 - El mock devuelve `error.code` (formato de `docs/06`), pero `contracts/openapi.json` solo define `{detail}` (`P-001`): el cliente soporta ambos.
+- El mock rechaza `lat` fuera de `[-90,-80]`; el backend en vivo acepta `-90..90` (`P-003`), así que Apollo no se prueba offline.
 - El mock tiene 5 sitios y 4 PSR; el backend en vivo, 13 y 1,531 (ver `docs/07`).
 
 ## Seguridad
