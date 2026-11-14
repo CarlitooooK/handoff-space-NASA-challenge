@@ -67,6 +67,7 @@ Exploraciones conceptuales y sugerencias de diseño que **no** forman parte del 
 El estado del trabajo y lo aprendido en cada sesión viven en [`contexto-sesiones/`](contexto-sesiones/README.md): un índice de iniciativas, conocimiento compartido por componente y bitácoras para continuar el trabajo sin perder contexto. Se lee al empezar una sesión y se actualiza al terminarla.
 - **Iniciativas activas:**
   - [`contexto-sesiones/iniciativas/lunar-landing-navigator/HANDOFF.md`](contexto-sesiones/iniciativas/lunar-landing-navigator/HANDOFF.md) — Infraestructura general del handoff, API en vivo, contratos, mock server y documentación.
+  - [`contexto-sesiones/iniciativas/handoff-api-frontend/HANDOFF.md`](contexto-sesiones/iniciativas/handoff-api-frontend/HANDOFF.md) — Cerrada: guía de consumo y respuestas `P-001`..`P-005`; continúa en `lunar-landing-navigator`.
   - [`contexto-sesiones/iniciativas/frontend-console/HANDOFF.md`](contexto-sesiones/iniciativas/frontend-console/HANDOFF.md) — Consola web React: dashboard, visor 3D y timeline contra el mock/API.
 
 ## Cómo empezar
