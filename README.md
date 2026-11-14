@@ -38,6 +38,10 @@ Todo lo que necesita `<la parte que construye: persona o agente>` para construir
 
 **Simulado** (`mock/`): un servidor de mentira con los mismos cuerpos que el real, para avanzar sin esperar. Ver [`mock/README.md`](mock/README.md).
 
+## Contexto de sesiones
+
+El estado del trabajo y lo aprendido en cada sesión viven en [`contexto-sesiones/`](contexto-sesiones/README.md): un índice de iniciativas, conocimiento compartido por componente y plantillas para crear lo nuevo. Se lee al empezar y se deja al día al terminar.
+
 ## Cómo empezar
 
 1. Leer los documentos 1 a 4.

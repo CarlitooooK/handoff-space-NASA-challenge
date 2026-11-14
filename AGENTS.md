@@ -27,3 +27,11 @@ Si eres un agente que desarrolla `<nombre-del-proyecto>` (la parte `<cliente | a
 ## Qué no hace este proyecto
 
 `<Lista lo que queda fuera de alcance para que nadie lo construya por error. Ver docs/01-alcance.md.>`
+
+## Contexto de sesiones
+
+El estado del trabajo y lo aprendido viven en [`contexto-sesiones/`](contexto-sesiones/README.md).
+
+- **Al empezar:** lee su README y el `HANDOFF.md` de la iniciativa. Revisa también `PREGUNTAS.md` y `contracts/`.
+- **Al terminar:** actualiza el `HANDOFF.md` (estado y pendientes, con fecha), agrega a `HISTORIAL.md` lo que hiciste y lleva a `_compartido/` lo que sirva fuera de la iniciativa.
+- **Nunca** escribas secretos, tokens, llaves ni datos personales ahí. Separa lo verificado de lo supuesto.
