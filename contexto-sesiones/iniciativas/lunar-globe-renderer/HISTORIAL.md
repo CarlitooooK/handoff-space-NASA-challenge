@@ -3,6 +3,7 @@
 Cronología, de lo más nuevo a lo más viejo. Fechas absolutas. No se borra: se agrega.
 
 ## 2026-11-14
+- Se escribió `docs/11-integracion-globo-consola.md` (reparto de responsabilidades y mapa store→mensajes) y se abrió `P-006` para que Frontend lo confirme. Se trajo el PR #1 del Figma (`docs/ideas/console-ui-figma.md`).
 - El código del globo se subió a su propio repo [`luna-render-nasa-space-challenge`](https://github.com/CarlitooooK/luna-render-nasa-space-challenge) (`98ecf5a`, `main`) y se registró en este handoff.
 - Se revisó el prototipo previo (Three.js) en `lunar-globe-renderer`: no compilaba, textura 1K, postMessage sin implementar.
 - Se evaluaron las fuentes de teselas de Moon Trek y se decidió CesiumJS (D-011 en `docs/09-decisiones.md`).

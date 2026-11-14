@@ -26,7 +26,14 @@ Quien responde llena **Respuesta**, **Respondió** y la fecha, mueve la entrada 
 
 ## Abiertas
 
-_Sin preguntas todavía._
+### P-006: Qué se ve de fondo en la consola: globo, escena local o ambos por modo
+
+- **Pregunta:** El Figma (`docs/ideas/console-ui-figma.md`) asume un render siempre de fondo, hoy la escena local de terreno en Three.js. El globo de D-011 (CesiumJS por iframe) también quiere ser fondo. ¿Se acepta la propuesta de `docs/11-integracion-globo-consola.md`: globo en la vista global (sin sitio o modo Explore) y escena local al evaluar, un solo render visible a la vez, y el reparto de responsabilidades de la sección 1?
+- **Contexto:** `docs/11-integracion-globo-consola.md`, carril 1 y 3 de la consola, hueco del iframe en el cascarón.
+- **Bloquea:** no (el iframe y el puente `useGlobeBridge` se pueden construir ya).
+- **Preguntó:** Globo (`lunar-globe-renderer`) · 2026-11-14
+- **Respuesta:** _pendiente_
+- **Respondió:** —
 
 ---
 

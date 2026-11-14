@@ -48,6 +48,7 @@ Para mantener la claridad del proyecto, este repositorio separa estrictamente do
 | 8 | [Pendientes y fases](docs/08-pendientes.md) | Lo que falta, quién lo hace y cómo avanzar mientras tanto |
 | 9 | [Decisiones](docs/09-decisiones.md) | Las decisiones ya tomadas (ADRs) y dónde están escritas |
 | 10 | [Producto y necesidades](docs/10-producto-y-necesidades.md) | Desde quien consume: qué se construye y qué se necesita de la otra parte |
+| 11 | [Integración globo-consola](docs/11-integracion-globo-consola.md) | Reparto de responsabilidades y conexión entre el globo lunar y la consola (propuesta, `P-006`) |
 
 ### Interfaces, Guías y Servidor Simulado
 - **Guía práctica Frontend / IA:** [`FRONTEND_API_GUIDE.md`](FRONTEND_API_GUIDE.md) (URLs activas, cliente `fetch` TypeScript, tipos y snippets Three.js).
