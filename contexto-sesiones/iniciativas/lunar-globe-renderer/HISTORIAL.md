@@ -3,6 +3,7 @@
 Cronología, de lo más nuevo a lo más viejo. Fechas absolutas. No se borra: se agrega.
 
 ## 2026-11-14
+- `P-007` respondida: `GET /api/v1/ephemeris` (contrato v1.2, D-014; guía en `docs/12`). También `GET /api/v1/psr` para las PSR de todo el polo. Ya disponibles en la URL del Backend oficial de `docs/07`.
 - PR #4 de la consola fusionado (`a000db2`). Se añadió `docs/11` §10, la guía de conexión para Frontend (dónde está cada archivo, cómo probarlo, reglas al extender, problemas conocidos y pendientes opcionales).
 - PR #4 abierto en la consola (`feat/globe-bridge` → `main`) con el puente y la escena de alunizaje.
 - Rama `feat/globe-bridge` de la consola subida a `origin` (`b8551d4`). Sin PR todavía. Los dos archivos modificados localmente en esa copia (`.gitignore`, `.handoff-last-sync`) no son de esta iniciativa y no se incluyeron.

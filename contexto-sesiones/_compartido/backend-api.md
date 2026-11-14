@@ -1,4 +1,4 @@
-# Backend API REST v1 (`spaceapps-api`) — conocimiento base
+# Backend API REST v1 — conocimiento base
 
 API REST de FastAPI en `desktop` que sirve topografía LOLA multi-resolución, polígonos PSR de PostGIS, horizonte topográfico 360° y efemérides SPICE de Sol y Tierra para el Frontend 2D/3D. Documento transversal: lo que no cambia entre sesiones.
 
@@ -6,7 +6,8 @@ Verificado el `2026-11-14` consultando en vivo `/api/v1/health`, `200 OK` en Apo
 
 ## Dónde vive
 - **Servidor en vivo (`desktop`):** Contenedores Docker `spaceapps-api`, `spaceapps-postgres`, `spaceapps-cloudflared`, más stack de CI/CD `spaceapps-woodpecker-server`, `spaceapps-woodpecker-agent` y `spaceapps-ci-cloudflared`. Ver URLs activas (túnel HTTPS y Tailscale) en [`docs/07-ambientes-y-pruebas.md`](../../docs/07-ambientes-y-pruebas.md).
-- **Repo paralelo `AxelT456/lunar_landing_site_navigator_api` (`64cdae2`):** Scaffolding FastAPI + Pydantic v2 (`app/api/`, `app/schemas/`, `app/domain/`, `app/core/`) con lógica sintética en memoria (`app/infrastructure/` vacío; sin `rasterio`, `skyfield` ni `psycopg`) acotado a `lat [-90, -80]` y `10` sitios. **No** es el servicio productivo que corre en `desktop`.
+- **Backend oficial `AxelT456/lunar_landing_site_navigator_api`:** desde `#6` (`c254c22`, 2026-11-14) contiene el código del backend de prueba (`app/engine`, `app/routers`, `app/db.py`) más lo de contrato v1.2 (D-014); antes era un esqueleto sintético. Woodpecker CI despliega cada merge a `main` a staging (`spaceapps-api-staging`, publicado por su propio túnel `spaceapps-official-cloudflared`: es la URL "Backend oficial" de `docs/07`) y producción cambia solo al promover un pipeline; la guía está en `docs/DEPLOY.md` de ese repo. Qué versión sirve producción: [`docs/07`](../../docs/07-ambientes-y-pruebas.md).
+- **Backend de prueba (`spaceapps-api`, imagen `backend-spaceapps-api`):** el que sirve hoy la URL pública con contrato v1.1, hasta la primera promoción del oficial.
 - **Cómo probarlo:** ver comandos `curl` y `npx openapi-typescript` en [`docs/07-ambientes-y-pruebas.md`](../../docs/07-ambientes-y-pruebas.md).
 
 ## Arquitectura
@@ -21,6 +22,10 @@ Verificado el `2026-11-14` consultando en vivo `/api/v1/health`, `200 OK` en Apo
 4. `POST /api/v1/evaluate` — Traza horizonte 360°, evalúa trayectoria Sol/Tierra, devuelve `site.status` (`"GO" | "CAUTION" | "NO-GO"`), `summary`, `horizon_profile` y `timeline[]` con `sun_vector_3d` y `earth_vector_3d`.
 5. `POST /api/v1/compare` — Evalúa de `2` a `5` escenarios lado a lado.
 6. `GET /api/v1/psr/nearby` — Devuelve polígonos PSR `MultiPolygon` en metros estereográficos polares sur.
+7. `GET /api/v1/psr` (v1.2) — Catálogo completo de PSRs paginado y simplificado, con un punto interior por polígono.
+8. `GET /api/v1/ephemeris` (v1.2) — Sol y Tierra desde el centro de la Luna en `MOON_ME_DE421` con Skyfield sobre los kernels SPICE; sin kernels responde `503` (no usa el respaldo analítico de `/evaluate`).
+
+En v1.2 `/evaluate` y `/compare` agregan `site.checks` y la caché de evaluaciones en PostGIS usa claves `v2|…` (las `v1|…` del backend de prueba no se mezclan).
 
 ## Dependencias y contratos
 - Especificación funcional: `contracts/lunar-landing-api-contract.md`
@@ -31,6 +36,7 @@ Verificado el `2026-11-14` consultando en vivo `/api/v1/health`, `200 OK` en Apo
 ## Cosas que muerden
 - **Formato de errores unificado (`P-001` resuelto):** Tanto el backend en vivo (`spaceapps-api`, FastAPI) como `mock/server.js` emiten `{ error: { code, message, details } }` (`ErrorResponse` en `contracts/openapi.json`; `spaceapps-api` conserva además `detail` por compatibilidad). Decidir el manejo de errores por `error.code` (ver [`docs/06-contrato-y-errores.md`](../../docs/06-contrato-y-errores.md)).
 - **Subdominio efímero de Cloudflare Quick Tunnel:** Si `spaceapps-cloudflared` o `desktop` se reinician, cambia el subdominio `*.trycloudflare.com`. Siempre leer la URL base desde `.env`, nunca hardcodearla en componentes (ver [`docs/07-ambientes-y-pruebas.md`](../../docs/07-ambientes-y-pruebas.md)).
+- **Respaldo de efemérides en `/evaluate`:** sin kernels SPICE, `/evaluate` consulta JPL Horizons y, si falla, un modelo analítico; `/ephemeris` no usa respaldos.
 - **Parámetro `resolution` en `/terrain/patch`:** Solo acepta `64`, `128` o `256`; cualquier otro entero devuelve `422 Unprocessable Entity` (`ERR_INVALID_PAYLOAD`).
 - **Alineación 3D en Three.js:** `grid.elevations_m` viene de Norte (`-Z`) a Sur (`+Z`) y Oeste (`-X`) a Este (`+X`). Requiere `geometry.rotateX(-Math.PI / 2)` en `THREE.PlaneGeometry` para coincidir 1:1 con `[+X Este, +Y Arriba, -Z Norte]` de `sun_vector_3d` y `earth_vector_3d`.
 - **Eje Y en mapa 2D polar:** `+Y` en `polar_y_m` apunta hacia `0°` (hacia la Tierra). En `<svg>`/`<canvas>` debe invertirse (`screenY = cy - polar_y_m * scale`).
