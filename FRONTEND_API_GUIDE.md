@@ -1,6 +1,6 @@
 # Guía de Consumo API para Frontend — *Lunar Landing Site Navigator*
 
-**Última actualización:** 2026-11-13  
+**Última actualización:** 2026-11-14 (contrato v1.2)  
 **Backend:** FastAPI + PostgreSQL/PostGIS + LOLA DEM Multi-resolución (`40 m/px` Polo Sur + `80 m/px` + Global `64 ppd` `ldem_64.tif` `-90°..+90°`) + SPICE (`de440s.bsp` / `MOON_ME`)  
 **CORS:** Habilitado abierto (`allow_origins=["*"]`) — puedes llamar directo desde `localhost` (`Vite`, `Next.js`, `CRA`) o producción sin proxy adicional.
 
@@ -9,7 +9,7 @@
 ## 1. URLs de Conexión y Cómo Revisar la Documentación
 
 ### 1.1 URL Base (`VITE_API_BASE_URL` / `NEXT_PUBLIC_API_BASE_URL`)
-Las URLs activas de todos los ambientes (Túnel público HTTPS, red interna Tailscale y Mock local) se mantienen como fuente única en [`docs/07-ambientes-y-pruebas.md`](docs/07-ambientes-y-pruebas.md) para evitar duplicar direcciones efímeras.
+Las URLs activas (URL pública HTTPS y mock local) y la versión del contrato que sirve cada una se mantienen como fuente única en [`docs/07-ambientes-y-pruebas.md`](docs/07-ambientes-y-pruebas.md) para evitar duplicar direcciones efímeras.
 
 Define siempre la variable de entorno en `.env.local` tomando el valor vigente de [`docs/07-ambientes-y-pruebas.md`](docs/07-ambientes-y-pruebas.md):
 ```env
@@ -89,7 +89,9 @@ export async function apiFetch<T>(
 
 ---
 
-## 3. Cómo Llamar Cada Endpoint (6 Endpoints)
+## 3. Cómo Llamar Cada Endpoint (8 Endpoints)
+
+> **v1.2:** los campos y endpoints marcados *(v1.2)* son aditivos. La URL del Backend oficial ya los sirve; la de Producción sigue en v1.1 hasta la promoción (ver [`docs/07-ambientes-y-pruebas.md`](docs/07-ambientes-y-pruebas.md)), así que trátalos como opcionales. Flujo, límites y coordenadas de v1.2: [`docs/12-contrato-api-v1.2.md`](docs/12-contrato-api-v1.2.md).
 
 ### 3.1 `GET /api/v1/health` — Estado del Backend y Datasets
 Úsalo al arrancar la app o en un indicador de estado si quieres confirmar conexión.
@@ -152,8 +154,10 @@ const patch = await apiFetch<{
     cell_size_m: number;
     min_elevation_m: number;
     max_elevation_m: number;
-    elevations_m: number[]; // row-major, longitud resolution * resolution
-    slopes_deg: number[];   // row-major, longitud resolution * resolution
+    elevations_m: number[]; // row-major, longitud resolution * resolution (0.1 m)
+    slopes_deg: number[];   // row-major, longitud resolution * resolution (0.01°)
+    source?: "lola_polar" | "lola_global" | "synthetic"; // (v1.2)
+    native_resolution_m?: number | null; // (v1.2) si cell_size_m es menor, el detalle es interpolado
   };
   nearby_psrs: Array<{
     gid: number;
@@ -226,6 +230,16 @@ const evalResult = await apiFetch<{
     nearest_psr_km: number | null;
     status: "GO" | "CAUTION" | "NO-GO";
     reasons: string[];
+    // (v1.2) Mismo veredicto como datos; decide por code/level, muestra message (inglés)
+    checks?: Array<{
+      code: "SLOPE_SAFE" | "SLOPE_MODERATE" | "SLOPE_CRITICAL" | "SUN_HIGH" | "SUN_LIMITED"
+        | "SUN_CRITICAL" | "DTE_AVAILABLE" | "DTE_REDUCED" | "DTE_NONE";
+      level: "ok" | "caution" | "nogo";
+      value: number;
+      threshold: number | null;
+      unit: "deg" | "pct";
+      message: string;
+    }>;
   };
   summary: {
     sun_visible_pct: number;
@@ -302,6 +316,7 @@ const comparison = await apiFetch<{
       nearest_psr_km: number | null;
       status: "GO" | "CAUTION" | "NO-GO";
       reasons: string[];
+      checks?: Array<{ code: string; level: "ok" | "caution" | "nogo"; value: number; threshold: number | null; unit: "deg" | "pct"; message: string }>; // (v1.2)
     };
     summary: {
       sun_visible_pct: number;
@@ -315,6 +330,8 @@ const comparison = await apiFetch<{
       avg_power_factor: number;
       estimated_peak_power_w: number;
     };
+    // (v1.2) solo con include_timeline: true; mismos campos que timeline[] de /evaluate (3.4)
+    timeline?: Array<{ timestamp_utc: string; sun_visible: boolean; earth_visible: boolean; power_factor: number }> | null;
   }>;
 }>("/compare", {
   method: "POST",
@@ -335,6 +352,7 @@ const comparison = await apiFetch<{
     ],
     duration_days: 14.0,
     step_minutes: 120,
+    include_timeline: false, // (v1.2) true para dibujar las pistas de cada escenario
   }),
 });
 ```
@@ -367,6 +385,56 @@ const psrs = await apiFetch<{
   }>;
 }>("/psr/nearby?lat=-89.66&lon=222.7&radius_km=25&limit=50&simplify_m=150");
 ```
+
+---
+
+### 3.7 `GET /api/v1/psr` — Catálogo Completo de PSRs (v1.2)
+Todas las PSRs una sola vez, en páginas, para vistas de todo el polo (el globo). Para un sitio usa `/psr/nearby`.
+
+**Query params:** `simplify_m` (default `500`, `0..5000`), `limit` (default `500`, `1..500`), `offset` (default `0`), `min_area_km2` (default `0`).
+
+```ts
+type PsrPage = {
+  total: number; offset: number; limit: number; count: number; simplify_m: number;
+  psrs: Array<{
+    gid: number;
+    name: string | null;
+    area_km2: number | null;
+    label_point: { polar_x_m: number; polar_y_m: number; lat: number; lon: number }; // punto dentro del polígono
+    geometry: { type: "Polygon" | "MultiPolygon"; coordinates: unknown }; // metros polares (D-012)
+  }>;
+};
+
+async function loadAllPsrs(simplifyM = 500) {
+  const all: PsrPage["psrs"] = [];
+  for (let offset = 0, total = Infinity; offset < total; offset += 500) {
+    const page = await apiFetch<PsrPage>(`/psr?offset=${offset}&limit=500&simplify_m=${simplifyM}`);
+    total = page.total;
+    all.push(...page.psrs);
+  }
+  return all;
+}
+```
+
+---
+
+### 3.8 `GET /api/v1/ephemeris` — Sol y Tierra desde el Centro de la Luna (v1.2)
+Para el cielo de la vista global sin sitio (`P-007`). En la escena local sigue usando `timeline[i].sun_vector_3d` de `/evaluate`.
+
+```ts
+type EphemerisBody = {
+  direction: [number, number, number]; // unitario en MOON_ME: +X lat0/lon0, +Y lon 90°E, +Z polo norte
+  sub_lat_deg: number;
+  sub_lon_deg: number; // 0..360 Este
+  distance_km: number;
+};
+const eph = await apiFetch<{ utc: string; frame: string; sun: EphemerisBody; earth: EphemerisBody }>(
+  `/ephemeris?utc=${encodeURIComponent("2026-12-01T00:00:00Z")}`,
+);
+// 503 ERR_UPSTREAM_SERVICE si el servidor no tiene SPICE: no dibujes el Sol (no hay respaldo aproximado).
+```
+
+> **Caché (v1.2):** `sites`, `terrain/patch`, `psr`, `psr/nearby` y `ephemeris` responden con `Cache-Control: public, max-age=3600`; el navegador las reutiliza sin código extra.
 
 ---
 

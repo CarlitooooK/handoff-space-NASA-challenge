@@ -3,7 +3,7 @@
 /**
  * Lunar Landing Site Navigator — Zero-Dependency Mock Server
  *
- * Implements the complete v1.0 API contract for local frontend development,
+ * Implements the complete v1.2 API contract for local frontend development,
  * offline hackathon demos, and automated testing without external dependencies.
  *
  * Usage:
@@ -379,7 +379,109 @@ function generateTerrainPatch(lat, lon, sizeKm = 12.0, resolution = 128) {
     min_elevation_m: parseFloat(minElev.toFixed(1)),
     max_elevation_m: parseFloat(maxElev.toFixed(1)),
     elevations_m: Array.from(elevations),
-    slopes_deg: Array.from(slopes)
+    slopes_deg: Array.from(slopes),
+    source: 'synthetic',
+    native_resolution_m: null
+  };
+}
+
+/**
+ * GO / CAUTION / NO-GO verdict, Spanish `reasons` and machine-readable `checks`
+ * (contract v1.2, section 2.4), mirroring the backend thresholds.
+ */
+function computeStatusAndChecks(slopeDeg, sunPct, earthPct) {
+  const reasons = [];
+  const checks = [];
+  let nogo = false;
+  let caution = false;
+  const check = (code, level, value, threshold, unit, message) =>
+    checks.push({ code, level, value: parseFloat(Number(value).toFixed(2)), threshold, unit, message });
+  const s1 = slopeDeg.toFixed(1);
+  const p1 = (v) => v.toFixed(1);
+
+  if (slopeDeg > 15.0) {
+    nogo = true;
+    reasons.push(`Pendiente crítica (${s1}° > 15.0° límite máximo de alunizaje)`);
+    check('SLOPE_CRITICAL', 'nogo', slopeDeg, 15.0, 'deg', `Critical slope (${s1}° > 15° landing limit)`);
+  } else if (slopeDeg > 10.0) {
+    caution = true;
+    reasons.push(`Pendiente moderada (${s1}° entre 10° y 15°, requiere control de descenso)`);
+    check('SLOPE_MODERATE', 'caution', slopeDeg, 10.0, 'deg', `Moderate slope (${s1}°, between 10° and 15°); needs descent control`);
+  } else {
+    reasons.push(`Pendiente segura (${s1}° <= 10.0°)`);
+    check('SLOPE_SAFE', 'ok', slopeDeg, 10.0, 'deg', `Safe slope (${s1}° ≤ 10°)`);
+  }
+
+  if (sunPct < 20.0) {
+    nogo = true;
+    reasons.push(`Iluminación solar crítica (${p1(sunPct)}% < 20% en la ventana)`);
+    check('SUN_CRITICAL', 'nogo', sunPct, 20.0, 'pct', `Critical sunlight (${p1(sunPct)}% < 20% of the window)`);
+  } else if (sunPct < 50.0) {
+    caution = true;
+    reasons.push(`Iluminación solar limitada (${p1(sunPct)}%) en la ventana seleccionada`);
+    check('SUN_LIMITED', 'caution', sunPct, 50.0, 'pct', `Limited sunlight (${p1(sunPct)}% of the window)`);
+  } else {
+    reasons.push(`Iluminación solar alta (${p1(sunPct)}%) en la ventana seleccionada`);
+    check('SUN_HIGH', 'ok', sunPct, 50.0, 'pct', `High sunlight (${p1(sunPct)}% of the window)`);
+  }
+
+  if (earthPct <= 0.0) {
+    caution = true;
+    reasons.push('Sin línea de vista Direct-to-Earth (0.0%); requiere satélite relay');
+    check('DTE_NONE', 'caution', earthPct, 0.0, 'pct', 'No direct-to-Earth line of sight (0%); needs a relay satellite');
+  } else if (earthPct < 15.0) {
+    caution = true;
+    reasons.push(`Ventana Direct-to-Earth reducida (${p1(earthPct)}% < 15%); considerar relay`);
+    check('DTE_REDUCED', 'caution', earthPct, 15.0, 'pct', `Reduced direct-to-Earth window (${p1(earthPct)}% < 15%); consider a relay`);
+  } else {
+    reasons.push(`Comunicación Direct-to-Earth disponible (${p1(earthPct)}%)`);
+    check('DTE_AVAILABLE', 'ok', earthPct, 15.0, 'pct', `Direct-to-Earth link available (${p1(earthPct)}% of the window)`);
+  }
+
+  const status = nogo ? 'NO-GO' : caution ? 'CAUTION' : 'GO';
+  return { status, reasons, checks };
+}
+
+/**
+ * Inverse of latLonToPolarXY (LOLA south polar stereographic, D-012).
+ */
+function polarXYToLatLon(x, y) {
+  const r = Math.hypot(x, y);
+  const lat = (2.0 * Math.atan(r / (2.0 * MOON_RADIUS_M))) * (180.0 / Math.PI) - 90.0;
+  const lon = ((Math.atan2(x, y) * 180.0) / Math.PI + 360.0) % 360.0;
+  return [lat, lon];
+}
+
+/**
+ * Simulated moon-centered ephemeris (contract v1.2, GET /ephemeris).
+ * Anchored to the backend's SPICE result for 2026-12-01T00:00:00Z; the sub-solar
+ * point drifts west one turn per synodic month and the sub-Earth point librates.
+ * Shapes match the backend, values are approximate (mock only).
+ */
+function simulatedEphemeris(date) {
+  const deg = Math.PI / 180.0;
+  const days = (date.getTime() - Date.UTC(2026, 11, 1)) / 86400000.0;
+  const unit = (latDeg, lonDeg) => [
+    parseFloat((Math.cos(latDeg * deg) * Math.cos(lonDeg * deg)).toFixed(6)),
+    parseFloat((Math.cos(latDeg * deg) * Math.sin(lonDeg * deg)).toFixed(6)),
+    parseFloat(Math.sin(latDeg * deg).toFixed(6))
+  ];
+  const sunLon = (((280.0638 - (360.0 * days) / 29.530589) % 360.0) + 360.0) % 360.0;
+  const sunLat = -1.4708 * Math.cos((2.0 * Math.PI * days) / 346.62);
+  const earthLon = (((6.6695 * Math.cos((2.0 * Math.PI * days) / 27.5546)) % 360.0) + 360.0) % 360.0;
+  const earthLat = 1.3459 * Math.cos((2.0 * Math.PI * days) / 27.2122);
+  const earthDist = 384400.0 - 7883.0 * Math.cos((2.0 * Math.PI * days) / 27.5546);
+  const body = (lat, lon, dist) => ({
+    direction: unit(lat, lon),
+    sub_lat_deg: parseFloat(lat.toFixed(4)),
+    sub_lon_deg: parseFloat(lon.toFixed(4)),
+    distance_km: parseFloat(dist.toFixed(1))
+  });
+  return {
+    utc: date.toISOString().replace(/\.\d{3}Z$/, 'Z'),
+    frame: 'MOON_ME_DE421',
+    sun: body(sunLat, sunLon, 147553142.2),
+    earth: body(earthLat, earthLon, earthDist)
   };
 }
 
@@ -510,30 +612,8 @@ function evaluateScenario(params) {
   const solarFluxWatts = 1361.0; // W/m^2 solar constant
   const estimatedPeakPowerW = parseFloat((solarFluxWatts * panel_efficiency * panel_area_m2).toFixed(1));
 
-  // Determine GO / NO-GO status
-  const reasons = [];
-  let isGo = true;
-
-  if (siteSlope <= 10.0) {
-    reasons.push(`Pendiente segura (${siteSlope}° <= 10.0° límite operativo)`);
-  } else {
-    isGo = false;
-    reasons.push(`Pendiente excesiva (${siteSlope}° > 10.0° límite de seguridad)`);
-  }
-
-  if (sunVisiblePct >= 70.0) {
-    reasons.push(`Iluminación solar alta (${sunVisiblePct}% en la ventana seleccionada)`);
-  } else {
-    isGo = false;
-    reasons.push(`Iluminación solar insuficiente (${sunVisiblePct}% < 70.0% mínimo requerido)`);
-  }
-
-  if (earthVisiblePct >= 50.0) {
-    reasons.push(`Comunicación Direct-to-Earth disponible (${earthVisiblePct}%)`);
-  } else {
-    isGo = false;
-    reasons.push(`Ventana de enlace DTE crítica (${earthVisiblePct}% < 50.0% mínimo)`);
-  }
+  // Verdict with the same thresholds and codes as the backend (contract v1.2, site.checks).
+  const { status, reasons, checks } = computeStatusAndChecks(siteSlope, sunVisiblePct, earthVisiblePct);
 
   return {
     site: {
@@ -542,8 +622,9 @@ function evaluateScenario(params) {
       elevation_m: siteElev,
       slope_deg: siteSlope,
       nearest_psr_km: nearestPsr,
-      status: isGo ? 'GO' : 'NO-GO',
-      reasons
+      status,
+      reasons,
+      checks
     },
     summary: {
       sun_visible_pct: sunVisiblePct,
@@ -566,13 +647,19 @@ function evaluateScenario(params) {
 // HTTP Server & Router
 // ============================================================================
 
-function sendJson(res, statusCode, data) {
+// Contract v1.2: successful GETs of reference data are cacheable for one hour.
+const CACHEABLE_GET_PATHS = new Set([
+  '/api/v1/sites', '/api/v1/terrain/patch', '/api/v1/psr', '/api/v1/psr/nearby', '/api/v1/ephemeris'
+]);
+
+function sendJson(res, statusCode, data, cacheable = false) {
   const json = JSON.stringify(data, null, 2);
   res.writeHead(statusCode, {
     'Content-Type': 'application/json; charset=utf-8',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    ...(cacheable && statusCode === 200 ? { 'Cache-Control': 'public, max-age=3600' } : {})
   });
   res.end(json);
 }
@@ -653,7 +740,7 @@ const server = http.createServer(async (req, res) => {
       sendJson(res, 200, {
         count: CURATED_SITES.length,
         sites: CURATED_SITES
-      });
+      }, true);
       return;
     }
 
@@ -699,7 +786,7 @@ const server = http.createServer(async (req, res) => {
         ]
       };
 
-      sendJson(res, 200, patchResponse);
+      sendJson(res, 200, patchResponse, true);
       return;
     }
 
@@ -759,7 +846,7 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
-      const { scenarios, duration_days = 14.0, step_minutes = 120 } = body;
+      const { scenarios, duration_days = 14.0, step_minutes = 120, include_timeline = false } = body;
       if (!Array.isArray(scenarios) || scenarios.length < 2 || scenarios.length > 5) {
         sendError(
           res,
@@ -809,7 +896,8 @@ const server = http.createServer(async (req, res) => {
         return {
           label: sc.label || `Lat ${sc.lat}, Lon ${sc.lon}`,
           site: ev.site,
-          summary: ev.summary
+          summary: ev.summary,
+          timeline: include_timeline === true ? ev.timeline : null
         };
       });
 
@@ -856,7 +944,61 @@ const server = http.createServer(async (req, res) => {
         radius_km: radiusKm,
         count: nearbyPsrs.length,
         psrs: nearbyPsrs
+      }, true);
+      return;
+    }
+
+    // ------------------------------------------------------------------------
+    // GET /api/v1/psr (contract v1.2: whole catalog, paginated)
+    // ------------------------------------------------------------------------
+    if (pathname === '/api/v1/psr' && method === 'GET') {
+      const q = parsedUrl.query;
+      const simplifyM = q.simplify_m !== undefined ? parseFloat(q.simplify_m) : 500.0;
+      const limit = q.limit !== undefined ? parseInt(q.limit, 10) : 500;
+      const offset = q.offset !== undefined ? parseInt(q.offset, 10) : 0;
+      const minArea = q.min_area_km2 !== undefined ? parseFloat(q.min_area_km2) : 0.0;
+      if (!(simplifyM >= 0 && simplifyM <= 5000) || !(limit >= 1 && limit <= 500) || !(offset >= 0) || !(minArea >= 0)) {
+        sendError(res, 422, 'ERR_INVALID_PAYLOAD', 'Parámetros fuera de rango: simplify_m 0..5000, limit 1..500, offset >= 0, min_area_km2 >= 0.');
+        return;
+      }
+      const matching = PSR_DATABASE.filter(p => p.area_km2 >= minArea).sort((a, b) => a.gid - b.gid);
+      const page = matching.slice(offset, offset + limit).map(p => {
+        const [labelLat, labelLon] = polarXYToLatLon(p.polar_x_m, p.polar_y_m);
+        return {
+          gid: p.gid,
+          name: p.name,
+          area_km2: p.area_km2,
+          label_point: { polar_x_m: p.polar_x_m, polar_y_m: p.polar_y_m, lat: labelLat, lon: labelLon },
+          geometry: p.geometry
+        };
       });
+      sendJson(res, 200, {
+        total: matching.length,
+        offset,
+        limit,
+        count: page.length,
+        simplify_m: simplifyM,
+        psrs: page
+      }, true);
+      return;
+    }
+
+    // ------------------------------------------------------------------------
+    // GET /api/v1/ephemeris (contract v1.2: Sun and Earth from the Moon's center)
+    // ------------------------------------------------------------------------
+    if (pathname === '/api/v1/ephemeris' && method === 'GET') {
+      const utc = parsedUrl.query.utc;
+      if (!utc) {
+        sendError(res, 422, 'ERR_INVALID_PAYLOAD', 'Parámetro obligatorio requerido: utc (ISO-8601 UTC).');
+        return;
+      }
+      const dateCheck = validateDateRange(utc);
+      if (!dateCheck.valid) {
+        const code = dateCheck.details ? 'ERR_DATE_OUT_OF_RANGE' : 'ERR_INVALID_PAYLOAD';
+        sendError(res, 422, code, dateCheck.message, dateCheck.details);
+        return;
+      }
+      sendJson(res, 200, simulatedEphemeris(dateCheck.date), true);
       return;
     }
 
@@ -883,6 +1025,8 @@ if (require.main === module) {
     console.log('  POST /api/v1/evaluate');
     console.log('  POST /api/v1/compare');
     console.log('  GET  /api/v1/psr/nearby?lat=-89.66&lon=222.7');
+    console.log('  GET  /api/v1/psr?offset=0&limit=500');
+    console.log('  GET  /api/v1/ephemeris?utc=2026-12-01T00:00:00Z');
     console.log('============================================================');
   });
 }
@@ -892,6 +1036,8 @@ module.exports = {
   CURATED_SITES,
   PSR_DATABASE,
   evaluateScenario,
+  computeStatusAndChecks,
+  simulatedEphemeris,
   generateTerrainPatch,
   generateHorizonProfile,
   validatePolarCoordinates,

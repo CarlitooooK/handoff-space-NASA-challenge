@@ -1,4 +1,4 @@
-# Lunar Landing Site Navigator — API Contract Specification (v1.0)
+# Lunar Landing Site Navigator — API Contract Specification (v1.2)
 
 Documentación de interfaz de comunicación (Request/Response) entre el Frontend (Visor 2D/3D y Dashboard) y el Backend (Motor topográfico LOLA y efemérides SPICE/Horizons).
 
@@ -12,6 +12,9 @@ Documentación de interfaz de comunicación (Request/Response) entre el Frontend
 * **CORS:** Habilitado abierto (`allow_origins=["*"]`) para llamadas directas desde `localhost` o producción.
 * **Formato de intercambio:** `application/json` (UTF-8)
 * **Formato de fechas:** ISO-8601 en UTC estricto (`YYYY-MM-DDTHH:mm:ssZ`), rango soportado **`1900-01-01` a `2050-12-31`**.
+* **Guía de consumo de v1.2:** [`docs/12-contrato-api-v1.2.md`](../docs/12-contrato-api-v1.2.md) (flujo recomendado, límites, coordenadas y recetas TypeScript).
+* **Versiones:** v1.2 solo **agrega** campos y endpoints a v1.1 (`site.checks`, `include_timeline` en `/compare`, `grid.source` y `grid.native_resolution_m`, `GET /psr`, `GET /ephemeris`); no quita ni renombra nada. Qué versión sirve cada ambiente: [`docs/07-ambientes-y-pruebas.md`](../docs/07-ambientes-y-pruebas.md).
+* **Caché HTTP:** las respuestas `200` de `GET /sites`, `/terrain/patch`, `/psr`, `/psr/nearby` y `/ephemeris` llevan `Cache-Control: public, max-age=3600` (datos de referencia que no cambian por petición). `/health` y los errores no se cachean.
 * **Códigos de Estado HTTP:**
   * `200 OK`: Cálculo o consulta exitosa.
   * `400 Bad Request`: JSON malformado o ausencia de campos obligatorios del payload (`ERR_INVALID_PAYLOAD`).
@@ -129,7 +132,9 @@ Malla de elevación y pendientes alrededor de una coordenada para el renderizado
     "min_elevation_m": -1850.2,
     "max_elevation_m": 2410.0,
     "elevations_m": [2040.1, 2038.4],
-    "slopes_deg": [5.2, 6.1]
+    "slopes_deg": [5.2, 6.1],
+    "source": "lola_polar",
+    "native_resolution_m": 40.0
   },
   "nearby_psrs": [
     {
@@ -141,7 +146,9 @@ Malla de elevación y pendientes alrededor de una coordenada para el renderizado
   ]
 }
 ```
-> **Nota técnica:** `elevations_m` y `slopes_deg` son arreglos planos unidimensionales de longitud $\text{resolution}^2$, ordenados por filas de Norte a Sur y de Oeste a Este.
+> **Nota técnica:** `elevations_m` y `slopes_deg` son arreglos planos unidimensionales de longitud $\text{resolution}^2$, ordenados por filas de Norte a Sur y de Oeste a Este. Las elevaciones van redondeadas a `0.1 m` y las pendientes a `0.01°`.
+>
+> **Origen de la malla (v1.2):** `grid.source` es `"lola_polar"` (DEM LOLA del Polo Sur, `-90°..-80°`), `"lola_global"` (`ldem_64`) o `"synthetic"` (sin datasets, solo desarrollo). `grid.native_resolution_m` es la resolución real de ese dataset (`null` en `synthetic`); si `cell_size_m` es menor, el detalle extra es interpolado.
 
 ---
 
@@ -177,6 +184,11 @@ Evaluación operativa temporal: calcula el horizonte local (360°), efemérides 
       "Pendiente segura (6.4° <= 10°)",
       "Iluminación solar alta (82.1%) en la ventana seleccionada",
       "Comunicación Direct-to-Earth disponible (64.3%)"
+    ],
+    "checks": [
+      { "code": "SLOPE_SAFE", "level": "ok", "value": 6.4, "threshold": 10.0, "unit": "deg", "message": "Safe slope (6.4° ≤ 10°)" },
+      { "code": "SUN_HIGH", "level": "ok", "value": 82.1, "threshold": 50.0, "unit": "pct", "message": "High sunlight (82.1% of the window)" },
+      { "code": "DTE_AVAILABLE", "level": "ok", "value": 64.3, "threshold": 15.0, "unit": "pct", "message": "Direct-to-Earth link available (64.3% of the window)" }
     ]
   },
   "summary": {
@@ -202,17 +214,32 @@ Evaluación operativa temporal: calcula el horizonte local (360°), efemérides 
       "sun_el_deg": 1.77,
       "sun_horizon_el_deg": 0.45,
       "sun_visible": true,
-      "sun_vector_3d": [0.842, 0.031, 0.539],
+      "sun_vector_3d": [0.842, 0.031, -0.539],
       "earth_az_deg": 143.96,
       "earth_el_deg": -2.06,
       "earth_horizon_el_deg": 1.12,
       "earth_visible": false,
-      "earth_vector_3d": [0.588, -0.036, -0.808],
+      "earth_vector_3d": [0.588, -0.036, 0.808],
       "power_factor": 0.88
     }
   ]
 }
 ```
+
+#### `site.checks` (v1.2)
+Mismo veredicto que `reasons`, como datos. `reasons` conserva las frases en español; `checks` permite mostrar el veredicto en el idioma de la interfaz (`message` viene en inglés) o armar un texto propio con `code`, `value` y `threshold`.
+
+| Campo | Valores |
+|---|---|
+| `code` | `SLOPE_SAFE`, `SLOPE_MODERATE`, `SLOPE_CRITICAL`, `SUN_HIGH`, `SUN_LIMITED`, `SUN_CRITICAL`, `DTE_AVAILABLE`, `DTE_REDUCED`, `DTE_NONE` |
+| `level` | `"ok"` · `"caution"` · `"nogo"`. Un `nogo` implica `status: "NO-GO"`; sin `nogo`, un `caution` implica `"CAUTION"` |
+| `value` / `threshold` | Valor medido y umbral aplicado |
+| `unit` | `"deg"` (pendiente) · `"pct"` (porcentaje de la ventana) |
+| `message` | Frase en inglés lista para mostrar |
+
+Decidir siempre por `code` y `level`, nunca por el texto (igual que con los errores).
+
+> **Vectores 3D:** `sun_vector_3d` y `earth_vector_3d` siguen el marco local de la sección 1.3: `[cos(el)·sin(az), sin(el), −cos(el)·cos(az)]`. En el ejemplo, el Sol a `az 57.38°` (noreste) tiene `z < 0` (norte) y la Tierra a `az 143.96°` (sureste) tiene `z > 0` (sur).
 
 ---
 
@@ -238,9 +265,12 @@ Evaluación simultánea de 2 a 5 escenarios `{sitio + fecha}` para la vista comp
     }
   ],
   "duration_days": 14.0,
-  "step_minutes": 120
+  "step_minutes": 120,
+  "include_timeline": false
 }
 ```
+
+* **`include_timeline` (v1.2, opcional, default `false`):** con `true`, cada resultado incluye `timeline` con el mismo formato que `POST /evaluate`. Con `false`, `timeline` es `null`.
 
 * **Respuesta (`200 OK`):**
 ```json
@@ -257,6 +287,9 @@ Evaluación simultánea de 2 a 5 escenarios `{sitio + fecha}` para la vista comp
         "status": "GO",
         "reasons": [
           "Iluminación solar alta (82.1%)"
+        ],
+        "checks": [
+          { "code": "SUN_HIGH", "level": "ok", "value": 82.1, "threshold": 50.0, "unit": "pct", "message": "High sunlight (82.1% of the window)" }
         ]
       },
       "summary": {
@@ -270,7 +303,8 @@ Evaluación simultánea de 2 a 5 escenarios `{sitio + fecha}` para la vista comp
         "hours_to_next_earthset": 140.0,
         "avg_power_factor": 0.74,
         "estimated_peak_power_w": 1528.0
-      }
+      },
+      "timeline": null
     }
   ]
 }
@@ -327,6 +361,76 @@ Retorna polígonos GeoJSON de Regiones Permanentemente Sombreadas (PSRs) en form
 
 ---
 
+### 2.7 `GET /api/v1/psr` (v1.2)
+Catálogo completo de PSRs, paginado y simplificado, para vistas de todo el polo (el globo). Para un sitio concreto se sigue usando `/psr/nearby`.
+
+* **Query Parameters:**
+
+| Parámetro | Tipo | Requerido | Default | Rango | Descripción |
+|---|---|---|---|---|---|
+| `simplify_m` | `float` | No | `500.0` | `0` a `5000` | Tolerancia de simplificación (metros); `0` = geometría completa |
+| `limit` | `int` | No | `500` | `1` a `500` | Tamaño de página |
+| `offset` | `int` | No | `0` | `>= 0` | Cuántas PSRs saltar (orden por `gid`) |
+| `min_area_km2` | `float` | No | `0.0` | `>= 0` | Solo PSRs de al menos esta área |
+
+* **Respuesta (`200 OK`):**
+```json
+{
+  "total": 1531,
+  "offset": 0,
+  "limit": 500,
+  "count": 500,
+  "simplify_m": 500.0,
+  "psrs": [
+    {
+      "gid": 1,
+      "name": "HNP_833388_0453121",
+      "area_km2": 1071.427,
+      "label_point": { "polar_x_m": 42420.0, "polar_y_m": 41720.0, "lat": -88.038, "lon": 45.477 },
+      "geometry": { "type": "MultiPolygon", "coordinates": [[[[24290, 43940], [27200, 49610], [24290, 43940]]]] }
+    }
+  ]
+}
+```
+> `total` cuenta todas las PSRs que cumplen el filtro; se recorren las páginas con `offset += limit` mientras `offset < total`. `label_point` es un punto **dentro** del polígono (para pines y etiquetas), en metros polares (D-012) y en grados. `geometry` está en metros estereográficos polares (D-012).
+
+---
+
+### 2.8 `GET /api/v1/ephemeris` (v1.2)
+Sol y Tierra vistos desde el **centro de la Luna**, para dibujar el cielo del globo sin evaluar un sitio (`P-007`). Los vectores de un sitio siguen saliendo de `POST /evaluate`.
+
+* **Query Parameters:** `utc` (requerido): ISO-8601 UTC entre `1900` y `2050`.
+* **Respuesta (`200 OK`):**
+```json
+{
+  "utc": "2026-12-01T00:00:00Z",
+  "frame": "MOON_ME_DE421",
+  "sun": {
+    "direction": [0.174687, -0.984289, -0.025668],
+    "sub_lat_deg": -1.4708,
+    "sub_lon_deg": 280.0638,
+    "distance_km": 147553142.2
+  },
+  "earth": {
+    "direction": [0.992959, 0.11611, 0.023488],
+    "sub_lat_deg": 1.3459,
+    "sub_lon_deg": 6.6695,
+    "distance_km": 376517.1
+  }
+}
+```
+
+| Campo | Significado |
+|---|---|
+| `frame` | Marco fijo lunar de SPICE (Mean Earth / Polar Axis) |
+| `direction` | Vector unitario en ese marco: `+X` hacia `lat 0°, lon 0°`, `+Y` hacia `lat 0°, lon 90° E`, `+Z` al polo norte |
+| `sub_lat_deg`, `sub_lon_deg` | Punto subsolar / subterrestre (longitud `0..360` Este) |
+| `distance_km` | Distancia desde el centro de la Luna |
+
+* **Errores:** `422 ERR_DATE_OUT_OF_RANGE` fuera de `1900-2050`; `422 ERR_INVALID_PAYLOAD` si falta `utc` o no es ISO-8601; `503 ERR_UPSTREAM_SERVICE` si el servidor no tiene los kernels SPICE (no hay modelo aproximado de respaldo).
+
+---
+
 ## 3. Mapeo Arquitectónico: Frontend vs Backend
 
 | Componente UI (Frontend) | Endpoint Consumido | Propósito de Datos |
@@ -337,3 +441,7 @@ Retorna polígonos GeoJSON de Regiones Permanentemente Sombreadas (PSRs) en form
 | **Visor 3D Topográfico** (Panel Derecho) | `GET /api/v1/terrain/patch` + `timeline[i]` | Construcción de malla con `grid.elevations_m`; orientación de luces con `sun_vector_3d` y `earth_vector_3d`. |
 | **Modal Comparativo** | `POST /api/v1/compare` | Tabla comparativa de resultados concurrentes con `results[]`. |
 | **Capa de Sombras Permanentes** | `GET /api/v1/psr/nearby` | Dibujar polígonos de zonas PSR sobre el visor 2D/3D. |
+| **Veredicto en la interfaz** (Panel de resultados) | `POST /api/v1/evaluate` · `/compare` | `site.checks[]` con `code`, `level` y `message` en inglés. |
+| **Pistas por escenario** (Comparador) | `POST /api/v1/compare` con `include_timeline: true` | `results[].timeline[]`. |
+| **PSRs de todo el polo** (Globo) | `GET /api/v1/psr` | Recorrer páginas y dibujar polígonos con `label_point`. |
+| **Sol y Tierra en la vista global** (Globo) | `GET /api/v1/ephemeris?utc=` | `direction` o punto subsolar / subterrestre en el marco fijo lunar. |
