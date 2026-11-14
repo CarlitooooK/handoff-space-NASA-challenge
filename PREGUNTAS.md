@@ -44,6 +44,15 @@ Quien responde llena **Respuesta**, **Respondió** y la fecha, mueve la entrada 
 - **Respuesta:** _pendiente_
 - **Respondió:** —
 
+### P-008: Teselas de terreno del polo sur para el globo
+
+- **Pregunta:** El globo usa hoy el DEM global de Moon Trek (~666 m/px, pasos de ~77 m, calibrado contra `terrain/patch`: RMSE ≈ 127 m). El backend tiene LOLA a 80 m/px al sur de -80° (`LDEM_80S_80MPP_ADJ`). ¿Puede servir ese DEM como teselas (por ejemplo `GET /api/v1/terrain/tiles/{z}/{x}/{y}.png`, esquema geográfico 2×1 en el nivel 0 como el de Moon Trek, elevación en 16 bits o formato Terrarium) para sustituir el relieve global solo en la región polar?
+- **Contexto:** `lunar-globe-renderer`, `src/terrain.ts` (la fuente es una sola función, `fetchDemTile`, fácil de cambiar). Sin esto el relieve del polo se ve suave a menos de ~50 km de altura.
+- **Bloquea:** no. Es una mejora de calidad; el globo funciona con el DEM de Moon Trek.
+- **Preguntó:** Globo (`lunar-globe-renderer`) · 2026-11-14
+- **Respuesta:** _pendiente_
+- **Respondió:** —
+
 ---
 
 ## Respondidas

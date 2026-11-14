@@ -53,7 +53,8 @@ El Figma pide un render siempre de fondo y paneles de vidrio encima. La propuest
 | `evaluate` termina | `SET_SITES` de nuevo con `status` | Pinta GO/CAUTION/NO-GO. En Compare, el estado de cada escenario |
 | El scrubber cambia `stepIndex` | `SET_SUN_LOCAL` con `timeline[stepIndex].sun_vector_3d` y `SET_EARTH_LOCAL` con `earth_vector_3d` | **Vectores tal cual**, sin convertir (D-008). Cero red (D-003). Agrupar con `requestAnimationFrame` |
 | `GET /psr/nearby` responde (`psrs`) | `SET_PSR` | El arreglo `psrs` sin tocar (metros estereográficos polares); el globo lo convierte |
-| El usuario pide ver el cielo o la superficie | `LOOK_AT {body}`, `VIEW_FROM_SURFACE {lat,lon,look?}` | Opcional, para el modo Cinematic |
+| El usuario pide ver el cielo, la superficie o un encuadre | `LOOK_AT {body}`, `VIEW_FROM_SURFACE {lat,lon,look?}`, `SET_VIEW {lat,lon,altM,…}` | Opcional, para el modo Cinematic |
+| Capas y relieve | `SET_CONFIG` con `terrain`, `terrainExaggeration`, `layers` | El relieve va activo por defecto |
 | El usuario reproduce el descenso | `FOLLOW_TRAJECTORY {enabled}` | Cámara que sigue al módulo |
 | Trayectoria para mostrar | `SET_TRAJECTORY` | **No hay endpoint de trayectoria en el contrato.** Cualquier dato que se envíe es ilustrativo y la interfaz debe rotularlo "Sample data" |
 | Cambia el modo de capas | `SET_CONFIG` | `showGrid`, `layers`, `autoRotate`, etc. |
@@ -94,11 +95,18 @@ Con los mensajes de la sección 3 el globo dibuja estrellas, la Tierra (tamaño 
 - La distancia a la Tierra es la media (384 400 km) y su rotación y orientación son ilustrativas. La interfaz no debe presentarlas como medidas.
 - La luz y los astros del globo no sustituyen a `CelestialBodies.tsx`, que es la luz de la escena local.
 
-## 7. Vista global sin sitio: pregunta abierta al backend
+## 7. Relieve y polo en el globo (ya construido)
+
+- El globo trae **relieve global real** (LOLA vía Moon Trek, calibrado contra el DEM del backend: RMSE ≈ 127 m). Es contexto, no medición: la consola no debe mostrar alturas del globo como dato. Las elevaciones y pendientes oficiales siguen saliendo de `terrain/patch` y `evaluate`.
+- La resolución es ~666 m/px: el detalle del sitio es de la escena local de la consola, no del globo. Mejorarlo en el polo depende de `P-008` (no bloquea).
+- Alturas de pines, PSR y trayectoria siguen al terreno. La altitud de un punto de trayectoria (`altKm`) se interpreta **sobre la superficie**.
+- El abanico de imagen alrededor del polo se redujo a la mitad pero no desapareció: ~10 km de radio en el polo geográfico.
+
+## 8. Vista global sin sitio: pregunta abierta al backend
 
 Para dibujar el cielo antes de elegir un sitio hacen falta direcciones del Sol y la Tierra desde el centro de la Luna. El contrato solo las da dentro de `POST /evaluate`. Se pregunta en `P-007` (no bloquea). Mientras tanto, la consola puede evaluar un sitio de referencia y reenviar sus vectores al globo.
 
-## 8. Orden de trabajo sin bloqueos
+## 9. Orden de trabajo sin bloqueos
 
 1. **Ahora:** el hueco del iframe, `useGlobeBridge` con `SET_SITES`, `SELECT_SITE`, `SET_SUN_LOCAL` y los eventos de entrada. Todo eso ya existe en el globo.
 2. **Cuando el globo tenga URL de despliegue:** apuntar `VITE_GLOBE_URL` y probar con el origen real.

@@ -25,6 +25,11 @@ Fase 1 del proyecto: un globo lunar detallado, estilo Google Earth, **desarrolla
 - La capa polar de Moon Trek `LRO_WAC_Mosaic_SPole60_100m_v02` existe (`trek.nasa.gov/tiles/Moon/SP/…`) en metros polares (±1 095 km); Cesium no la acepta sin reproyectar.
 - Distancias del cielo: el Sol real queda fuera del plano lejano de Cesium; se coloca a 9e8 m conservando el tamaño angular. La Tierra va a 384 400 km (media).
 
+- Las teselas DEM de Moon Trek (`LRO_LOLA_DEM_Global_128ppd_v04`) son PNG de 8 bits (gris + alfa constante). Conversión verificada contra el backend en vivo: `elev ≈ 76.8·DN − 9049 m` (R² 0,997, RMSE 127 m, n=24, puntos de todas las latitudes; 2026-11-14). Niveles 0–5, filas 2^z, columnas 2^(z+1).
+- Las teselas polares de Moon Trek (`…/SP/LRO_WAC_Mosaic_SPole60_100m_v02`) son PNG; la cuadrícula polar real tiene 2^z teselas por lado (la lista de capacidades dice el doble) y llega solo al nivel 5 (267 m/px).
+- El terreno de Cesium creado con `CustomHeightmapTerrainProvider` no trae normales: no hay sombreado de relieve por la luz solar.
+- En pruebas, el renderizado por software es lento (cientos de teselas). Para capturas conviene vista alta, ventana chica y esperar a `loading.pending == 0`.
+
 ## Supuestos sin verificar
 - `sun_vector_3d` es un vector hacia el Sol en el marco local del sitio con la convención D-008; la conversión a marco fijo lunar se probó solo con un vector mock.
 - El rendimiento en el equipo de la demo (GPU real) no se midió; la prueba corrió con renderizado por software.

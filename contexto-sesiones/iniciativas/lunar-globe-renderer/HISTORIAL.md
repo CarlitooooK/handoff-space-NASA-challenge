@@ -3,6 +3,7 @@
 Cronología, de lo más nuevo a lo más viejo. Fechas absolutas. No se borra: se agrega.
 
 ## 2026-11-14
+- Relieve y polo (`005e037` del repo del globo): terreno global desde el DEM de LOLA de Moon Trek, calibrado contra `terrain/patch` (24 puntos, R² 0,997, RMSE 127 m); capa polar reproyectada que reduce el abanico; `SET_VIEW`. Se abrió `P-008` (teselas de terreno del polo).
 - Fase 2 en el globo (`cdc92ee` del repo del globo): estrellas, Sol y Tierra a tamaño angular real, capa PSR, seguimiento de descenso, vista desde superficie, indicador de carga. Se abrió `P-007` (cielo en la vista global).
 - Se escribió `docs/11-integracion-globo-consola.md` (reparto de responsabilidades y mapa store→mensajes) y se abrió `P-006` para que Frontend lo confirme. Se trajo el PR #1 del Figma (`docs/ideas/console-ui-figma.md`).
 - El código del globo se subió a su propio repo [`luna-render-nasa-space-challenge`](https://github.com/CarlitooooK/luna-render-nasa-space-challenge) (`98ecf5a`, `main`) y se registró en este handoff.

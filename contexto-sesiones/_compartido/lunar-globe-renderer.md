@@ -14,6 +14,8 @@ Clase `LunarGlobe` (`src/LunarGlobe.ts`) sobre un `Viewer` de Cesium sin Ion. `s
 
 ## Cómo funciona
 - Cielo (`src/sky.ts`): estrellas Tycho2, Tierra con textura Natural Earth local y el Sol como billboard de tamaño angular real. Sin dirección del host no hay Sol; la Tierra queda en la posición media.
+- Relieve (`src/terrain.ts`): terreno de Cesium desde el DEM de LOLA de Moon Trek con conversión calibrada. Una sola función (`fetchDemTile`) define la fuente; cambiarla por teselas del backend (`P-008`) no toca el resto.
+- Polo (`src/polar.ts`): proveedor de imagen que reproyecta el mosaico polar a la malla geográfica.
 - PSR: `src/geo.ts` convierte metros polares a lat/lon.
 - Capas: `wac` (base, nivel 8) y `lolaShade` (superpuesta, nivel 5).
 - Entrada de datos: `LandingSite` con los campos del schema de `contracts/openapi.json`. El vector solar se recibe en el marco local del sitio (D-008) y se convierte al marco fijo lunar con el ENU del sitio.
@@ -28,7 +30,7 @@ Clase `LunarGlobe` (`src/LunarGlobe.ts`) sobre un `Viewer` de Cesium sin Ion. `s
 - Hay que importar `src/moon.ts` antes de cualquier objeto de Cesium; si no, dibuja una Tierra.
 - Cesium necesita `CESIUM_BASE_URL` y los assets copiados a `public/cesium` (script `cesium:assets`).
 - La imagen converge en abanico justo en ±90° (proyección geográfica).
-- La esfera es lisa: el relieve se percibe por la imagen, no por geometría.
+- Con `terrain` activo, entidades y cámara dependen de la altura del terreno (`RELATIVE_TO_GROUND`, `sampleTerrain`); con la red caída el terreno queda plano en esas teselas.
 - `CelestialFrameTransforms` falta en los tipos públicos de Cesium 1.147; se accede con un cast.
 - Un `vite` en segundo plano mantiene el puerto ocupado; detenerlo al terminar.
 
