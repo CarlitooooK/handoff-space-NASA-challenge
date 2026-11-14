@@ -1,29 +1,28 @@
 # Handoff API → Frontend — Handoff
 
-**Última actualización:** 2026-11-14 · **Responsable:** Equipo Backend / Integración · **Repo / componente:** `FRONTEND_API_GUIDE.md`, `contracts/`, `docs/`
+**Última actualización:** 2026-11-14 · **Responsable:** Equipo Backend / Integración · **Repo / componente:** `FRONTEND_API_GUIDE.md`, `contracts/`, `docs/`, `PREGUNTAS.md`
 
 ## En una línea
-La guía de consumo API (`FRONTEND_API_GUIDE.md`), el esquema `contracts/openapi.json` y el contrato `contracts/lunar-landing-api-contract.md` quedaron integrados y alineados con el backend activo; falta construir la aplicación Frontend y definir la estrategia offline en `mock/`.
+La guía de consumo (`FRONTEND_API_GUIDE.md`), el esquema `contracts/openapi.json`, las dudas `P-001`–`P-005` en `PREGUNTAS.md` y el contrato en `docs/` quedaron resueltos y alineados con el backend en vivo; el equipo de Frontend está desbloqueado para avanzar contra el servidor en vivo o `mock/server.js`.
 
 ## Estado actual
 | Pieza | Estado |
 | --- | --- |
-| Backend API v1 (`desktop` + Cloudflare HTTPS) | Hecho (verificado `200 OK` en `/api/v1/health` el `2026-11-14`) |
+| Backend API v1 en vivo (`desktop` + Túnel HTTPS) | Hecho (verificado `200 OK` en `/health` y cobertura global `-90..90` el `2026-11-14`) |
 | `FRONTEND_API_GUIDE.md` + `contracts/openapi.json` | Hecho |
-| Alineación de `contracts/lunar-landing-api-contract.md` y `docs/` (`07`, `09`, `10`) | Hecho |
-| Servidor offline en `mock/` (ej. Prism o fixtures JSON) | No iniciado |
-| Aplicación Frontend (Visor 2D/3D + Dashboard) | En curso (por iniciar en su repo/app) |
+| Alineación de contratos y docs (`06`, `07`, `09`, `10`) + respuestas `P-001..P-005` | Hecho |
+| Servidor offline en `mock/` (`mock/server.js`) | Hecho (mantenido en `lunar-landing-navigator`; ver nota CommonJS en `mock/README.md`) |
+| Aplicación Frontend (Visor 2D/3D & Dashboard) | En curso (desbloqueado en repo Frontend) |
 
 ## Pendientes (en orden de valor)
-1. Generar tipos TypeScript en el proyecto Frontend usando `npx openapi-typescript contracts/openapi.json -o src/types/api.d.ts` (o apuntando al `/openapi.json` en vivo) y configurar `.env.local` con `VITE_API_BASE_URL` / `NEXT_PUBLIC_API_BASE_URL`.
-2. Completar `docs/02-arquitectura.md`, `docs/06-contrato-y-errores.md` y `docs/08-pendientes.md` si el equipo de Frontend introduce convenciones adicionales.
-3. Agregar datos/mock de respaldo en `mock/` si se desea modo offline garantizado para la demo final.
+1. En el proyecto Frontend: generar tipos con `npx openapi-typescript` (`P-005`), usar `http://localhost:3000/api/v1` al apuntar al mock (`P-002`) y mantener soporte dual de errores `{ detail }` / `{ error.code }` (`P-001`).
+2. Si el Frontend prueba sitios Apollo contra `mock/server.js` offline, ampliar `validatePolarCoordinates` en `mock/server.js` de `[-90, -80]` a `[-90, 90]` (`P-003`).
+3. Decidir si se migra o reemplaza el scaffolding `AxelT456/lunar_landing_site_navigator_api` (`64cdae2`) con el motor real LOLA/SPICE/PostGIS que ya corre en `desktop`.
 
 ## Cómo retomar
 1. Lee [`../../_compartido/backend-api.md`](../../_compartido/backend-api.md) y [`CONOCIMIENTO.md`](CONOCIMIENTO.md).
-2. Revisa [`../../../FRONTEND_API_GUIDE.md`](../../../FRONTEND_API_GUIDE.md) para copiar el cliente `apiFetch`, los tipos de los 6 endpoints y los snippets de `THREE.PlaneGeometry`.
+2. Revisa [`../../../FRONTEND_API_GUIDE.md`](../../../FRONTEND_API_GUIDE.md) para el cliente `apiFetch` y snippets Three.js, y [`../../../docs/07-ambientes-y-pruebas.md`](../../../docs/07-ambientes-y-pruebas.md) para URLs activas.
 3. Antes de seguir, revisa [`../../../PREGUNTAS.md`](../../../PREGUNTAS.md) y [`../../../contracts/`](../../../contracts/README.md): pueden haber cambiado.
 
 ## Notas
-- Si la URL `https://chart-owned-alabama-choices.trycloudflare.com` dejara de responder por reinicio del túnel en `desktop`, consultar el nuevo subdominio o usar `http://100.66.139.125:8000/api/v1` vía Tailscale (ver `docs/07-ambientes-y-pruebas.md`).
-- Verificación de contratos pendientes de actualizar automáticamente: `contracts/openapi.json` fue copiado de la exportación del `2026-11-13` y coincide en endpoints con el `/api/v1/health` verificado el `2026-11-14`.
+- Todas las URLs activas viven únicamente en `docs/07-ambientes-y-pruebas.md` (ver `COMO-USAR-ESTE-REPO.md`).

@@ -6,7 +6,7 @@ Estado de desbloqueo inmediato, distribución de tareas por especialidad y hoja 
 
 ## Estado de desbloqueo inmediato
 
-Gracias a la definición exhaustiva del contrato de interfaz en [`contracts/lunar-landing-api-contract.md`](file:///Users/axeltapia/personal/NASA/handoff-space-NASA-challenge/contracts/lunar-landing-api-contract.md) y al servidor autónomo en [`mock/server.js`](file:///Users/axeltapia/personal/NASA/handoff-space-NASA-challenge/mock/server.js), **el equipo de frontend, los analistas de datos y el equipo de comunicación pueden avanzar de forma 100% paralela e independiente**:
+Gracias a la definición exhaustiva del contrato de interfaz en [`contracts/lunar-landing-api-contract.md`](../contracts/lunar-landing-api-contract.md) y al servidor autónomo en [`mock/server.js`](../mock/server.js), **el equipo de frontend, los analistas de datos y el equipo de comunicación pueden avanzar de forma 100% paralela e independiente**:
 
 * El equipo de interfaz no requiere que el motor de efemérides ni la base de datos LOLA estén compilados para maquetar, animar y validar la experiencia visual.
 * Las integraciones complejas (SPICE, GeoTIFFs masivos) se desarrollan detrás del contrato acordado, reemplazando el simulador de forma transparente cuando estén validadas numéricamente.

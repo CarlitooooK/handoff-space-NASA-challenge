@@ -2,20 +2,12 @@
 
 API REST de FastAPI en `desktop` que sirve topografía LOLA multi-resolución, polígonos PSR de PostGIS, horizonte topográfico 360° y efemérides SPICE de Sol y Tierra para el Frontend 2D/3D. Documento transversal: lo que no cambia entre sesiones.
 
-Verificado el `2026-11-14` consultando `GET https://chart-owned-alabama-choices.trycloudflare.com/api/v1/health` y leyendo `contracts/openapi.json` y `FRONTEND_API_GUIDE.md`.
+Verificado el `2026-11-14` consultando `GET /api/v1/health`, `422` en `/terrain/patch` y `/evaluate`, y `200 OK` en `/terrain/patch` para Apollo 11 (`lat=0.674, lon=23.473`), además de leer `contracts/openapi.json` y `FRONTEND_API_GUIDE.md`.
 
 ## Dónde vive
-- **Servidor host:** `desktop` (Contenedores Docker `spaceapps-api`, `spaceapps-postgres`, `spaceapps-cloudflared`). El código fuente del backend no vive en este repositorio de handoff.
-- **URL Pública HTTPS (sin Tailscale):** `https://chart-owned-alabama-choices.trycloudflare.com/api/v1`
-  - **Swagger UI:** `https://chart-owned-alabama-choices.trycloudflare.com/docs`
-  - **ReDoc:** `https://chart-owned-alabama-choices.trycloudflare.com/redoc`
-  - **OpenAPI JSON:** `https://chart-owned-alabama-choices.trycloudflare.com/openapi.json`
-- **URL Interna (Tailscale):** `http://100.66.139.125:8000/api/v1`
-- **Cómo probarlo:**
-  ```sh
-  curl -s https://chart-owned-alabama-choices.trycloudflare.com/api/v1/health
-  npx openapi-typescript contracts/openapi.json -o src/types/api.d.ts
-  ```
+- **Servidor en vivo (`desktop`):** Contenedores Docker `spaceapps-api`, `spaceapps-postgres`, `spaceapps-cloudflared`. Ver URLs activas (túnel HTTPS y Tailscale) en [`docs/07-ambientes-y-pruebas.md`](../../docs/07-ambientes-y-pruebas.md).
+- **Repo paralelo `AxelT456/lunar_landing_site_navigator_api` (`64cdae2`):** Scaffolding FastAPI + Pydantic v2 (`app/api/`, `app/schemas/`, `app/domain/`, `app/core/`) con lógica sintética en memoria (`app/infrastructure/` vacío; sin `rasterio`, `skyfield` ni `psycopg`) acotado a `lat [-90, -80]` y `10` sitios. **No** es el servicio productivo que corre en `desktop`.
+- **Cómo probarlo:** ver comandos `curl` y `npx openapi-typescript` en [`docs/07-ambientes-y-pruebas.md`](../../docs/07-ambientes-y-pruebas.md).
 
 ## Arquitectura
 - **Motor físico + DEMs LOLA + SPICE (`spaceapps-api`):** Lee GeoTIFFs locales (`40 m/px` y `80 m/px` en Polo Sur `-90°..-80°`; `ldem_64.tif` `64 ppd` global `-90°..+90°`) y kernels SPICE (`de440s.bsp` / `de421.bsp`, `MOON_ME`).
@@ -37,7 +29,8 @@ Verificado el `2026-11-14` consultando `GET https://chart-owned-alabama-choices.
 - Ambientes y variables recomendadas: `docs/07-ambientes-y-pruebas.md`
 
 ## Cosas que muerden
-- **Subdominio efímero de Cloudflare Quick Tunnel:** Si `spaceapps-cloudflared` o `desktop` se reinician, cambia el subdominio `*.trycloudflare.com`. Siempre leer la URL base desde `.env` (`VITE_API_BASE_URL` / `NEXT_PUBLIC_API_BASE_URL`), nunca hardcodearla en componentes. En `desktop`, el nuevo dominio se consulta con `docker logs spaceapps-cloudflared 2>&1 | grep trycloudflare`.
+- **Formato de errores distinto al mock (`P-001`):** El backend en vivo (FastAPI) devuelve `{ detail: ... }` (`HTTPValidationError` o string), no `{ error: { code, message, details } }` como `mock/server.js`. Ver [`docs/06-contrato-y-errores.md`](../../docs/06-contrato-y-errores.md).
+- **Subdominio efímero de Cloudflare Quick Tunnel:** Si `spaceapps-cloudflared` o `desktop` se reinician, cambia el subdominio `*.trycloudflare.com`. Siempre leer la URL base desde `.env`, nunca hardcodearla en componentes (ver [`docs/07-ambientes-y-pruebas.md`](../../docs/07-ambientes-y-pruebas.md)).
 - **Parámetro `resolution` en `/terrain/patch`:** Solo acepta `64`, `128` o `256`; cualquier otro entero devuelve `422 Unprocessable Entity`.
 - **Alineación 3D en Three.js:** `grid.elevations_m` viene de Norte (`-Z`) a Sur (`+Z`) y Oeste (`-X`) a Este (`+X`). Requiere `geometry.rotateX(-Math.PI / 2)` en `THREE.PlaneGeometry` para coincidir 1:1 con `[+X Este, +Y Arriba, -Z Norte]` de `sun_vector_3d` y `earth_vector_3d`.
 - **Eje Y en mapa 2D polar:** `+Y` en `polar_y_m` apunta hacia `0°` (hacia la Tierra). En `<svg>`/`<canvas>` debe invertirse (`screenY = cy - polar_y_m * scale`).

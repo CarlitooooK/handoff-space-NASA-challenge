@@ -1,6 +1,6 @@
 # 6. Contrato y errores
 
-Especificación del protocolo de comunicación entre el frontend (visor 2D/3D y dashboard) y el backend de cómputo topográfico y astronómico. Toda interacción sigue el contrato definido en [`contracts/lunar-landing-api-contract.md`](file:///Users/axeltapia/personal/NASA/handoff-space-NASA-challenge/contracts/lunar-landing-api-contract.md).
+Especificación del protocolo de comunicación entre el frontend (visor 2D/3D y dashboard) y el backend de cómputo topográfico y astronómico. Toda interacción sigue el contrato definido en [`contracts/lunar-landing-api-contract.md`](../contracts/lunar-landing-api-contract.md) y [`contracts/openapi.json`](../contracts/openapi.json).
 
 ---
 
@@ -9,7 +9,7 @@ Especificación del protocolo de comunicación entre el frontend (visor 2D/3D y 
 - **Formato de intercambio:** `application/json` con codificación UTF-8 en todos los endpoints de la API.
 - **Formato de fechas y marcas temporales:** Estricto ISO 8601 en tiempo universal coordinado (UTC): `YYYY-MM-DDTHH:mm:ssZ` (ejemplo: `2026-12-01T00:00:00Z`). No se permiten zonas horarias con desfase local (como `-05:00`).
 - **Coordenadas y ángulos angulares (grados decimales):**
-  - **Latitud lunar (`lat`):** Decimales en el rango polar sur `[-90.0, -80.0]`. El Polo Sur exacto corresponde a `-90.0`.
+  - **Latitud lunar (`lat`):** Decimales en rango global `[-90.0, 90.0]` (`[-90.0, -80.0]` en alta resolución Polo Sur `40 m/px`; cobertura global `ldem_64.tif` fuera de esa franja para sitios Apollo). El Polo Sur exacto corresponde a `-90.0`.
   - **Longitud lunar (`lon`):** Decimales normalizados de `0.0` a `360.0` Este (o `-180.0` a `180.0` equivalente).
   - **Acimut (`az_deg`):** Decimales en el rango `[0.0, 360.0]`, medido en sentido horario desde el Norte local lunar (`0° = Norte`, `90° = Este`, `180° = Sur`, `270° = Oeste`).
   - **Elevación angular (`el_deg`):** Decimales en el rango `[-90.0, 90.0]`, medido respecto al horizonte astronómico plano local (`0° = rasante al horizonte`, positivo por encima, negativo por debajo).
@@ -26,27 +26,31 @@ Especificación del protocolo de comunicación entre el frontend (visor 2D/3D y 
 - **Prefijo de ruta:** Todo endpoint productivo incluye el identificador de versión mayor en la URL: `/api/v1/...`.
 - **Cambios compatibles hacia atrás (Minor/Patch):** La adición de campos informativos opcionales en respuestas JSON o nuevos filtros de consulta no altera el prefijo `/api/v1/`.
 - **Cambios incompatibles (Breaking changes):** Modificaciones en tipos de datos existentes, eliminación de propiedades o cambios en sistemas de referencia espaciales incrementan la versión a `/api/v2/...`.
-- **Proceso de cambio:** Cualquier ajuste al contrato debe reflejarse primero en [`contracts/lunar-landing-api-contract.md`](file:///Users/axeltapia/personal/NASA/handoff-space-NASA-challenge/contracts/lunar-landing-api-contract.md), registrarse en [`docs/09-decisiones.md`](file:///Users/axeltapia/personal/NASA/handoff-space-NASA-challenge/docs/09-decisiones.md) y comunicarse al equipo frontend antes de desplegarse en producción.
+- **Proceso de cambio:** Cualquier ajuste al contrato debe reflejarse primero en [`contracts/lunar-landing-api-contract.md`](../contracts/lunar-landing-api-contract.md) y [`contracts/openapi.json`](../contracts/openapi.json), registrarse en [`docs/09-decisiones.md`](09-decisiones.md) y comunicarse al equipo frontend antes de desplegarse en producción.
 
 ---
 
-## Esquema estándar de error
+## Esquema de error (Backend en vivo vs. Mock)
 
-Cuando una petición no puede ser procesada exitosamente, el servidor responde con un código de estado HTTP adecuado y una estructura JSON predecible:
+El backend en vivo (`spaceapps-api`, FastAPI) y el servidor mock (`mock/server.js`) emiten formatos distintos en respuestas `4xx`/`5xx`, por lo que el cliente debe soportar ambos (`P-001`):
 
-```json
-{
-  "error": {
-    "code": "ERR_INVALID_COORDINATES",
-    "message": "La latitud ingresada (-75.4) se encuentra fuera del rango polar permitido (-90.0 a -80.0).",
-    "details": {
-      "field": "lat",
-      "value": -75.4,
-      "allowed_range": [-90.0, -80.0]
-    }
-  }
-}
-```
+1. **Backend en vivo (FastAPI — según `contracts/openapi.json`):**
+   - Errores de validación Pydantic (`422`): `{ "detail": [ { "type": "...", "loc": [...], "msg": "...", "input": ... } ] }`.
+   - Errores de validación de negocio o indisponibilidad (`422` / `503`): `{ "detail": "resolution must be one of (64, 128, 256)" }`.
+2. **Servidor Mock (`mock/server.js`):**
+   ```json
+   {
+     "error": {
+       "code": "ERR_INVALID_COORDINATES",
+       "message": "La latitud ingresada (-75.4) se encuentra fuera del rango polar permitido (-90.0 a -80.0).",
+       "details": {
+         "field": "lat",
+         "value": -75.4,
+         "allowed_range": [-90.0, -80.0]
+       }
+     }
+   }
+   ```
 
 ---
 

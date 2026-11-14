@@ -10,8 +10,8 @@ Ambientes activos del Backend, servidor mock autónomo y cómo verificar o consu
 | --- | --- | --- | --- |
 | **Producción / Demo Pública (HTTPS Cloudflare Quick Tunnel)** | `https://chart-owned-alabama-choices.trycloudflare.com/api/v1` | [Swagger UI](https://chart-owned-alabama-choices.trycloudflare.com/docs) · [ReDoc](https://chart-owned-alabama-choices.trycloudflare.com/redoc) · [OpenAPI JSON](https://chart-owned-alabama-choices.trycloudflare.com/openapi.json) | Acceso abierto sin VPN; CORS `*` habilitado. Si el contenedor `spaceapps-cloudflared` se reinicia, el subdominio `*.trycloudflare.com` cambia. |
 | **Red Interna del Equipo (Tailscale)** | `http://100.66.139.125:8000/api/v1` | `http://100.66.139.125:8000/docs` | IP fija en el tailnet (`desktop`). Requiere tener Tailscale activo con acceso al nodo compartido. |
-| **Local Mock (Zero-Dependency)** | `http://localhost:3000` | [`contracts/lunar-landing-api-contract.md`](../contracts/lunar-landing-api-contract.md) | Servidor nativo Node.js sin dependencias externas (`mock/server.js`). Ideal para desarrollo offline, pruebas rápidas y presentaciones sin riesgo de caídas de red. |
-| **Local Backend (Científico)** | `http://localhost:8000` | `http://localhost:8000/docs` | Entorno FastAPI completo con motor SPICE/Horizons y lector de GeoTIFFs LOLA en `desktop`. |
+| **Local Mock (Zero-Dependency)** | `http://localhost:3000/api/v1` | [`contracts/lunar-landing-api-contract.md`](../contracts/lunar-landing-api-contract.md) | Servidor nativo Node.js sin dependencias externas (`mock/server.js`, formato CommonJS). Ideal para desarrollo offline y pruebas rápidas; si corre dentro de un proyecto con `"type": "module"`, requiere aislarse con un `package.json` `{"type": "commonjs"}` (`P-004`). |
+| **Local Backend (Científico)** | `http://localhost:8000/api/v1` | `http://localhost:8000/docs` | Entorno FastAPI completo con motor SPICE/Horizons y lector de GeoTIFFs LOLA en `desktop`. |
 
 ---
 
@@ -21,8 +21,8 @@ Nombres recomendados para el Frontend, **sin valores secretos** (la URL se param
 
 | Variable | Tipo | Ejemplo / Default | Descripción |
 | --- | --- | --- | --- |
-| `VITE_API_BASE_URL` | Cadena | `https://chart-owned-alabama-choices.trycloudflare.com/api/v1` | URL base para proyectos basados en Vite / React. Para usar mock local: `http://localhost:3000`. |
-| `NEXT_PUBLIC_API_BASE_URL` | Cadena | `https://chart-owned-alabama-choices.trycloudflare.com/api/v1` | URL base para proyectos basados en Next.js. |
+| `VITE_API_BASE_URL` | Cadena | `https://chart-owned-alabama-choices.trycloudflare.com/api/v1` | URL base para proyectos basados en Vite / React. Para usar mock local: `http://localhost:3000/api/v1` (`P-002`). |
+| `NEXT_PUBLIC_API_BASE_URL` | Cadena | `https://chart-owned-alabama-choices.trycloudflare.com/api/v1` | URL base para proyectos basados en Next.js. Para mock local: `http://localhost:3000/api/v1`. |
 | `PORT` | Numérico | `3000` | Puerto TCP donde escucha el servidor mock local. |
 | `NODE_ENV` | Cadena | `development` | Modo de ejecución del proceso. |
 
@@ -52,6 +52,7 @@ curl -s https://chart-owned-alabama-choices.trycloudflare.com/api/v1/health | jq
 curl -s https://chart-owned-alabama-choices.trycloudflare.com/api/v1/sites | jq .
 
 # 3. Generar tipos TypeScript desde el contrato OpenAPI local
+# (ejecutar vía npx sin instalar como devDependency para no chocar con TypeScript 7 de Vite, ver P-005)
 npx openapi-typescript contracts/openapi.json -o src/types/api.d.ts
 ```
 

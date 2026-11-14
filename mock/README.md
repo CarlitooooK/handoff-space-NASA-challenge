@@ -1,6 +1,6 @@
 # Servidor Simulado (Mock Server)
 
-Servidor HTTP autónomo con **cero dependencias externas de `npm`**, desarrollado con los módulos nativos de Node.js (`http`, `url`). Emula fielmente el contrato de interfaz oficial especificado en [`contracts/lunar-landing-api-contract.md`](file:///Users/axeltapia/personal/NASA/handoff-space-NASA-challenge/contracts/lunar-landing-api-contract.md).
+Servidor HTTP autónomo con **cero dependencias externas de `npm`**, desarrollado con los módulos nativos de Node.js (`http`, `url`). Emula fielmente el contrato de interfaz oficial especificado en [`contracts/lunar-landing-api-contract.md`](../contracts/lunar-landing-api-contract.md).
 
 Permite al equipo de frontend, evaluadores y jurados ejecutar la solución de forma desacoplada, con respuestas en milisegundos y sin requerir conexión a internet ni compilación de kernels SPICE.
 
@@ -11,6 +11,12 @@ Permite al equipo de frontend, evaluadores y jurados ejecutar la solución de fo
 ### Opción 1: Servidor nativo Node.js (Recomendado)
 
 Requiere Node.js (v18 o superior). No necesita ejecutar `npm install`.
+
+> **Nota sobre proyectos ESM (`"type": "module"`):** `mock/server.js` utiliza CommonJS (`require`). Si se copia o invoca dentro de un proyecto Frontend con `"type": "module"` en su `package.json`, ejecuta el mock desde su propia carpeta con un `package.json` local que contenga `{"type": "commonjs"}` (por ejemplo `.handoff/package.json`) o directamente desde este repositorio (`P-004`).
+
+> **Base URL para el cliente:** El servidor expone sus rutas bajo `/api/v1/*`, por lo que `VITE_API_BASE_URL` debe apuntar a `http://localhost:3000/api/v1` (`P-002`).
+
+> **Rango de latitud en el mock:** Actualmente `mock/server.js` valida `lat` en `[-90.0, -80.0]` (Polo Sur); el backend en vivo ya acepta `[-90.0, 90.0]` (`P-003`).
 
 ```bash
 # Iniciar en el puerto por defecto (3000)

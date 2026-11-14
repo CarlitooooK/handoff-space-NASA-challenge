@@ -2,10 +2,12 @@
 
 Cronología, de lo más nuevo a lo más viejo. Fechas absolutas. No se borra: se agrega.
 
-## 2026-11-14
-- Se incorporó `FRONTEND_API_GUIDE.md` en la raíz del repositorio con la guía completa de los 6 endpoints REST v1, cliente `apiFetch`, ejemplos TypeScript y snippets Three.js (`PlaneGeometry` + vectores Sol/Tierra).
-- Se copió `contracts/openapi.json` (OpenAPI `3.1.0` / API `1.0.0`) y se actualizó `contracts/README.md`.
-- Se alineó `contracts/lunar-landing-api-contract.md` con el backend verificado en vivo (URLs de Cloudflare HTTPS y Tailscale, CORS abierto, `lat` `-90.0..90.0`, `13` sitios curados y `status` `"GO" | "CAUTION" | "NO-GO"`).
-- Se completaron `docs/07-ambientes-y-pruebas.md` y `docs/09-decisiones.md`, se corrigieron enlaces absolutos locales en `docs/10-producto-y-necesidades.md` y se enlazó la guía en `README.md` y `AGENTS.md`.
-- Se verificó en vivo `GET https://chart-owned-alabama-choices.trycloudflare.com/api/v1/health` (`200 OK`, `landing_sites_count: 13`, `psr_regions_count: 1531`).
-- Se documentó el componente transversal en `contexto-sesiones/_compartido/backend-api.md` y se creó esta iniciativa en `contexto-sesiones/iniciativas/handoff-api-frontend/`.
+## 2026-11-14 (actualización)
+- Se respondieron `P-001` a `P-005` en `PREGUNTAS.md` (movidas a *Respondidas*) tras verificar en vivo `422` (`{ detail }`) y cobertura global `[-90, 90]` (Apollo 11 `200 OK` en `/terrain/patch`).
+- Se actualizaron `docs/06-contrato-y-errores.md`, `docs/07-ambientes-y-pruebas.md`, `docs/08-pendientes.md`, `docs/09-decisiones.md` (`D-010`) y `mock/README.md` (nota CommonJS/ESM, URL mock `/api/v1`, `npx openapi-typescript` y limpieza de enlaces locales absolutos).
+- Se inspeccionó `AxelT456/lunar_landing_site_navigator_api` (`64cdae2`) y se documentó su estado real (scaffolding FastAPI sintético sin `app/infrastructure/`) en `contexto-sesiones/_compartido/backend-api.md` y `CONOCIMIENTO.md`.
+- Se actualizó el estado de `mock/` en `HANDOFF.md` (`P-004`).
+
+## 2026-11-14 (inicio)
+- Se incorporó `FRONTEND_API_GUIDE.md` (`contracts/openapi.json` y alineación de `contracts/lunar-landing-api-contract.md`, `docs/07`, `docs/09`, `docs/10`, `README.md`, `AGENTS.md`). Commit `5b78a50`.
+- Se creó `contexto-sesiones/_compartido/backend-api.md` y la iniciativa `contexto-sesiones/iniciativas/handoff-api-frontend/`.
