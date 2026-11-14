@@ -42,6 +42,9 @@ Fase 1 del proyecto: un globo lunar detallado, estilo Google Earth, **desarrolla
 - Datos reales para la demo: `POST /evaluate` en IM-2 Mons Mouton (lat −84,79, lon 31,2, pendiente 1,3°, 5 144 m), 2026-12-21T08:00Z: Sol a 6,5° y Tierra a 10,5° sobre el horizonte, `sun_vector_3d` [0.0237, 0.1126, -0.9934], `earth_vector_3d` [-0.5971, 0.1825, -0.7812]. El 2026-12-01 en ese sitio el Sol está bajo el horizonte todo el día.
 - Shackleton Rim está en sombra: la imagen del suelo es negra, mala para la escena.
 
+- Sin validación, un mensaje con `lat` no numérico producía posiciones NaN y Cesium detenía el render. Todo mensaje del puente se valida ahora (`src/embed.ts`) y las opciones de la escena también (`sanitizeSceneOptions`).
+- Si llegaba `SET_SUN_LOCAL` en plena escena, la luz física pisaba la luz de escena y el suelo se oscurecía. Corregido: durante la escena solo se reorienta la luz clave.
+
 ## Supuestos sin verificar
 - `sun_vector_3d` es un vector hacia el Sol en el marco local del sitio con la convención D-008; la conversión a marco fijo lunar se probó solo con un vector mock.
 - El rendimiento en el equipo de la demo (GPU real) no se midió; la prueba corrió con renderizado por software.

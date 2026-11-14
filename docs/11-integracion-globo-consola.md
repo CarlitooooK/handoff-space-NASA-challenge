@@ -108,6 +108,23 @@ Una sola secuencia que va de la vista 3D de la Luna a una escena en plano horizo
 - Mejor sobre terreno llano e iluminado. En sitios en sombra permanente (p. ej. Shackleton) el suelo de la imagen es negro.
 - Mientras corre, el globo oculta los pines de sitios.
 
+### De qué dato del backend sale cada parámetro de la escena
+| Parámetro de `PLAY_LANDING_SCENE` / mensaje previo | Sale de | Notas |
+| --- | --- | --- |
+| `lat`, `lon` | `Site.lat` / `Site.lon` (`GET /sites`) o el punto elegido; también `evaluate.site` | Acepta 0–360 como la API |
+| Sol: `SET_SUN_LOCAL` | `timeline[stepIndex].sun_vector_3d` de `POST /evaluate` | Tal cual, sin convertir. **Sin esto no hay Sol** |
+| Tierra: `SET_EARTH_LOCAL` | `timeline[stepIndex].earth_vector_3d` | Tal cual |
+| PSR: `SET_PSR` | `GET /psr/nearby` → `psrs` | Se dibujan pegados al terreno |
+| `headingDeg`, `startAltM`, `durationS`, `distanceM`, `astronaut` | **Decisión de la interfaz** (modo Simple/Detailed, Cinematic), no del backend | Rangos y valores por defecto en el `README.md` del globo |
+
+Lo que el backend sabe y la escena **no usa** (se muestra en los paneles de la consola): `status`, `reasons`, `slope_deg`, `elevation_m`, `nearest_psr_km`, KPIs de energía y DTE. La escena no cambia por un `NO-GO`: no hay dato de trayectoria ni de resultado de aterrizaje en el contrato, y no se inventa.
+
+### Comportamiento que la consola puede asumir
+- Un `PLAY_LANDING_SCENE` con `lat`/`lon` inválidos **no arranca** y el globo responde `SCENE_ERROR {reason}`; los demás mensajes mal formados se descartan sin afectar al render.
+- Si el scrubber cambia el Sol en plena escena (`SET_SUN_LOCAL`), el Sol y la luz de los modelos se reorientan. La cámara y el descenso siguen su curso.
+- Una nueva `PLAY_LANDING_SCENE` reinicia la escena; `STOP_LANDING_SCENE` o cualquier vista (`RESET`, `SELECT_SITE`, `SET_VIEW`…) la detiene y limpia módulo, astronauta y polvo.
+- El relieve de la escena es el del globo (~666 m/px), no el de `terrain/patch` (más fino). Usar el parche local en el globo sería una mejora futura, no existe hoy.
+
 ## 6b. Vehículos en el globo (fase 3, ya construido)
 
 - **Módulo de aterrizaje:** sigue la trayectoria recibida con `SET_TRAJECTORY`, con columna de motor mientras desciende y unos segundos posado. Modelo: Apollo LM de NASA 3D Resources como **sustituto genérico, no el módulo de Artemis**. La interfaz no debe presentarlo como el vehículo de la misión.

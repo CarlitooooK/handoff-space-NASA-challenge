@@ -19,6 +19,8 @@ Fase 1 del globo lista y verificada en navegador (CesiumJS + teselas NASA Moon T
 | Fase 3: módulo de aterrizaje (Apollo LM, genérico) con columna de motor y astronauta | Hecho (verificado con capturas; calidad baja a propósito) |
 | Escena de alunizaje en plano horizontal (vuelo desde la vista global, descenso, polvo, astronauta) | Hecho (`PLAY_LANDING_SCENE`); verificada con capturas en las 4 fases en IM-2 Mons Mouton |
 | Textura procedural de regolito a ras de suelo | Hecho (ilustrativa) |
+| Escena configurable por la consola (parámetros validados, `SCENE_ERROR`, luz estable si cambia el Sol) | Hecho; probado por `postMessage` desde el origen de la consola con mensajes válidos e inválidos |
+| Puente de mensajes en la consola (`useGlobeBridge`) | Lo construye Frontend; hoy la consola solo monta el iframe (`GlobeFrame.tsx`) |
 | Integración en la consola (`<iframe>` + conexión al store) | No iniciado |
 | Repo git propio | Hecho: [`luna-render-nasa-space-challenge`](https://github.com/CarlitooooK/luna-render-nasa-space-challenge) |
 | Despliegue del globo (URL para el iframe) | No iniciado |

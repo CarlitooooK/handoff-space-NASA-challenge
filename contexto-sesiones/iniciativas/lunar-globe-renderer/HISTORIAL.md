@@ -3,6 +3,7 @@
 Cronología, de lo más nuevo a lo más viejo. Fechas absolutas. No se borra: se agrega.
 
 ## 2026-11-14
+- Escena configurable desde la consola (`9d5076a` del repo del globo): validación de opciones (`lat`, `lon`, `startAltM`, `durationS`, `distanceM`, `headingDeg`) y de todos los mensajes del puente, `SCENE_ERROR`, y la luz de escena ya no se pisa si llega un `SET_SUN_LOCAL` en plena escena. Probado con el globo en un iframe y mensajes por `postMessage` desde `http://localhost:5173`.
 - Escena de alunizaje (`2a7cac3` del repo del globo), a pedido de Carlo: la fase 3 se veía confusa (arco de 100 km visto desde arriba, módulo diminuto). Ahora es una secuencia continua en plano horizontal, desde la vista global hasta el astronauta; `PLAY_LANDING_SCENE`, `SCENE_PHASE`, `SCENE_TELEMETRY`. Se añadió textura procedural de regolito.
 - Errores encontrados al construirla (ver `CONOCIMIENTO.md`): `minimumLevel` en una capa global bloquea Cesium; longitudes 0–360 devuelven altura 0 en `sampleTerrain`; la cámara quedaba bajo el terreno dibujado.
 - Fase 3 en el globo (`6ba649f` del repo del globo): módulo de aterrizaje con columna de motor y astronauta, con modelos de NASA 3D Resources (Apollo LM y Astronaut, 1,4 MB); `SET_VEHICLES` y `VIEW_VEHICLE`. Se descartó el SLS: solo existe como `.7z` de 14 a 70 MB.
