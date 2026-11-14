@@ -58,3 +58,18 @@ You may (but are not required to) consider the following:
 - Your solution could support mission planners in coordinating between science and engineering teams during mission development.
 - It could help teams respond quickly when schedule changes or hardware development challenges require landing date or location adjustments.
 - It could also serve as an educational tool to help students and the public understand lunar exploration challenges and why mission planning is so complex.
+
+---
+
+## Evaluation Criteria (Official Rubric)
+
+Each criterion accounts for 12.5% of the total score (100% total):
+
+1. **Technological Innovation (12.5%):** Original technology, advanced techniques, and a functional solution that improves upon existing approaches.
+2. **User Experience (UX/UI) (12.5%):** An intuitive, accessible, visually consistent, and easy-to-use functional prototype.
+3. **Social Impact (12.5%):** A relevant problem, clear beneficiaries, realistic implementation, and potential for positive social change.
+4. **Use of NASA Data (12.5%):** Meaningful integration, accurate interpretation, and effective communication of NASA or partner agency datasets.
+5. **Scientific Solution (12.5%):** Scientific accuracy, relevance to the challenge, validation, and real-world feasibility.
+6. **Creativity (12.5%):** An original approach that combines ideas, disciplines, or methods in innovative ways.
+7. **Art & Technology (12.5%):** Effective integration of artistic elements with technology and science to enhance the solution.
+8. **Communication (12.5%):** A clear and compelling presentation, complete English documentation, AI tool disclosure, and proper citations.

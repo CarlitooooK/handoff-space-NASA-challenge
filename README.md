@@ -13,14 +13,24 @@ Herramienta intuitiva para evaluar y comparar rápidamente sitios y fechas de at
 
 | Pieza | Estado |
 | --- | --- |
-| Documentación de contexto y alcance (`docs/`) | Lista |
+| Documentación de contexto y alcance (`docs/`) | Lista (10/10 guías completas) |
 | Backend API REST v1 (`desktop` / Túnel HTTPS) | Listo (6 endpoints en vivo) |
-| Contrato de API (`contracts/lunar-landing-api-contract.md` + `contracts/openapi.json`) | Listo (v1.0) |
+| Contrato de API (`contracts/lunar-landing-api-contract.md` + `contracts/openapi.json`) | Listo (v1.0 congelado) |
 | Guía de Consumo Frontend (`FRONTEND_API_GUIDE.md`) | Lista |
-| Servidor mock / datasets precalculados | En curso |
-| Frontend (Visor 2D/3D & Dashboard) | En curso |
+| Servidor mock autónomo zero-dependency (`mock/`) | Listo (`mock/server.js` en puerto 3000) |
+| Frontend (Visor 2D/3D & Dashboard) | Desbloqueado (listo para construir contra el mock o API en vivo) |
+| Handoff de iniciativas de sesión | Activo ([`contexto-sesiones/`](contexto-sesiones/README.md)) |
 
-## Documentos
+## Estructura del Repositorio: Handoff vs. Contexto de Sesiones
+
+Para mantener la claridad del proyecto, este repositorio separa estrictamente dos capas:
+
+1. **El Handoff (`docs/`, `contracts/`, `mock/`):** Es el **acuerdo técnico y contractual** que define *qué se construye*, bajo qué reglas científicas y cómo se comunican las piezas. Es la fuente de verdad inmutable para quien desarrolla el sistema.
+2. **El Contexto de Sesiones (`contexto-sesiones/`):** Es la **memoria viva y bitácora de trabajo** entre sesiones (desarrolladores o agentes). Documenta el avance (`HISTORIAL.md`), el relevo de tareas (`HANDOFF.md` de la sesión) y lo aprendido (`CONOCIMIENTO.md`).
+
+---
+
+## 1. El Handoff (Plan Oficial de Documentación)
 
 | # | Documento | Qué tiene |
 | --- | --- | --- |
@@ -28,30 +38,40 @@ Herramienta intuitiva para evaluar y comparar rápidamente sitios y fechas de at
 | 1 | [Alcance](docs/01-alcance.md) | Qué hace la v1 y qué queda fuera |
 | 2 | [Arquitectura](docs/02-arquitectura.md) | Las piezas, quién hace qué y por qué |
 | 3 | [Datos y accesos](docs/03-datos-y-accesos.md) | Fuentes de datos, APIs, llaves y límites |
-| 4 | [Reglas del reto](docs/04-reglas-del-reto.md) | Criterios, restricciones y entregables |
+| 4 | [Reglas del reto](docs/04-reglas-del-reto.md) | Criterios (rúbrica 12.5% c/u), restricciones y entregables |
 | 5 | [Flujos](docs/05-flujos.md) | Cada pantalla o caso de uso con sus datos |
 | 6 | [Contrato y errores](docs/06-contrato-y-errores.md) | Formatos, versionado y códigos de error |
-| 7 | [Ambientes y pruebas](docs/07-ambientes-y-pruebas.md) | URLs, datos de prueba y cómo correr en local |
+| 7 | [Ambientes y pruebas](docs/07-ambientes-y-pruebas.md) | URLs activas, mock local, datos de prueba y cómo correr |
 | 8 | [Pendientes y fases](docs/08-pendientes.md) | Lo que falta, quién lo hace y cómo avanzar mientras tanto |
-| 9 | [Decisiones](docs/09-decisiones.md) | Las decisiones ya tomadas y dónde están escritas |
+| 9 | [Decisiones](docs/09-decisiones.md) | Las decisiones ya tomadas (ADRs) y dónde están escritas |
 | 10 | [Producto y necesidades](docs/10-producto-y-necesidades.md) | Desde quien consume: qué se construye y qué se necesita de la otra parte |
 
-**Guía práctica para Frontend y agentes IA:** [`FRONTEND_API_GUIDE.md`](FRONTEND_API_GUIDE.md) (URLs activas, cliente `fetch` TypeScript, tipos y snippets listos para Three.js).
+### Interfaces, Guías y Servidor Simulado
+- **Guía práctica Frontend / IA:** [`FRONTEND_API_GUIDE.md`](FRONTEND_API_GUIDE.md) (URLs activas, cliente `fetch` TypeScript, tipos y snippets Three.js).
+- **Contratos** (`contracts/`): Las interfaces formales entre partes. Ver [`contracts/README.md`](contracts/README.md), [`contracts/lunar-landing-api-contract.md`](contracts/lunar-landing-api-contract.md) y [`contracts/openapi.json`](contracts/openapi.json).
+- **Simulado** (`mock/`): Servidor mock zero-dependency con respuestas en milisegundos para construir sin esperar. Ver [`mock/README.md`](mock/README.md).
 
-**Contratos** (`contracts/`): las interfaces entre las partes. Ver [`contracts/README.md`](contracts/README.md), [`contracts/lunar-landing-api-contract.md`](contracts/lunar-landing-api-contract.md) y [`contracts/openapi.json`](contracts/openapi.json).
+### Ideas y Propuestas de Referencia (No Vinculantes)
+Exploraciones conceptuales y sugerencias de diseño que **no** forman parte del contrato formal del handoff:
+- [Propuesta de Arquitectura Frontend](docs/ideas/frontend-architecture-guide.md): Idea general para estructurar un cliente en React + Zustand + Three.js a 60 FPS.
+- [Propuesta UI/UX (TDD)](docs/ideas/lunar-landing-ui-ux-tdd.md): Boceto visual conceptual ("Deep Space Mission Control"), paleta de color y layout sugerido.
 
-**Simulado** (`mock/`): un servidor de mentira con los mismos cuerpos que el real, para avanzar sin esperar. Ver [`mock/README.md`](mock/README.md).
+---
 
-## Contexto de sesiones
+## 2. Contexto de Sesiones (Memoria de Trabajo)
 
-El estado del trabajo y lo aprendido en cada sesión viven en [`contexto-sesiones/`](contexto-sesiones/README.md): un índice de iniciativas, conocimiento compartido por componente y plantillas para crear lo nuevo. Se lee al empezar y se deja al día al terminar.
+El estado del trabajo y lo aprendido en cada sesión viven en [`contexto-sesiones/`](contexto-sesiones/README.md): un índice de iniciativas, conocimiento compartido por componente y bitácoras para continuar el trabajo sin perder contexto. Se lee al empezar una sesión y se actualiza al terminarla.
+- **Iniciativas activas:**
+  - [`contexto-sesiones/iniciativas/lunar-landing-navigator/HANDOFF.md`](contexto-sesiones/iniciativas/lunar-landing-navigator/HANDOFF.md) — Infraestructura general del handoff, mock server y documentación.
+  - [`contexto-sesiones/iniciativas/handoff-api-frontend/HANDOFF.md`](contexto-sesiones/iniciativas/handoff-api-frontend/HANDOFF.md) — Despliegue de API en vivo, túnel Cloudflare y guía de consumo.
 
 ## Cómo empezar
 
 1. Leer el reto original en [`docs/00-reto-original.md`](docs/00-reto-original.md) y los documentos 1 a 4.
-2. Revisar la guía de integración práctica en [`FRONTEND_API_GUIDE.md`](FRONTEND_API_GUIDE.md) y los contratos en [`contracts/lunar-landing-api-contract.md`](contracts/lunar-landing-api-contract.md) y [`contracts/openapi.json`](contracts/openapi.json).
-3. Apuntar el Frontend a la URL pública HTTPS documentada en [`FRONTEND_API_GUIDE.md`](FRONTEND_API_GUIDE.md) (o levantar `mock/` si se requiere trabajar offline).
+2. Revisar la especificación de API en [`contracts/lunar-landing-api-contract.md`](contracts/lunar-landing-api-contract.md) o [`FRONTEND_API_GUIDE.md`](FRONTEND_API_GUIDE.md).
+3. Levantar el simulado de `mock/` (`node mock/server.js`) o conectar al backend en vivo.
 4. Anotar cada duda en `PREGUNTAS.md` en lugar de suponer.
+5. Cambiar el simulado por el servicio real cuando esté disponible.
 
 ## Origen
 
