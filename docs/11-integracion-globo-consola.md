@@ -51,7 +51,10 @@ El Figma pide un render siempre de fondo y paneles de vidrio encima. La propuest
 | `GET /sites` carga (`sites`) | `SET_SITES` | Campos del schema `LandingSite` (`id`, `name`, `category`, `lat`, `lon`). Sin `status` hasta que haya evaluación |
 | Se elige un sitio (`select`) | `SELECT_SITE` | Incluye `id` para resaltar el pin. `store.selected` hoy no guarda `id`: añadirlo o buscarlo por `lat`/`lon` en `sites` |
 | `evaluate` termina | `SET_SITES` de nuevo con `status` | Pinta GO/CAUTION/NO-GO. En Compare, el estado de cada escenario |
-| El scrubber cambia `stepIndex` | `SET_SUN_LOCAL` con `timeline[stepIndex].sun_vector_3d` | **Vector tal cual**, sin convertir (D-008). Cero red (D-003). Agrupar con `requestAnimationFrame` |
+| El scrubber cambia `stepIndex` | `SET_SUN_LOCAL` con `timeline[stepIndex].sun_vector_3d` y `SET_EARTH_LOCAL` con `earth_vector_3d` | **Vectores tal cual**, sin convertir (D-008). Cero red (D-003). Agrupar con `requestAnimationFrame` |
+| `GET /psr/nearby` responde (`psrs`) | `SET_PSR` | El arreglo `psrs` sin tocar (metros estereográficos polares); el globo lo convierte |
+| El usuario pide ver el cielo o la superficie | `LOOK_AT {body}`, `VIEW_FROM_SURFACE {lat,lon,look?}` | Opcional, para el modo Cinematic |
+| El usuario reproduce el descenso | `FOLLOW_TRAJECTORY {enabled}` | Cámara que sigue al módulo |
 | Trayectoria para mostrar | `SET_TRAJECTORY` | **No hay endpoint de trayectoria en el contrato.** Cualquier dato que se envíe es ilustrativo y la interfaz debe rotularlo "Sample data" |
 | Cambia el modo de capas | `SET_CONFIG` | `showGrid`, `layers`, `autoRotate`, etc. |
 | Reproducción | `PLAY_ANIMATION` | |
@@ -63,15 +66,17 @@ El Figma pide un render siempre de fondo y paneles de vidrio encima. La propuest
 | `SITE_CLICKED` | Igual que elegir en el selector: `select` y `evaluate` |
 | `GLOBE_CLICKED` | Punto libre: `select` con esas coordenadas y `evaluate`. El contrato acepta cualquier `lat` en `[-90, 90]` (D-010) |
 | `ANIMATION_COMPLETE` | Actualizar el estado de reproducción |
+| `LOADING {pending}` | Mostrar un indicador de carga mientras `pending > 0` |
+| `TRAJECTORY_PROGRESS {progress,lat,lon,altKm}` | Alimentar el HUD de altitud del descenso (≤10 por segundo) |
 
-**Reservado, aún no existe:** `SET_EARTH_LOCAL` (vector `earth_vector_3d`) y mensajes para cohete y astronauta. Se añaden en el globo cuando se construya la fase 2 o 3. Los mensajes desconocidos se ignoran, así que la consola puede avanzar sin esperar.
+**Reservado, aún no existe:** mensajes para cohete y astronauta (fase 3). Se añaden en el globo cuando se construyan. Los mensajes desconocidos se ignoran, así que la consola puede avanzar sin esperar.
 
 ## 4. Qué NO construir (para no empalmar)
 
 - Un globo, teselas o marcadores de sitios en la escena Three.js de la consola.
 - Cesium o `three-globe` dentro del bundle de la consola.
 - El Sol, la Tierra o las estrellas del cielo global en la consola. La luz local de `CelestialBodies.tsx` sigue siendo de la consola: es la escena del sitio.
-- Cálculo de efemérides o de la posición de la Tierra en el cliente.
+- Cálculo de efemérides o de la posición de la Tierra en el cliente. El globo tampoco las calcula: recibe los vectores de la API.
 - Llamadas a la API desde el globo, o claves y URLs de backend en el globo.
 - Una segunda copia de los tipos del protocolo.
 
@@ -81,11 +86,23 @@ El Figma pide un render siempre de fondo y paneles de vidrio encima. La propuest
 - Si el iframe no responde `READY` en unos 8 s, mostrar un aviso discreto y quedarse en la escena local. Nunca bloquear la consola.
 - Los datos de muestra (sitios mock del globo, trayectorias ilustrativas) se marcan como muestra en la interfaz (principio 5 de `PRODUCT.md` en la consola).
 
-## 6. Orden de trabajo sin bloqueos
+## 6. Cielo en el globo (fase 2, ya construido)
 
-1. **Ahora, sin esperar al globo:** el hueco del iframe, `useGlobeBridge` con `SET_SITES`, `SELECT_SITE`, `SET_SUN_LOCAL` y los eventos de entrada. Todo eso ya existe en el globo.
+Con los mensajes de la sección 3 el globo dibuja estrellas, la Tierra (tamaño angular real, fase según el Sol) y el Sol (disco de 0,53° con halo). Reglas para la consola:
+- **Sin Sol no hay Sol:** si la consola no envía `SET_SUN_LOCAL`, el globo no inventa una posición y no dibuja el Sol ni sombrea la Luna.
+- **Sin vector de la Tierra** el globo la deja en su posición media (lon 0°, lat 0°). Es una referencia, no una efeméride.
+- La distancia a la Tierra es la media (384 400 km) y su rotación y orientación son ilustrativas. La interfaz no debe presentarlas como medidas.
+- La luz y los astros del globo no sustituyen a `CelestialBodies.tsx`, que es la luz de la escena local.
+
+## 7. Vista global sin sitio: pregunta abierta al backend
+
+Para dibujar el cielo antes de elegir un sitio hacen falta direcciones del Sol y la Tierra desde el centro de la Luna. El contrato solo las da dentro de `POST /evaluate`. Se pregunta en `P-007` (no bloquea). Mientras tanto, la consola puede evaluar un sitio de referencia y reenviar sus vectores al globo.
+
+## 8. Orden de trabajo sin bloqueos
+
+1. **Ahora:** el hueco del iframe, `useGlobeBridge` con `SET_SITES`, `SELECT_SITE`, `SET_SUN_LOCAL` y los eventos de entrada. Todo eso ya existe en el globo.
 2. **Cuando el globo tenga URL de despliegue:** apuntar `VITE_GLOBE_URL` y probar con el origen real.
-3. **Después, en el globo (fase 2):** Sol, Tierra y estrellas. En la consola solo se añade el envío de `earth_vector_3d`.
+3. **Fase 2 (hecha en el globo):** en la consola solo falta enviar `earth_vector_3d` con `SET_EARTH_LOCAL` y `psrs` con `SET_PSR`.
 4. **Fase 3:** cohete y astronauta, por mensaje, sin tocar el store más allá de un interruptor.
 
 **Cambios al protocolo:** se hacen en el `README.md` del globo y se anotan en el `HISTORIAL.md` de `iniciativas/lunar-globe-renderer/`. Quien los cambie avisa a la otra parte en este repo.

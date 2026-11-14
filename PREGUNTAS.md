@@ -35,6 +35,15 @@ Quien responde llena **Respuesta**, **Respondió** y la fecha, mueve la entrada 
 - **Respuesta:** _pendiente_
 - **Respondió:** —
 
+### P-007: Dirección del Sol y la Tierra para la vista global (sin sitio)
+
+- **Pregunta:** El globo (fase 2) dibuja el Sol y la Tierra en el cielo lunar a partir de `sun_vector_3d` / `earth_vector_3d`, pero hoy solo existen dentro de `POST /evaluate`, que exige un sitio. ¿Puede el backend exponer, para una fecha UTC, las direcciones del Sol y de la Tierra vistas desde el **centro de la Luna** en el marco fijo lunar (`MOON_ME`), por ejemplo `GET /api/v1/ephemeris?utc=…`? Idealmente también la distancia a la Tierra, que hoy el globo fija en la media de 384 400 km.
+- **Contexto:** `docs/11-integracion-globo-consola.md` sección 7; D-002 y D-006 (el cliente no calcula física). Sin esta respuesta el globo dibuja la Tierra en la posición media (lon 0°, lat 0°) y **no dibuja el Sol**.
+- **Bloquea:** no. Alternativa mientras llega: la consola evalúa un sitio de referencia y reenvía sus vectores (`SET_SUN_LOCAL`, `SET_EARTH_LOCAL`); el error angular de tomar un sitio en vez del centro es ≈0,26° para la Tierra y despreciable para el Sol.
+- **Preguntó:** Globo (`lunar-globe-renderer`) · 2026-11-14
+- **Respuesta:** _pendiente_
+- **Respondió:** —
+
 ---
 
 ## Respondidas

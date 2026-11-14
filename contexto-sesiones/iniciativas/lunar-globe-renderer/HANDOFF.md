@@ -12,6 +12,10 @@ Fase 1 del globo lista y verificada en navegador (CesiumJS + teselas NASA Moon T
 | Pines de sitios (color por GO/CAUTION/NO-GO), fly-to, rejilla, arco de descenso | Hecho |
 | Iluminación desde `sun_vector_3d` (convención D-008) | Hecho (probada solo con vector mock) |
 | Protocolo iframe + postMessage con lista de orígenes permitidos | Hecho (sin probar contra la consola real) |
+| Cielo: estrellas, Sol y Tierra a tamaño real (fase 2) | Hecho (verificado con capturas). El Sol solo con dirección del host; la Tierra en posición media si no |
+| Capa PSR desde `GET /psr/nearby` | Hecho (probada con polígono sintético; falta probar con datos reales) |
+| Seguimiento del descenso, marca de touchdown, progreso para HUD, indicador de carga | Hecho |
+| Vista desde la superficie (horizonte esférico, sin `horizon_profile`) | Hecho (básica) |
 | Integración en la consola (`<iframe>` + conexión al store) | No iniciado |
 | Repo git propio | Hecho: [`luna-render-nasa-space-challenge`](https://github.com/CarlitooooK/luna-render-nasa-space-challenge) |
 | Despliegue del globo (URL para el iframe) | No iniciado |
@@ -20,10 +24,11 @@ Fase 1 del globo lista y verificada en navegador (CesiumJS + teselas NASA Moon T
 | Texturas LROC NAC de alta resolución | No iniciado (v2, ver `docs/08-pendientes.md`) |
 
 ## Pendientes (en orden de valor)
-1. Integrar en la consola siguiendo `docs/11-integracion-globo-consola.md` (propuesta pendiente de `P-006`): `<iframe>` + `SET_SITES` desde `GET /sites`, `SELECT_SITE` al elegir sitio, `SET_SUN_LOCAL` con `timeline[stepIndex].sun_vector_3d`.
-2. Corregir el abanico de la imagen en ±90° (localizar la capa polar de Moon Trek; la ruta probada dio 404).
-3. Terreno 3D real del polo sur (quantized-mesh desde LOLA) si el tiempo alcanza.
-4. Probar con el backend en vivo y medir rendimiento en la máquina de la demo.
+1. Responder `P-007` (vista global sin sitio; no bloquea) y probar `SET_PSR` con datos reales.
+2. Integrar en la consola siguiendo `docs/11-integracion-globo-consola.md` (propuesta pendiente de `P-006`): `<iframe>` + `SET_SITES` desde `GET /sites`, `SELECT_SITE` al elegir sitio, `SET_SUN_LOCAL` con `timeline[stepIndex].sun_vector_3d`.
+3. Corregir el abanico en ±90°: la capa existe (`LRO_WAC_Mosaic_SPole60_100m_v02`) pero está en proyección polar; hace falta un `ImageryProvider` que reproyecte.
+4. Terreno 3D real del polo sur (quantized-mesh desde LOLA) si el tiempo alcanza.
+5. Probar con el backend en vivo y medir rendimiento en la máquina de la demo.
 
 ## Cómo retomar
 1. Lee `_compartido/lunar-globe-renderer.md` y `CONOCIMIENTO.md`.

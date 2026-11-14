@@ -19,9 +19,16 @@ Fase 1 del proyecto: un globo lunar detallado, estilo Google Earth, **desarrolla
 - En vista global los pines del polo sur se solapan: las etiquetas solo se muestran a menos de 2 500 km.
 - El prototipo anterior fallaba `tsc` (4 errores, entre ellos `Vector3.slerpVectors` inexistente) y su "protocolo postMessage" solo estaba tipado, no implementado.
 
+- Cesium solo crea el cielo estrellado por defecto con el elipsoide terrestre; con `Ellipsoid.MOON` hay que configurar el `SkyBox` a mano (`src/sky.ts`). Sin eso no hay estrellas.
+- Un billboard con `sizeInMeters` a 1e8–1e9 m se renderiza como una línea; se resolvió con tamaño en píxeles recalculado por fotograma desde el FOV, que conserva el tamaño angular.
+- La proyección de PSR (`polar_x_m`, `polar_y_m`) es estereográfica polar sobre esfera de 1 737,4 km: x = ρ·sin λ, y = −ρ·cos λ, ρ = 2R·tan(π/4 + φ/2). Coincide con el ejemplo de `contracts/lunar-landing-api-contract.md` dentro del redondeo de la latitud (≈0,2 %).
+- La capa polar de Moon Trek `LRO_WAC_Mosaic_SPole60_100m_v02` existe (`trek.nasa.gov/tiles/Moon/SP/…`) en metros polares (±1 095 km); Cesium no la acepta sin reproyectar.
+- Distancias del cielo: el Sol real queda fuera del plano lejano de Cesium; se coloca a 9e8 m conservando el tamaño angular. La Tierra va a 384 400 km (media).
+
 ## Supuestos sin verificar
 - `sun_vector_3d` es un vector hacia el Sol en el marco local del sitio con la convención D-008; la conversión a marco fijo lunar se probó solo con un vector mock.
 - El rendimiento en el equipo de la demo (GPU real) no se midió; la prueba corrió con renderizado por software.
+- La capa PSR se probó con un polígono sintético, no con datos de `/psr/nearby`.
 - Que el iframe funcione bajo el origen real de la consola y del túnel de despliegue.
 
 ## Pendiente de decisión
