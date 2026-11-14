@@ -24,6 +24,7 @@ React 19 + TypeScript + Vite, Tailwind v4, Three.js con React Three Fiber/drei y
 - Rutas, esquemas y errores: `contracts/` y `docs/06-contrato-y-errores.md`. Guía de consumo: `FRONTEND_API_GUIDE.md`.
 - Decisiones que la condicionan: `D-002`, `D-003`, `D-006`, `D-008` en `docs/09-decisiones.md`.
 - Backend: `_compartido/backend-api.md`. Mock: `mock/README.md`.
+- Globo lunar incrustable (D-011): `_compartido/lunar-globe-renderer.md`. Aún no integrado en la consola.
 
 ## Cosas que muerden
 - `mock/server.js` es CommonJS; dentro de un proyecto `"type": "module"` falla con `require is not defined`. La consola aísla su copia con un `package.json` `{"type":"commonjs"}` dentro de `.handoff/` (`P-004`, documentado en `mock/README.md`).

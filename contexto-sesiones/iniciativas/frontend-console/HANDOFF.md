@@ -17,15 +17,17 @@ Fase 1 lista: la consola corre completa contra el mock (selector de sitio, evalu
 | Comparador (`POST /compare`) | No iniciado |
 | Prueba contra backend en vivo | No iniciado |
 | Optimización "solo fecha → solo `/evaluate`" | No iniciado |
+| Integración del globo lunar (iframe + `postMessage`, D-011) | No iniciado (el globo vive en `iniciativas/lunar-globe-renderer/`) |
 | Video demo y AI Tool Disclosure | No iniciado |
 
 ## Pendientes (en orden de valor)
 1. Verificar visualmente la escena 3D (escala de luces, cámara, exageración vertical) y ajustar.
 2. Probar contra el backend en vivo (errores `{detail}` y sitios Apollo con `lat` fuera de `-90..-80`; ver `docs/06`).
-3. Perfil de horizonte 2D y capa PSR (`GET /psr/nearby`).
-4. Comparador de 2 a 5 escenarios con los errores `ERR_SCENARIO_LIMIT_EXCEEDED` y `ERR_DUPLICATE_SCENARIOS`.
-5. Pistas Gantt, modos de cámara y toggles de capas.
-6. Asignar carriles entre las dos personas (ver Notas).
+3. Integrar el globo lunar (D-011): `<iframe>` + mensajes desde el store; el origen de la consola debe estar en la lista de orígenes permitidos del globo. Protocolo en el `README.md` del repo del globo (fuente única) y plan en `iniciativas/lunar-globe-renderer/HANDOFF.md`.
+4. Perfil de horizonte 2D y capa PSR (`GET /psr/nearby`).
+5. Comparador de 2 a 5 escenarios con los errores `ERR_SCENARIO_LIMIT_EXCEEDED` y `ERR_DUPLICATE_SCENARIOS`.
+6. Pistas Gantt, modos de cámara y toggles de capas.
+7. Asignar carriles entre las dos personas (ver Notas).
 
 ## Cómo retomar
 1. Lee `_compartido/frontend-console.md` y `CONOCIMIENTO.md`.
