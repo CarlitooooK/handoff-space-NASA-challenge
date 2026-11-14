@@ -1,6 +1,6 @@
 # Servidor Simulado (Mock Server)
 
-Servidor HTTP autónomo con **cero dependencias externas de `npm`**, desarrollado con los módulos nativos de Node.js (`http`, `url`). Emula fielmente el contrato de interfaz oficial especificado en [`contracts/lunar-landing-api-contract.md`](../contracts/lunar-landing-api-contract.md).
+Servidor HTTP autónomo con **cero dependencias externas de `npm`**, desarrollado con los módulos nativos de Node.js (`http`, `url`). Emula el contrato de interfaz oficial **v1.2** especificado en [`contracts/lunar-landing-api-contract.md`](../contracts/lunar-landing-api-contract.md), con datos simulados.
 
 Permite al equipo de frontend, evaluadores y jurados ejecutar la solución de forma desacoplada, con respuestas en milisegundos y sin requerir conexión a internet ni compilación de kernels SPICE.
 
@@ -39,6 +39,8 @@ Available endpoints:
   POST /api/v1/evaluate
   POST /api/v1/compare
   GET  /api/v1/psr/nearby?lat=-89.66&lon=222.7
+  GET  /api/v1/psr?offset=0&limit=500
+  GET  /api/v1/ephemeris?utc=2026-12-01T00:00:00Z
 ============================================================
 ```
 
@@ -57,10 +59,14 @@ npx @stoplight/prism-cli mock contracts/lunar-landing-api-contract.yaml -p 3000
 |---|---|---|---|
 | `GET` | `/api/v1/health` | Estado de salud y conteo de entidades. | Ninguno. |
 | `GET` | `/api/v1/sites` | Catálogo de sitios curados (Artemis III, CLPS). | Ninguno. |
-| `GET` | `/api/v1/terrain/patch` | Malla de elevación (`elevations_m`) y pendientes (`slopes_deg`). | `lat`, `lon`, `size_km` (def: 12), `resolution` (64, 128, 256). |
-| `POST` | `/api/v1/evaluate` | Evaluación temporal, `horizon_profile` (360°), serie `timeline[]` con vectores 3D y semáforo GO/NO-GO. | `lat`, `lon`, `start_utc`, `duration_days`, `step_minutes`. |
-| `POST` | `/api/v1/compare` | Evaluación simultánea de 2 a 5 escenarios. | `scenarios: [{ label, lat, lon, start_utc }]`. |
+| `GET` | `/api/v1/terrain/patch` | Malla de elevación (`elevations_m`) y pendientes (`slopes_deg`); `grid.source` es `"synthetic"`. | `lat`, `lon`, `size_km` (def: 12), `resolution` (64, 128, 256). |
+| `POST` | `/api/v1/evaluate` | Evaluación temporal, `horizon_profile` (360°), serie `timeline[]` con vectores 3D y semáforo `GO`/`CAUTION`/`NO-GO` con `reasons` y `checks` (mismos umbrales que el backend). | `lat`, `lon`, `start_utc`, `duration_days`, `step_minutes`. |
+| `POST` | `/api/v1/compare` | Evaluación simultánea de 2 a 5 escenarios. | `scenarios: [{ label, lat, lon, start_utc }]`, `include_timeline` (v1.2). |
 | `GET` | `/api/v1/psr/nearby` | Polígonos GeoJSON de Regiones Permanentemente Sombreadas (PSRs). | `lat`, `lon`, `radius_km`. |
+| `GET` | `/api/v1/psr` | Catálogo de PSRs paginado (v1.2); el mock tiene 4. | `offset`, `limit` (1..500), `simplify_m`, `min_area_km2`. |
+| `GET` | `/api/v1/ephemeris` | Sol y Tierra desde el centro de la Luna (v1.2). Valores aproximados anclados al resultado SPICE del backend para `2026-12-01T00:00:00Z`. | `utc` (1900..2050). |
+
+Las respuestas `200` de `sites`, `terrain/patch`, `psr`, `psr/nearby` y `ephemeris` llevan `Cache-Control: public, max-age=3600`, como el backend.
 
 ---
 

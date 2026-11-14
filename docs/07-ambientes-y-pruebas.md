@@ -9,9 +9,22 @@ Ambientes activos del Backend, servidor mock autónomo y cómo verificar o consu
 | Ambiente | URL Base API v1 | Documentación / Esquema | Propósito y Notas |
 | --- | --- | --- | --- |
 | **Producción / Demo Pública (HTTPS Cloudflare Quick Tunnel)** | `https://chart-owned-alabama-choices.trycloudflare.com/api/v1` | [Swagger UI](https://chart-owned-alabama-choices.trycloudflare.com/docs) · [ReDoc](https://chart-owned-alabama-choices.trycloudflare.com/redoc) · [OpenAPI JSON](https://chart-owned-alabama-choices.trycloudflare.com/openapi.json) | Acceso abierto sin VPN; CORS `*` habilitado. Si el contenedor `spaceapps-cloudflared` se reinicia, el subdominio `*.trycloudflare.com` cambia. |
-| **Red Interna del Equipo (Tailscale)** | `http://100.66.139.125:8000/api/v1` | `http://100.66.139.125:8000/docs` | IP fija en el tailnet (`desktop`). Requiere tener Tailscale activo con acceso al nodo compartido. |
+| **Backend oficial (HTTPS Cloudflare Quick Tunnel)** | `https://cream-interesting-conventional-conclusions.trycloudflare.com/api/v1` | [Swagger UI](https://cream-interesting-conventional-conclusions.trycloudflare.com/docs) · [OpenAPI JSON](https://cream-interesting-conventional-conclusions.trycloudflare.com/openapi.json) | Backend oficial (`AxelT456/lunar_landing_site_navigator_api`, rama `main`): se actualiza solo con cada merge. Misma base de datos que Producción. Contrato v1.2 completo ([`docs/12`](12-contrato-api-v1.2.md)). Mismo aviso de subdominio que Producción (contenedor `spaceapps-official-cloudflared`). |
 | **Local Mock (Zero-Dependency)** | `http://localhost:3000/api/v1` | [`contracts/lunar-landing-api-contract.md`](../contracts/lunar-landing-api-contract.md) | Servidor nativo Node.js sin dependencias externas (`mock/server.js`); `mock/package.json` incluye `{"type": "commonjs"}` (`P-004`). Sirve `8` sitios (`5` Polo Sur + `3` Apollo) con validación unificada (`P-001`, `P-003`). |
-| **Local Backend (Científico)** | `http://localhost:8000/api/v1` | `http://localhost:8000/docs` | Entorno FastAPI completo con motor SPICE/Horizons y lector de GeoTIFFs LOLA en `desktop`. |
+
+El Frontend solo consume las URLs públicas de esta tabla o el mock local; no necesita acceso al servidor.
+
+### Versión del contrato por ambiente
+
+| Ambiente | Contrato | Nota |
+| --- | --- | --- |
+| Producción / Demo Pública | **v1.1** | Backend de prueba. Pasa a **v1.2** si se promueve el backend oficial detrás de esta URL. Hasta entonces `GET /psr` y `GET /ephemeris` responden `404` y no llegan `site.checks`, `include_timeline` ni los metadatos de `grid`. Esta fila se actualiza al promover. |
+| Backend oficial | **v1.2** | Todos los campos y endpoints de v1.2 ([`docs/12`](12-contrato-api-v1.2.md)). |
+| Local Mock | **v1.2** | Todos los campos y endpoints de v1.2 con datos simulados. |
+
+IM-2 (`P-009`): las dos URLs públicas usan la misma base de datos, que todavía tiene IM-2 en `lon 31.2`. La corrección se ve en ambas cuando se aplique en el servidor.
+
+Los campos de v1.2 son aditivos: un cliente escrito para v1.2 que trate `checks`, `timeline`, `source` y `native_resolution_m` como opcionales funciona igual contra v1.1.
 
 ---
 

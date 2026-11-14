@@ -26,15 +26,6 @@ Quien responde llena **Respuesta**, **Respondió** y la fecha, mueve la entrada 
 
 ## Abiertas
 
-### P-007: Dirección del Sol y la Tierra para la vista global (sin sitio)
-
-- **Pregunta:** El globo (fase 2) dibuja el Sol y la Tierra en el cielo lunar a partir de `sun_vector_3d` / `earth_vector_3d`, pero hoy solo existen dentro de `POST /evaluate`, que exige un sitio. ¿Puede el backend exponer, para una fecha UTC, las direcciones del Sol y de la Tierra vistas desde el **centro de la Luna** en el marco fijo lunar (`MOON_ME`), por ejemplo `GET /api/v1/ephemeris?utc=…`? Idealmente también la distancia a la Tierra, que hoy el globo fija en la media de 384 400 km.
-- **Contexto:** `docs/11-integracion-globo-consola.md` sección 7; D-002 y D-006 (el cliente no calcula física). Sin esta respuesta el globo dibuja la Tierra en la posición media (lon 0°, lat 0°) y **no dibuja el Sol**.
-- **Bloquea:** no. Alternativa mientras llega: la consola evalúa un sitio de referencia y reenvía sus vectores (`SET_SUN_LOCAL`, `SET_EARTH_LOCAL`); el error angular de tomar un sitio en vez del centro es ≈0,26° para la Tierra y despreciable para el Sol.
-- **Preguntó:** Globo (`lunar-globe-renderer`) · 2026-11-14
-- **Respuesta:** _pendiente_
-- **Respondió:** —
-
 ### P-008: Teselas de terreno del polo sur para el globo
 
 - **Pregunta:** El globo usa hoy el DEM global de Moon Trek (~666 m/px, pasos de ~77 m, calibrado contra `terrain/patch`: RMSE ≈ 127 m). El backend tiene LOLA a 80 m/px al sur de -80° (`LDEM_80S_80MPP_ADJ`). ¿Puede servir ese DEM como teselas (por ejemplo `GET /api/v1/terrain/tiles/{z}/{x}/{y}.png`, esquema geográfico 2×1 en el nivel 0 como el de Moon Trek, elevación en 16 bits o formato Terrarium) para sustituir el relieve global solo en la región polar?
@@ -44,18 +35,29 @@ Quien responde llena **Respuesta**, **Respondió** y la fecha, mueve la entrada 
 - **Respuesta:** _pendiente_
 - **Respondió:** —
 
+---
+
+## Respondidas
+
+### P-007: Dirección del Sol y la Tierra para la vista global (sin sitio)
+
+- **Pregunta:** El globo (fase 2) dibuja el Sol y la Tierra en el cielo lunar a partir de `sun_vector_3d` / `earth_vector_3d`, pero hoy solo existen dentro de `POST /evaluate`, que exige un sitio. ¿Puede el backend exponer, para una fecha UTC, las direcciones del Sol y de la Tierra vistas desde el **centro de la Luna** en el marco fijo lunar (`MOON_ME`), por ejemplo `GET /api/v1/ephemeris?utc=…`? Idealmente también la distancia a la Tierra, que hoy el globo fija en la media de 384 400 km.
+- **Contexto:** `docs/11-integracion-globo-consola.md` sección 7; D-002 y D-006 (el cliente no calcula física). Sin esta respuesta el globo dibuja la Tierra en la posición media (lon 0°, lat 0°) y **no dibuja el Sol**.
+- **Bloquea:** no. Alternativa mientras llega: la consola evalúa un sitio de referencia y reenvía sus vectores (`SET_SUN_LOCAL`, `SET_EARTH_LOCAL`); el error angular de tomar un sitio en vez del centro es ≈0,26° para la Tierra y despreciable para el Sol.
+- **Preguntó:** Globo (`lunar-globe-renderer`) · 2026-11-14
+- **Respuesta:** Sí, `GET /api/v1/ephemeris?utc=<ISO-8601>` (contrato v1.2, sección 2.8; D-014). Devuelve el Sol y la Tierra vistos desde el **centro de la Luna** en el marco fijo `MOON_ME_DE421`. Para cada uno trae `direction` (vector unitario: `+X` hacia `lat 0°, lon 0°`, `+Y` hacia `lon 90° E`, `+Z` al polo norte), `sub_lat_deg` y `sub_lon_deg` (punto subsolar o subterrestre, longitud `0..360` Este) y `distance_km`, también de la Tierra, así que ya no hace falta fijarla en 384 400 km. Ejemplo para `2026-12-01T00:00:00Z`: Sol en `(-1.47°, 280.06° E)`; Tierra en `(1.35°, 6.67° E)` a 376 517 km. Sale de los kernels SPICE: si el servidor no los tiene responde `503 ERR_UPSTREAM_SERVICE` y no hay modelo aproximado de respaldo, para que el globo nunca dibuje un Sol inventado. Fuera de `1900-2050` responde `422 ERR_DATE_OUT_OF_RANGE`. Se comprobó contra la elevación del Sol vista desde el polo sur en `/evaluate` (diferencia ≤ 0.05°). Ya responde en la URL del **Backend oficial** y en el mock; la URL de Producción lo tendrá cuando pase a v1.2 (las dos URLs y su versión: [`docs/07-ambientes-y-pruebas.md`](docs/07-ambientes-y-pruebas.md); detalle de consumo: [`docs/12-contrato-api-v1.2.md`](docs/12-contrato-api-v1.2.md) §4.8).
+- **Respondió:** Backend / Integración · 2026-11-14
+
+
 ### P-009: Coordenadas de IM-2 en `GET /sites`
 
 - **Pregunta:** El backend en vivo sirve `clps-im2-mons-mouton` en `lat -84.79, lon 31.2`. LROC publica el sitio objetivo de IM-2 en `-84.78°, 29.13° E` (https://www.lroc.asu.edu/images/1401), y NASA indica que Athena quedó a unos 400 m de ese objetivo. Los dos puntos están a unos 5,7 km. ¿De qué fuente sale `31.2`? Si no hay una, ¿se puede corregir a la de LROC?
 - **Contexto:** `GET /api/v1/sites`; en la consola, la pantalla Missions recrea IM-2 con las coordenadas de LROC y cita la fuente. Si se mantienen las dos, el pin del catálogo y el de la misión caen en lugares distintos del globo.
 - **Bloquea:** no. Mientras tanto la consola usa las de LROC.
 - **Preguntó:** Frontend (`frontend-console`) · 2026-11-14
-- **Respuesta:** _pendiente_
-- **Respondió:** —
+- **Respuesta:** `lon 31.2` no tenía fuente: se corrige a la de LROC, `lat -84.78, lon 29.13` (https://www.lroc.asu.edu/images/1401), con elevación, pendiente y PSR más cercana recalculadas con LOLA (`5312.6 m`, `1.13°`, `9.35 km`; D-014). Así el pin de `/sites` y el de Missions caen en el mismo lugar. La corrección está en el backend oficial (`db/init/20_im2_lroc_site.sql`), pero la base de datos del servidor aún no la tiene: las dos URLs públicas siguen mostrando `lon 31.2` hasta que se aplique (estado en [`docs/07-ambientes-y-pruebas.md`](docs/07-ambientes-y-pruebas.md)). Mientras tanto la consola puede seguir con las coordenadas de LROC. El mock no tiene IM-2, así que no cambia.
+- **Respondió:** Backend / Integración · 2026-11-14
 
----
-
-## Respondidas
 
 ### P-006: Qué se ve de fondo en la consola: globo, escena local o ambos por modo
 
