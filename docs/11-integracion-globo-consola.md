@@ -1,6 +1,6 @@
 # 11. Integración del globo lunar en la consola
 
-> **Estado: aceptada (`P-006`, D-013).** Define cómo se conectan el globo ([`luna-render-nasa-space-challenge`](https://github.com/CarlitooooK/luna-render-nasa-space-challenge), D-011) y la consola (`luna-landing-navigator-console`) para que cada parte construya lo suyo sin duplicar ni pisar a la otra.
+> **Estado: aceptada (`P-006`, D-013). Puente ya fusionado en la consola (PR #4): ver §10.** Define cómo se conectan el globo ([`luna-render-nasa-space-challenge`](https://github.com/CarlitooooK/luna-render-nasa-space-challenge), D-011) y la consola (`luna-landing-navigator-console`) para que cada parte construya lo suyo sin duplicar ni pisar a la otra.
 >
 > Fuentes: protocolo de mensajes en el `README.md` del repo del globo (**fuente única**, aquí no se copia), contrato en `contracts/openapi.json`, diseño en [`ideas/console-ui-figma.md`](ideas/console-ui-figma.md) (no vinculante).
 
@@ -152,3 +152,58 @@ Para dibujar el cielo antes de elegir un sitio hacen falta direcciones del Sol y
 4. **Fase 3 (hecha en el globo):** en la consola solo falta un interruptor que envíe `SET_VEHICLES` y, si se quiere, `VIEW_VEHICLE`.
 
 **Cambios al protocolo:** se hacen en el `README.md` del globo y se anotan en el `HISTORIAL.md` de `iniciativas/lunar-globe-renderer/`. Quien los cambie avisa a la otra parte en este repo.
+
+## 10. Guía de conexión para Frontend (el puente ya está en `main` de la consola)
+
+El puente se fusionó en la consola con el PR [#4](https://github.com/CarlitooooK/luna-landing-navigator-console/pull/4) (`a000db2`). **No hay que construirlo: hay que usarlo y, si hace falta, extenderlo.** Esta sección dice cómo.
+
+### Dónde está cada cosa (consola, `src/`)
+| Archivo | Para qué sirve | ¿Lo tocas? |
+| --- | --- | --- |
+| `features/viewport3d/globeProtocol.ts` | Tipos de los mensajes. **Única copia** del protocolo en la consola | Solo si el globo añade o cambia un mensaje |
+| `features/viewport3d/globeBridge.ts` | Funciones puras que arman los mensajes (`toGlobeSites`, `skyMessages`, `psrItems`, `landingMessage`) y filtran los entrantes (`fromGlobe`) | Aquí se añade lógica nueva. Cada función lleva su prueba en `globeBridge.test.ts` |
+| `features/viewport3d/useGlobeBridge.ts` | **Único** archivo que habla con el iframe: suscribe el store, envía y recibe | Para conectar un mensaje nuevo |
+| `features/viewport3d/GlobeFrame.tsx` | Monta el iframe y cae al placeholder si el globo no responde | Rara vez |
+| `core/store/useGlobeStore.ts` | Estado del enlace (`idle`, `loading`, `ready`, `unavailable`) y de la escena | Para leer el estado en la interfaz |
+| `features/simulate/SceneControls.tsx` | Botones "Landing scene" / "Exit scene" y el texto de fase | Para cambiar la interfaz de la escena |
+
+### Cómo probarlo en local
+1. **Globo** (repo `luna-render-nasa-space-challenge`): `npm install && npm run dev -- --port 5174`.
+2. **Consola**: en `.env.local` pon `VITE_GLOBE_URL=http://localhost:5174/` (más `VITE_API_BASE_URL`, ver `docs/07`) y corre `npm run dev`. Sin `VITE_GLOBE_URL` la consola usa el placeholder.
+3. Elige un sitio, pulsa **Run simulation** y luego **Landing scene**. Para ver Sol y Tierra con datos reales usa la API pública, no el mock: el mock devuelve vectores de muestra.
+4. Una buena prueba: **IM-2 Mons Mouton** con inicio `2026-12-21T00:00:00Z` y el scrubber en el paso 8 (08:00 UTC): el backend da `GO`, Sol 6,46° y Tierra 10,51° sobre el horizonte. En sitios en sombra permanente (p. ej. Shackleton) el suelo del globo sale negro; es real.
+5. La CORS del globo y el origen: la consola ya le pasa su propio origen en `?allowedOrigins=`. En producción, el globo debe estar desplegado y `VITE_GLOBE_URL` apuntar a él (pendiente: aún no hay URL de despliegue).
+
+### Qué hace el puente (no lo reimplementes)
+- **Al montarse el iframe y recibir `READY`** envía todo el estado: sitios (con GO/CAUTION/NO-GO solo del sitio evaluado), Sol y Tierra del paso actual, PSR, y la selección. El iframe se desmonta al pasar a la escena local (D-013), así que esto ocurre cada vez que vuelves al globo.
+- **Mientras está listo** reenvía por fotograma el Sol y la Tierra cuando cambia `stepIndex` (el scrubber), sin red.
+- **Escena de alunizaje:** el botón pide `requestLanding()` y vuelve al globo; el puente manda el Sol/Tierra y luego `PLAY_LANDING_SCENE {lat, lon}` del sitio evaluado. El resto de parámetros (ángulo de cámara, altura inicial, duración) los decide el globo con valores por defecto; se pueden pasar desde `landingMessage()` si el diseño lo pide (rangos en el `README.md` del globo).
+- **Clics:** `SITE_CLICKED` y `GLOBE_CLICKED` solo seleccionan. Evaluar sigue siendo del usuario.
+- **Seguridad:** solo se aceptan mensajes del `contentWindow` del iframe y de su origen exacto (`fromGlobe`). Los mensajes se envían siempre con ese origen como destino.
+- **Falla suave:** sin `READY` en 8 s el enlace pasa a `unavailable` y el fondo vuelve al placeholder.
+
+### Reglas al extender
+1. **Un mensaje nuevo** se añade en tres sitios y en este orden: tipo en `globeProtocol.ts`, función pura con prueba en `globeBridge.ts`, y envío o recepción en `useGlobeBridge.ts`. No copies tipos a otros archivos.
+2. **No calcules física en la consola** (D-002, D-006). Sol y Tierra son `sun_vector_3d` y `earth_vector_3d` tal cual, sin convertir (D-008). Si falta el vector, el globo no dibuja Sol: no envíes uno inventado.
+3. **Rotula lo ilustrativo.** La velocidad y la altitud del descenso (`SCENE_TELEMETRY`) son una curva, no física. El contrato no trae trayectoria ni misiones; las condiciones al alunizar de "Recreate missions" salen de `POST /evaluate`.
+4. **Textos de interfaz en inglés** (criterio 08).
+5. **Protocolo nuevo o cambiado:** se documenta en el `README.md` del globo (fuente única) y se avisa en el `HISTORIAL.md` de `iniciativas/lunar-globe-renderer/`.
+
+### Problemas conocidos y qué significan
+| Síntoma | Causa probable |
+| --- | --- |
+| El fondo global muestra el placeholder y `link = unavailable` | El globo no está corriendo, `VITE_GLOBE_URL` está mal o el origen de la consola no está permitido |
+| El globo se ve sin Sol ni sombra | No hay evaluación o el paso no trae `sun_vector_3d` válido. Corre una simulación |
+| Aparece "Run a simulation first." al pulsar la escena | No hay evaluación: la escena necesita el sitio y el Sol de `POST /evaluate` |
+| `SCENE_ERROR` con un motivo | `lat` o `lon` inválidos. Se ve en la píldora de la interfaz |
+| Suelo negro en la escena | Sitio en sombra permanente. Probar con uno iluminado (Mons Mouton) |
+| El globo carga lento o sin imagen | Las teselas vienen de `trek.nasa.gov`: hace falta internet. Para la demo y el video, comprobar la conexión |
+
+### Lo que queda para Frontend (todo opcional)
+- Interruptor de **`SET_VEHICLES`** (módulo y astronauta sueltos, fuera de la escena). Ver `docs/11` §6b y el README del globo.
+- Indicador de carga con `LOADING {pending}` (el puente ya lo recibe y lo ignora).
+- Usar `SCENE_PHASE` y `SCENE_TELEMETRY` en un HUD propio, o ajustar el de `SceneControls`.
+- Integrar la escena con **Missions → Replay landing window** si el diseño lo pide.
+- Desplegar el globo y fijar `VITE_GLOBE_URL` de producción (depende también de este repo y del globo).
+- Probar en una GPU real: la verificación se hizo con renderizado por software.
+

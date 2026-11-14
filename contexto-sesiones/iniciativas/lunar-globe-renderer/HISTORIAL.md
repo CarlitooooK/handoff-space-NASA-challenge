@@ -3,6 +3,7 @@
 Cronología, de lo más nuevo a lo más viejo. Fechas absolutas. No se borra: se agrega.
 
 ## 2026-11-14
+- PR #4 de la consola fusionado (`a000db2`). Se añadió `docs/11` §10, la guía de conexión para Frontend (dónde está cada archivo, cómo probarlo, reglas al extender, problemas conocidos y pendientes opcionales).
 - PR #4 abierto en la consola (`feat/globe-bridge` → `main`) con el puente y la escena de alunizaje.
 - Rama `feat/globe-bridge` de la consola subida a `origin` (`b8551d4`). Sin PR todavía. Los dos archivos modificados localmente en esa copia (`.gitignore`, `.handoff-last-sync`) no son de esta iniciativa y no se incluyeron.
 - Puente construido en la consola (rama `feat/globe-bridge`, commit local `b8551d4`, sin subir): `globeProtocol.ts`, `globeBridge.ts` (9 pruebas), `useGlobeBridge.ts`, `useGlobeStore`, botón "Landing scene"/"Exit scene". Probado de extremo a extremo (consola en `:5175`, globo en `:5174`, API en vivo): enlace `ready`, evaluación real de IM-2 Mons Mouton (`GO`, Sol 6,46°), escena `arrival > descent > done`, scrubber en plena escena sin romper nada, "Exit scene" vuelve al sitio. Con el globo caído, a los 8 s el fondo vuelve al placeholder y la consola sigue viva.
