@@ -35,6 +35,13 @@ Fase 1 del proyecto: un globo lunar detallado, estilo Google Earth, **desarrolla
 - Las partículas de Cesium avanzan con su reloj: si `clock.shouldAnimate` es falso, la columna de motor no se emite (se encontró así).
 - Un error dentro de un listener de `preRender` detiene todo el render de Cesium y muestra un diálogo; se encontró así al pedir la altitud de una trayectoria vacía.
 
+- **No usar `minimumLevel` en una capa de imagen global.** Cesium cubre cada tesela de nivel bajo con todas las teselas de ese nivel (cientos de millones) y se bloquea con "RangeError: Too many properties to enumerate". Se limita con `minimumTerrainLevel` al crear la capa (`src/regolith.ts`).
+- **`sampleTerrain` solo entiende longitudes de −180° a 180°.** La API devuelve 0°–360° (222,7° para Shackleton): sin normalizar devuelve altura 0 sin error. Corregido en `src/terrain.ts`.
+- La altura de `sampleTerrain` (nivel 8) puede quedar por debajo de la malla dibujada a ras de suelo: la cámara quedaba bajo el terreno y se veía la superficie desde abajo. La escena usa `globe.getHeight` (malla ya cargada) y mantiene la cámara 4 m por encima. Validación del terreno: Shackleton Rim 866 m en el globo contra 880 m en `GET /sites`.
+- Con el Sol real a 1–6° del horizonte el módulo se ve casi negro: la escena lo ilumina con una luz a 30° de elevación desde el azimut solar (recurso de cámara).
+- Datos reales para la demo: `POST /evaluate` en IM-2 Mons Mouton (lat −84,79, lon 31,2, pendiente 1,3°, 5 144 m), 2026-12-21T08:00Z: Sol a 6,5° y Tierra a 10,5° sobre el horizonte, `sun_vector_3d` [0.0237, 0.1126, -0.9934], `earth_vector_3d` [-0.5971, 0.1825, -0.7812]. El 2026-12-01 en ese sitio el Sol está bajo el horizonte todo el día.
+- Shackleton Rim está en sombra: la imagen del suelo es negra, mala para la escena.
+
 ## Supuestos sin verificar
 - `sun_vector_3d` es un vector hacia el Sol en el marco local del sitio con la convención D-008; la conversión a marco fijo lunar se probó solo con un vector mock.
 - El rendimiento en el equipo de la demo (GPU real) no se midió; la prueba corrió con renderizado por software.

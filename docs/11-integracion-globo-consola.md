@@ -55,6 +55,7 @@ El Figma pide un render siempre de fondo y paneles de vidrio encima. La propuest
 | `GET /psr/nearby` responde (`psrs`) | `SET_PSR` | El arreglo `psrs` sin tocar (metros estereográficos polares); el globo lo convierte |
 | El usuario pide ver el cielo, la superficie o un encuadre | `LOOK_AT {body}`, `VIEW_FROM_SURFACE {lat,lon,look?}`, `SET_VIEW {lat,lon,altM,…}` | Opcional, para el modo Cinematic |
 | Capas y relieve | `SET_CONFIG` con `terrain`, `terrainExaggeration`, `layers` | El relieve va activo por defecto |
+| El usuario pide ver el alunizaje (p. ej. Recreate / Cinematic del Figma) | `SET_SUN_LOCAL` y `SET_EARTH_LOCAL` con los vectores del paso actual y luego `PLAY_LANDING_SCENE {lat,lon}`; `STOP_LANDING_SCENE` para salir | El globo hace todo el recorrido desde la vista global. Escucha `SCENE_PHASE` y `SCENE_TELEMETRY` para el HUD |
 | El usuario reproduce el descenso | `FOLLOW_TRAJECTORY {enabled}`, `SET_VEHICLES {lander: true}`, `VIEW_VEHICLE {which: 'lander'}` | Cámara que sigue al módulo; el módulo recorre la trayectoria con columna de motor |
 | El usuario quiere ver un astronauta en el sitio | `SET_VEHICLES {astronaut: {lat,lon}}` (`null` lo quita), `VIEW_VEHICLE {which: 'astronaut'}` | Opcional; solo se dibuja a menos de 4 km |
 | Trayectoria para mostrar | `SET_TRAJECTORY` | **No hay endpoint de trayectoria en el contrato.** Cualquier dato que se envíe es ilustrativo y la interfaz debe rotularlo "Sample data" |
@@ -68,6 +69,8 @@ El Figma pide un render siempre de fondo y paneles de vidrio encima. La propuest
 | `SITE_CLICKED` | Igual que elegir en el selector: `select` y `evaluate` |
 | `GLOBE_CLICKED` | Punto libre: `select` con esas coordenadas y `evaluate`. El contrato acepta cualquier `lat` en `[-90, 90]` (D-010) |
 | `ANIMATION_COMPLETE` | Actualizar el estado de reproducción |
+| `SCENE_PHASE {phase}` | `arrival`, `descent`, `landed`, `done`: sincronizar paneles y botones (p. ej. mostrar "Exit scene" al terminar) |
+| `SCENE_TELEMETRY {t,altM,vMps}` | HUD del descenso. **Es ilustrativa** (desaceleración constante): rotular como "Sample data"/"Illustrative" |
 | `LOADING {pending}` | Mostrar un indicador de carga mientras `pending > 0` |
 | `TRAJECTORY_PROGRESS {progress,lat,lon,altKm}` | Alimentar el HUD de altitud del descenso (≤10 por segundo) |
 
@@ -95,6 +98,15 @@ Con los mensajes de la sección 3 el globo dibuja estrellas, la Tierra (tamaño 
 - **Sin vector de la Tierra** el globo la deja en su posición media (lon 0°, lat 0°). Es una referencia, no una efeméride.
 - La distancia a la Tierra es la media (384 400 km) y su rotación y orientación son ilustrativas. La interfaz no debe presentarlas como medidas.
 - La luz y los astros del globo no sustituyen a `CelestialBodies.tsx`, que es la luz de la escena local.
+
+## 6a. Escena de alunizaje (fase 3, ya construida)
+
+Una sola secuencia que va de la vista 3D de la Luna a una escena en plano horizontal sobre el terreno: la cámara vuela hasta el suelo, el módulo desciende en vertical con su motor frente a la cámara, se posa levantando polvo, aparece el astronauta y la cámara se acerca a los dos (orbitable). Detalle y parámetros en el `README.md` del globo (fuente única).
+- **Los datos reales que importan** (Sol, Tierra, sitio, altura del terreno) vienen de la API. **El descenso no**: es una curva ilustrativa. El contrato no tiene endpoint de trayectoria ni de misiones; las condiciones al alunizar de "Recreate missions" (Figma C5) deben salir de `POST /evaluate`, no de esta escena.
+- La luz de los modelos es un recurso de cámara (Sol a 30° de elevación); no debe presentarse como la iluminación real del sitio.
+- Sin Sol enviado, no se dibuja Sol. Enviar siempre los vectores antes de `PLAY_LANDING_SCENE`.
+- Mejor sobre terreno llano e iluminado. En sitios en sombra permanente (p. ej. Shackleton) el suelo de la imagen es negro.
+- Mientras corre, el globo oculta los pines de sitios.
 
 ## 6b. Vehículos en el globo (fase 3, ya construido)
 
