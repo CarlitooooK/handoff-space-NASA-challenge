@@ -16,6 +16,7 @@ Fase 1 del globo lista y verificada en navegador (CesiumJS + teselas NASA Moon T
 | Capa PSR desde `GET /psr/nearby` | Hecho (probada con polígono sintético; falta probar con datos reales) |
 | Seguimiento del descenso, marca de touchdown, progreso para HUD, indicador de carga | Hecho |
 | Vista desde la superficie (horizonte esférico, sin `horizon_profile`) | Hecho (básica) |
+| Fase 3: módulo de aterrizaje (Apollo LM, genérico) con columna de motor y astronauta | Hecho (verificado con capturas; calidad baja a propósito) |
 | Integración en la consola (`<iframe>` + conexión al store) | No iniciado |
 | Repo git propio | Hecho: [`luna-render-nasa-space-challenge`](https://github.com/CarlitooooK/luna-render-nasa-space-challenge) |
 | Despliegue del globo (URL para el iframe) | No iniciado |
@@ -27,7 +28,7 @@ Fase 1 del globo lista y verificada en navegador (CesiumJS + teselas NASA Moon T
 1. Responder `P-007` (vista global sin sitio; no bloquea) y probar `SET_PSR` con datos reales.
 2. Integrar en la consola siguiendo `docs/11-integracion-globo-consola.md` (propuesta pendiente de `P-006`): `<iframe>` + `SET_SITES` desde `GET /sites`, `SELECT_SITE` al elegir sitio, `SET_SUN_LOCAL` con `timeline[stepIndex].sun_vector_3d`.
 3. Terreno de mayor detalle en el polo: depende de `P-008` (teselas del DEM de 80 m del backend). Sin respuesta, queda el DEM global.
-4. Fase 3 (cohete y astronauta): el globo está listo para recibirla; ver `_compartido/lunar-globe-renderer.md`.
+4. Pulido de la fase 3 si hay tiempo: textura procedural de regolito para el suelo a ras de superficie (la imagen tiene ~100 m/px), polvo al posarse, astronauta con pose o animación.
 5. Probar con el backend en vivo y medir rendimiento en la máquina de la demo.
 
 ## Cómo retomar

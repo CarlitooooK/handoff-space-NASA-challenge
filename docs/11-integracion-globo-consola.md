@@ -13,7 +13,7 @@ La regla para no empalmar: **cada cosa tiene un solo dueño**. Si algo no está 
 | Globo lunar completo: esfera, teselas, capas, zoom, rejilla, pines, fly-to | **Globo** | La consola **no** dibuja un globo en Three.js ni añade Cesium a su bundle |
 | Trayectorias, descenso y alunizaje en vista global | **Globo** | La consola solo envía los puntos |
 | Sol, Tierra y estrellas como referencia en el cielo (fase 2) | **Globo** | La consola no calcula posiciones de astros para el cielo |
-| Cohete y astronauta (fase 3) | **Globo** | Se activan por mensaje |
+| Módulo de aterrizaje y astronauta (fase 3) | **Globo** | Se activan por mensaje (`SET_VEHICLES`) |
 | Paneles, veredicto, KPIs, timeline/scrubber, Compare, History, Missions | **Consola** | Ver Figma |
 | Llamadas a la API y store (`useMissionStore`) | **Consola** | El globo **nunca** llama a la API |
 | Escena local del sitio: malla `terrain/patch`, horizonte, luces locales, capa PSR en 3D | **Consola** | Es el detalle de ~12 km; el globo no la reemplaza |
@@ -55,7 +55,8 @@ El Figma pide un render siempre de fondo y paneles de vidrio encima. La propuest
 | `GET /psr/nearby` responde (`psrs`) | `SET_PSR` | El arreglo `psrs` sin tocar (metros estereográficos polares); el globo lo convierte |
 | El usuario pide ver el cielo, la superficie o un encuadre | `LOOK_AT {body}`, `VIEW_FROM_SURFACE {lat,lon,look?}`, `SET_VIEW {lat,lon,altM,…}` | Opcional, para el modo Cinematic |
 | Capas y relieve | `SET_CONFIG` con `terrain`, `terrainExaggeration`, `layers` | El relieve va activo por defecto |
-| El usuario reproduce el descenso | `FOLLOW_TRAJECTORY {enabled}` | Cámara que sigue al módulo |
+| El usuario reproduce el descenso | `FOLLOW_TRAJECTORY {enabled}`, `SET_VEHICLES {lander: true}`, `VIEW_VEHICLE {which: 'lander'}` | Cámara que sigue al módulo; el módulo recorre la trayectoria con columna de motor |
+| El usuario quiere ver un astronauta en el sitio | `SET_VEHICLES {astronaut: {lat,lon}}` (`null` lo quita), `VIEW_VEHICLE {which: 'astronaut'}` | Opcional; solo se dibuja a menos de 4 km |
 | Trayectoria para mostrar | `SET_TRAJECTORY` | **No hay endpoint de trayectoria en el contrato.** Cualquier dato que se envíe es ilustrativo y la interfaz debe rotularlo "Sample data" |
 | Cambia el modo de capas | `SET_CONFIG` | `showGrid`, `layers`, `autoRotate`, etc. |
 | Reproducción | `PLAY_ANIMATION` | |
@@ -70,7 +71,7 @@ El Figma pide un render siempre de fondo y paneles de vidrio encima. La propuest
 | `LOADING {pending}` | Mostrar un indicador de carga mientras `pending > 0` |
 | `TRAJECTORY_PROGRESS {progress,lat,lon,altKm}` | Alimentar el HUD de altitud del descenso (≤10 por segundo) |
 
-**Reservado, aún no existe:** mensajes para cohete y astronauta (fase 3). Se añaden en el globo cuando se construyan. Los mensajes desconocidos se ignoran, así que la consola puede avanzar sin esperar.
+Los mensajes desconocidos se ignoran, así que la consola puede avanzar sin esperar a que el globo añada otros nuevos.
 
 ## 4. Qué NO construir (para no empalmar)
 
@@ -95,6 +96,14 @@ Con los mensajes de la sección 3 el globo dibuja estrellas, la Tierra (tamaño 
 - La distancia a la Tierra es la media (384 400 km) y su rotación y orientación son ilustrativas. La interfaz no debe presentarlas como medidas.
 - La luz y los astros del globo no sustituyen a `CelestialBodies.tsx`, que es la luz de la escena local.
 
+## 6b. Vehículos en el globo (fase 3, ya construido)
+
+- **Módulo de aterrizaje:** sigue la trayectoria recibida con `SET_TRAJECTORY`, con columna de motor mientras desciende y unos segundos posado. Modelo: Apollo LM de NASA 3D Resources como **sustituto genérico, no el módulo de Artemis**. La interfaz no debe presentarlo como el vehículo de la misión.
+- **Astronauta:** de pie sobre el terreno, estático y de baja calidad a propósito.
+- **La velocidad del descenso es ilustrativa** (se ralentiza con la altitud). No es física. El contrato no tiene endpoint de trayectoria, así que cualquier trayectoria que se envíe se rotula "Sample data" (sección 3).
+- **Peso:** 1,4 MB en total, y solo se descargan al activarlos.
+- No hay cohete de lanzamiento (SLS): NASA solo lo publica como `.7z` de 14 a 70 MB.
+
 ## 7. Relieve y polo en el globo (ya construido)
 
 - El globo trae **relieve global real** (LOLA vía Moon Trek, calibrado contra el DEM del backend: RMSE ≈ 127 m). Es contexto, no medición: la consola no debe mostrar alturas del globo como dato. Las elevaciones y pendientes oficiales siguen saliendo de `terrain/patch` y `evaluate`.
@@ -111,6 +120,6 @@ Para dibujar el cielo antes de elegir un sitio hacen falta direcciones del Sol y
 1. **Ahora:** el hueco del iframe, `useGlobeBridge` con `SET_SITES`, `SELECT_SITE`, `SET_SUN_LOCAL` y los eventos de entrada. Todo eso ya existe en el globo.
 2. **Cuando el globo tenga URL de despliegue:** apuntar `VITE_GLOBE_URL` y probar con el origen real.
 3. **Fase 2 (hecha en el globo):** en la consola solo falta enviar `earth_vector_3d` con `SET_EARTH_LOCAL` y `psrs` con `SET_PSR`.
-4. **Fase 3:** cohete y astronauta, por mensaje, sin tocar el store más allá de un interruptor.
+4. **Fase 3 (hecha en el globo):** en la consola solo falta un interruptor que envíe `SET_VEHICLES` y, si se quiere, `VIEW_VEHICLE`.
 
 **Cambios al protocolo:** se hacen en el `README.md` del globo y se anotan en el `HISTORIAL.md` de `iniciativas/lunar-globe-renderer/`. Quien los cambie avisa a la otra parte en este repo.

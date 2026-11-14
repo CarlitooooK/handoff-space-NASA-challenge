@@ -3,6 +3,7 @@
 Cronología, de lo más nuevo a lo más viejo. Fechas absolutas. No se borra: se agrega.
 
 ## 2026-11-14
+- Fase 3 en el globo (`6ba649f` del repo del globo): módulo de aterrizaje con columna de motor y astronauta, con modelos de NASA 3D Resources (Apollo LM y Astronaut, 1,4 MB); `SET_VEHICLES` y `VIEW_VEHICLE`. Se descartó el SLS: solo existe como `.7z` de 14 a 70 MB.
 - Relieve y polo (`005e037` del repo del globo): terreno global desde el DEM de LOLA de Moon Trek, calibrado contra `terrain/patch` (24 puntos, R² 0,997, RMSE 127 m); capa polar reproyectada que reduce el abanico; `SET_VIEW`. Se abrió `P-008` (teselas de terreno del polo).
 - Fase 2 en el globo (`cdc92ee` del repo del globo): estrellas, Sol y Tierra a tamaño angular real, capa PSR, seguimiento de descenso, vista desde superficie, indicador de carga. Se abrió `P-007` (cielo en la vista global).
 - Se escribió `docs/11-integracion-globo-consola.md` (reparto de responsabilidades y mapa store→mensajes) y se abrió `P-006` para que Frontend lo confirme. Se trajo el PR #1 del Figma (`docs/ideas/console-ui-figma.md`).

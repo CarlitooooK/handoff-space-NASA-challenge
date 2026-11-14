@@ -14,6 +14,7 @@ Clase `LunarGlobe` (`src/LunarGlobe.ts`) sobre un `Viewer` de Cesium sin Ion. `s
 
 ## Cómo funciona
 - Cielo (`src/sky.ts`): estrellas Tycho2, Tierra con textura Natural Earth local y el Sol como billboard de tamaño angular real. Sin dirección del host no hay Sol; la Tierra queda en la posición media.
+- Vehículos (`src/vehicles.ts`): módulo de aterrizaje y astronauta con modelos GLB de NASA 3D Resources (`public/models/`, con `ATTRIBUTION.md`) y columna de motor por partículas. El módulo toma su posición de la trayectoria; el astronauta, del terreno.
 - Relieve (`src/terrain.ts`): terreno de Cesium desde el DEM de LOLA de Moon Trek con conversión calibrada. Una sola función (`fetchDemTile`) define la fuente; cambiarla por teselas del backend (`P-008`) no toca el resto.
 - Polo (`src/polar.ts`): proveedor de imagen que reproyecta el mosaico polar a la malla geográfica.
 - PSR: `src/geo.ts` convierte metros polares a lat/lon.
@@ -36,6 +37,9 @@ Clase `LunarGlobe` (`src/LunarGlobe.ts`) sobre un `Viewer` de Cesium sin Ion. `s
 
 - Sin elipsoide terrestre Cesium no crea estrellas: el `SkyBox` va configurado a mano.
 - El Sol está a 9e8 m (no a 1.5e11) por el plano lejano; el tamaño angular sí es el real.
+
+- El reloj de Cesium debe estar en marcha (`shouldAnimate`) o las partículas no se emiten.
+- Los modelos están en pulgadas (astronauta) o metros (módulo): escalar con cuidado al sustituirlos.
 
 ## Seguridad
 - El puente postMessage ignora mensajes de orígenes no listados y responde solo a esos orígenes.

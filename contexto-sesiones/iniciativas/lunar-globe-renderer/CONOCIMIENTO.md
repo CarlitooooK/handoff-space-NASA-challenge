@@ -30,10 +30,17 @@ Fase 1 del proyecto: un globo lunar detallado, estilo Google Earth, **desarrolla
 - El terreno de Cesium creado con `CustomHeightmapTerrainProvider` no trae normales: no hay sombreado de relieve por la luz solar.
 - En pruebas, el renderizado por software es lento (cientos de teselas). Para capturas conviene vista alta, ventana chica y esperar a `loading.pending == 0`.
 
+- Modelos de NASA 3D Resources (`github.com/nasa/NASA-3D-Resources`, "libres para descargar y usar"; sin archivo LICENSE en el repo, se aplican las directrices de imágenes y medios de NASA): `Apollo Lunar Module.glb` (700 KB, 65 mil vértices, en metros, origen en la base) y `Astronaut.glb` (745 KB, 19 mil vértices, en **pulgadas**, 74 in ≈ 1,88 m, origen en el centro del cuerpo). Ambos usan Draco y texturas WebP, que Cesium 1.147 carga bien.
+- El SLS Block 1 solo se publica como archivos `.7z` (14 a 70 MB): no sirve para la web.
+- Las partículas de Cesium avanzan con su reloj: si `clock.shouldAnimate` es falso, la columna de motor no se emite (se encontró así).
+- Un error dentro de un listener de `preRender` detiene todo el render de Cesium y muestra un diálogo; se encontró así al pedir la altitud de una trayectoria vacía.
+
 ## Supuestos sin verificar
 - `sun_vector_3d` es un vector hacia el Sol en el marco local del sitio con la convención D-008; la conversión a marco fijo lunar se probó solo con un vector mock.
 - El rendimiento en el equipo de la demo (GPU real) no se midió; la prueba corrió con renderizado por software.
 - La capa PSR se probó con un polígono sintético, no con datos de `/psr/nearby`.
+- El rendimiento de los modelos y las partículas en la GPU de la demo (la prueba usó render por software).
+- Que el uso del Apollo LM como módulo genérico sea aceptable en la presentación: es un sustituto, no el módulo de Artemis.
 - Que el iframe funcione bajo el origen real de la consola y del túnel de despliegue.
 
 ## Pendiente de decisión
