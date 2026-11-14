@@ -20,7 +20,7 @@ Fase 1 del globo lista y verificada en navegador (CesiumJS + teselas NASA Moon T
 | Escena de alunizaje en plano horizontal (vuelo desde la vista global, descenso, polvo, astronauta) | Hecho (`PLAY_LANDING_SCENE`); verificada con capturas en las 4 fases en IM-2 Mons Mouton |
 | Textura procedural de regolito a ras de suelo | Hecho (ilustrativa) |
 | Escena configurable por la consola (parámetros validados, `SCENE_ERROR`, luz estable si cambia el Sol) | Hecho; probado por `postMessage` desde el origen de la consola con mensajes válidos e inválidos |
-| Puente de mensajes en la consola (`useGlobeBridge`) | Construido en la rama `feat/globe-bridge` del repo de la consola (commit `b8551d4`, **sin fusionar ni subir**); probado de extremo a extremo con la API en vivo. Falta la revisión de Frontend |
+| Puente de mensajes en la consola (`useGlobeBridge`) | Construido y **subido** en la rama `feat/globe-bridge` del repo de la consola (commit `b8551d4`), **sin PR ni fusión**; probado de extremo a extremo con la API en vivo. Falta la revisión de Frontend y abrir el PR |
 | Integración en la consola (`<iframe>` + conexión al store) | No iniciado |
 | Repo git propio | Hecho: [`luna-render-nasa-space-challenge`](https://github.com/CarlitooooK/luna-render-nasa-space-challenge) |
 | Despliegue del globo (URL para el iframe) | No iniciado |
@@ -30,7 +30,7 @@ Fase 1 del globo lista y verificada en navegador (CesiumJS + teselas NASA Moon T
 
 ## Pendientes (en orden de valor)
 1. Responder `P-007` (vista global sin sitio; no bloquea) y probar `SET_PSR` con datos reales.
-2. Revisar y fusionar la rama `feat/globe-bridge` de la consola (puente ya construido; ver `docs/11-integracion-globo-consola.md`): `<iframe>` + `SET_SITES` desde `GET /sites`, `SELECT_SITE` al elegir sitio, `SET_SUN_LOCAL` con `timeline[stepIndex].sun_vector_3d`.
+2. Abrir el PR de `feat/globe-bridge` hacia `main` de la consola, que Frontend lo revise y lo fusione (puente ya construido; ver `docs/11-integracion-globo-consola.md`): `<iframe>` + `SET_SITES` desde `GET /sites`, `SELECT_SITE` al elegir sitio, `SET_SUN_LOCAL` con `timeline[stepIndex].sun_vector_3d`.
 3. Terreno de mayor detalle en el polo: depende de `P-008` (teselas del DEM de 80 m del backend). Sin respuesta, queda el DEM global.
 4. Pulido si hay tiempo: astronauta con pose o animación, rocas o cráteres pequeños en el suelo, y probar la escena en una GPU real (la prueba usó render por software).
 5. Probar con el backend en vivo y medir rendimiento en la máquina de la demo.

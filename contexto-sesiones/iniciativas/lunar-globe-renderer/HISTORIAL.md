@@ -3,6 +3,7 @@
 Cronología, de lo más nuevo a lo más viejo. Fechas absolutas. No se borra: se agrega.
 
 ## 2026-11-14
+- Rama `feat/globe-bridge` de la consola subida a `origin` (`b8551d4`). Sin PR todavía. Los dos archivos modificados localmente en esa copia (`.gitignore`, `.handoff-last-sync`) no son de esta iniciativa y no se incluyeron.
 - Puente construido en la consola (rama `feat/globe-bridge`, commit local `b8551d4`, sin subir): `globeProtocol.ts`, `globeBridge.ts` (9 pruebas), `useGlobeBridge.ts`, `useGlobeStore`, botón "Landing scene"/"Exit scene". Probado de extremo a extremo (consola en `:5175`, globo en `:5174`, API en vivo): enlace `ready`, evaluación real de IM-2 Mons Mouton (`GO`, Sol 6,46°), escena `arrival > descent > done`, scrubber en plena escena sin romper nada, "Exit scene" vuelve al sitio. Con el globo caído, a los 8 s el fondo vuelve al placeholder y la consola sigue viva.
 - Decisión de diseño al integrar: `SITE_CLICKED` y `GLOBE_CLICKED` solo seleccionan; no evalúan (como el selector). `docs/11` lo refleja.
 - Escena configurable desde la consola (`9d5076a` del repo del globo): validación de opciones (`lat`, `lon`, `startAltM`, `durationS`, `distanceM`, `headingDeg`) y de todos los mensajes del puente, `SCENE_ERROR`, y la luz de escena ya no se pisa si llega un `SET_SUN_LOCAL` en plena escena. Probado con el globo en un iframe y mensajes por `postMessage` desde `http://localhost:5173`.
