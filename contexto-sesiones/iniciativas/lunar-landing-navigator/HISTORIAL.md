@@ -6,6 +6,7 @@ Cronología del proyecto, de lo más nuevo a lo más viejo. Fechas absolutas. No
 
 ## 2026-11-14
 
+- **`P-006` respondida (D-013):** se acepta `docs/11`; la API pública ya entrega los datos del puente globo-consola. Se avisó al globo que `src/geo.ts` invierte la proyección con el eje Y anterior a D-012 (`SET_PSR` saldría reflejado).
 - **Coordenadas polares alineadas al CRS de LOLA (D-012):** se corrigió el eje Y en los ejemplos de [`contracts/lunar-landing-api-contract.md`](../../../contracts/lunar-landing-api-contract.md) y en `mock/server.js` (ahora calcula `polar_x_m`/`polar_y_m` con la proyección LOLA). Origen: `AxelT456/lunar_landing_site_navigator_api#2`. En el mismo repo, `#1` agregó el seed de PostGIS para desarrollo local (`db/`, `docker-compose.dev.yml`). Se resolvió el conflicto con `969c4c4` en `docs/09-decisiones.md` conservando D-010 y D-011.
 
 - **Alineación integral de backend en vivo, mock, contratos y sesiones (pendiente de commit/autorización):**

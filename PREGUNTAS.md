@@ -26,15 +26,6 @@ Quien responde llena **Respuesta**, **Respondió** y la fecha, mueve la entrada 
 
 ## Abiertas
 
-### P-006: Qué se ve de fondo en la consola: globo, escena local o ambos por modo
-
-- **Pregunta:** El Figma (`docs/ideas/console-ui-figma.md`) asume un render siempre de fondo, hoy la escena local de terreno en Three.js. El globo de D-011 (CesiumJS por iframe) también quiere ser fondo. ¿Se acepta la propuesta de `docs/11-integracion-globo-consola.md`: globo en la vista global (sin sitio o modo Explore) y escena local al evaluar, un solo render visible a la vez, y el reparto de responsabilidades de la sección 1?
-- **Contexto:** `docs/11-integracion-globo-consola.md`, carril 1 y 3 de la consola, hueco del iframe en el cascarón.
-- **Bloquea:** no (el iframe y el puente `useGlobeBridge` se pueden construir ya).
-- **Preguntó:** Globo (`lunar-globe-renderer`) · 2026-11-14
-- **Respuesta:** _pendiente_
-- **Respondió:** —
-
 ### P-007: Dirección del Sol y la Tierra para la vista global (sin sitio)
 
 - **Pregunta:** El globo (fase 2) dibuja el Sol y la Tierra en el cielo lunar a partir de `sun_vector_3d` / `earth_vector_3d`, pero hoy solo existen dentro de `POST /evaluate`, que exige un sitio. ¿Puede el backend exponer, para una fecha UTC, las direcciones del Sol y de la Tierra vistas desde el **centro de la Luna** en el marco fijo lunar (`MOON_ME`), por ejemplo `GET /api/v1/ephemeris?utc=…`? Idealmente también la distancia a la Tierra, que hoy el globo fija en la media de 384 400 km.
@@ -56,6 +47,16 @@ Quien responde llena **Respuesta**, **Respondió** y la fecha, mueve la entrada 
 ---
 
 ## Respondidas
+
+### P-006: Qué se ve de fondo en la consola: globo, escena local o ambos por modo
+
+- **Pregunta:** El Figma (`docs/ideas/console-ui-figma.md`) asume un render siempre de fondo, hoy la escena local de terreno en Three.js. El globo de D-011 (CesiumJS por iframe) también quiere ser fondo. ¿Se acepta la propuesta de `docs/11-integracion-globo-consola.md`: globo en la vista global (sin sitio o modo Explore) y escena local al evaluar, un solo render visible a la vez, y el reparto de responsabilidades de la sección 1?
+- **Contexto:** `docs/11-integracion-globo-consola.md`, carril 1 y 3 de la consola, hueco del iframe en el cascarón.
+- **Bloquea:** no (el iframe y el puente `useGlobeBridge` se pueden construir ya).
+- **Preguntó:** Globo (`lunar-globe-renderer`) · 2026-11-14
+- **Respuesta:** Se acepta `docs/11`: globo en la vista global (sin sitio o en Explore), escena local al evaluar, un solo render visible a la vez y el reparto de la sección 1 (D-013). Verificado contra la API pública de [`docs/07-ambientes-y-pruebas.md`](docs/07-ambientes-y-pruebas.md): ya entrega lo que necesita el puente sin cambios de contrato. `/sites` da los `13` sitios con `id`, `name`, `category`, `lat` y `lon` (`SET_SITES`). `/evaluate` da `status` para los pines y `timeline[].sun_vector_3d` / `earth_vector_3d` en D-008 (`SET_SUN_LOCAL`, `SET_EARTH_LOCAL`), y acepta cualquier punto de `GLOBE_CLICKED` en `[-90, 90]` (respuestas < 0.5 s). `/psr/nearby` da los polígonos para `SET_PSR`. Notas para cada parte: (1) **Globo:** `polarSouthToLatLon` (`src/geo.ts`) usa `y = −ρ·cos λ`, calibrado con el ejemplo anterior del contrato. Según D-012 es `y = +ρ·cos λ` (`lon = atan2(x, y)`), que es lo que ya devuelve la API pública: sin ese cambio `SET_PSR` dibuja los PSR reflejados (Shackleton cae en lon ≈ 317° en vez de 222.7°). La constante `SAMPLE` de `src/main.ts` tiene la `z` con el signo contrario al de la API (Shackleton el 2026-12-01: `[0.842, 0.029, -0.539]`); la conversión D-008 → ENU de `setSunFromLocal` está bien. (2) **Consola:** `SET_SUN_LOCAL` lleva `{lat, lon, vector}` del sitio evaluado (README del globo). Fuera del Polo Sur (`lat > -80`) el terreno tiene menos resolución: para esos sitios usa `size_km` de 30 a 40 en `/terrain/patch`. `SET_TRAJECTORY` sigue como "Sample data" (no hay endpoint). (3) **Demo:** las teselas vienen de `trek.nasa.gov`; pruébalas en la red del evento. La vista global sin sitio se trata en `P-007`.
+- **Respondió:** Backend / Integración · 2026-11-14 (Frontend confirma al revisar el PR)
+
 
 ### P-001: Formato de error del backend en vivo
 
