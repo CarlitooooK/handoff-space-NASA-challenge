@@ -6,20 +6,26 @@ Documentación de interfaz de comunicación (Request/Response) entre el Frontend
 
 ## 1. Reglas Generales del Contrato
 
-### 1.1 Estándares de Comunicación
+### 1.1 Estándares de Comunicación y URLs Base
+* **Base URL Pública (HTTPS — Cloudflare Quick Tunnel, sin Tailscale):** `https://chart-owned-alabama-choices.trycloudflare.com/api/v1`
+  * **Swagger UI:** `https://chart-owned-alabama-choices.trycloudflare.com/docs`
+  * **ReDoc:** `https://chart-owned-alabama-choices.trycloudflare.com/redoc`
+  * **OpenAPI JSON:** `https://chart-owned-alabama-choices.trycloudflare.com/openapi.json` (copia en [`contracts/openapi.json`](openapi.json))
+* **Base URL Directa (Tailscale):** `http://100.66.139.125:8000/api/v1`
+* **CORS:** Habilitado abierto (`allow_origins=["*"]`) para llamadas directas desde `localhost` o producción.
 * **Formato de intercambio:** `application/json`
 * **Formato de fechas:** ISO-8601 en UTC estricto (`YYYY-MM-DDTHH:mm:ssZ`).
 * **Códigos de Estado HTTP:**
   * `200 OK`: Cálculo o consulta exitosa.
-  * `422 Unprocessable Entity`: Parámetros fuera de rango (latitud fuera de límites, resolución inválida, etc.).
+  * `422 Unprocessable Entity`: Parámetros fuera de rango (latitud fuera de límites, resolución inválida, menos de 2 escenarios en `/compare`, etc.).
   * `500 Internal Server Error` / `503 Service Unavailable`: Falla al procesar datasets LOLA/SPICE o indisponibilidad de base de datos.
 
 ### 1.2 Sistemas de Referencia Espacial
 
 | Sistema | Ejes / Parámetros | Rango / Convención |
 |---|---|---|
-| **Coordenadas Geográficas (Luna)** | `lat` (Latitud) | `-90.0` a `-80.0` (Región Polo Sur lunar) |
-| | `lon` (Longitud) | `0.0` a `360.0` Este (o `-180.0` a `180.0` normalizado) |
+| **Coordenadas Geográficas (Luna)** | `lat` (Latitud) | `-90.0` a `90.0` (Polo Sur `-90.0` a `-80.0` en `40 m/px`; cobertura global con `ldem_64.tif`) |
+| | `lon` (Longitud) | `0.0` a `360.0` Este (o `-180.0` a `180.0` normalizado en backend) |
 | **Coordenadas 3D Locales (Visor)** | Origen `(0, 0, 0)` | Centrado en el punto de aterrizaje consultado |
 | | `+X` | Este |
 | | `+Y` | Elevación vertical (metros) |
@@ -38,7 +44,7 @@ Verifica la operatividad del backend, base de datos espacial y datasets topográ
 {
   "status": "ok",
   "database": {
-    "landing_sites_count": 10,
+    "landing_sites_count": 13,
     "psr_regions_count": 1531
   }
 }
@@ -47,13 +53,13 @@ Verifica la operatividad del backend, base de datos espacial y datasets topográ
 ---
 
 ### 2.2 `GET /api/v1/sites`
-Catálogo curado de sitios candidatos de aterrizaje (misiones Artemis III, CLPS, etc.) para poblar selectores y marcadores de mapa.
+Catálogo curado de sitios candidatos de aterrizaje (`10` del Polo Sur Artemis III / CLPS + `3` históricos globales Apollo: `apollo-11`, `apollo-15`, `apollo-17`) para poblar selectores y marcadores de mapa.
 
 * **Query Parameters:** Ninguno.
 * **Respuesta (`200 OK`):**
 ```json
 {
-  "count": 10,
+  "count": 13,
   "sites": [
     {
       "id": "artemis-shackleton-rim",
@@ -81,7 +87,7 @@ Malla de elevación y pendientes alrededor de una coordenada para el renderizado
 
 | Parámetro | Tipo | Requerido | Default | Rango / Restricciones | Descripción |
 |---|---|---|---|---|---|
-| `lat` | `float` | Sí | — | `-90.0` a `-80.0` | Latitud del centro de la malla |
+| `lat` | `float` | Sí | — | `-90.0` a `90.0` | Latitud del centro de la malla (`-90..-80` en `40 m/px`; global en `ldem_64.tif`) |
 | `lon` | `float` | Sí | — | `-180.0` a `360.0` | Longitud del centro de la malla |
 | `size_km` | `float` | No | `12.0` | `2.0` a `40.0` | Dimensión del recorte (km) |
 | `resolution` | `int` | No | `128` | `64`, `128`, `256` | Número de vértices por lado ($N \times N$) |
@@ -124,7 +130,8 @@ Malla de elevación y pendientes alrededor de una coordenada para el renderizado
 Evaluación operativa temporal: calcula el horizonte local (360°), efemérides solares y terrestres paso a paso, y vectores tridimensionales de iluminación/comunicación.
 
 * **Headers:** `Content-Type: application/json`
-* **Request Body:**
+* **Valores posibles de `site.status`:** `"GO"` | `"CAUTION"` | `"NO-GO"` (también aplica en `/compare`).
+* **Request Body:** (`lat`: `-90.0` a `90.0`, `lon`: `-180.0` a `360.0`)
 ```json
 {
   "lat": -89.66,

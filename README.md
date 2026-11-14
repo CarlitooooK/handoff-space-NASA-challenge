@@ -14,7 +14,9 @@ Herramienta intuitiva para evaluar y comparar rápidamente sitios y fechas de at
 | Pieza | Estado |
 | --- | --- |
 | Documentación de contexto y alcance (`docs/`) | Lista |
-| Contrato de API (`contracts/lunar-landing-api-contract.md`) | Listo (v1.0) |
+| Backend API REST v1 (`desktop` / Túnel HTTPS) | Listo (6 endpoints en vivo) |
+| Contrato de API (`contracts/lunar-landing-api-contract.md` + `contracts/openapi.json`) | Listo (v1.0) |
+| Guía de Consumo Frontend (`FRONTEND_API_GUIDE.md`) | Lista |
 | Servidor mock / datasets precalculados | En curso |
 | Frontend (Visor 2D/3D & Dashboard) | En curso |
 
@@ -34,7 +36,9 @@ Herramienta intuitiva para evaluar y comparar rápidamente sitios y fechas de at
 | 9 | [Decisiones](docs/09-decisiones.md) | Las decisiones ya tomadas y dónde están escritas |
 | 10 | [Producto y necesidades](docs/10-producto-y-necesidades.md) | Desde quien consume: qué se construye y qué se necesita de la otra parte |
 
-**Contratos** (`contracts/`): las interfaces entre las partes. Ver [`contracts/README.md`](contracts/README.md) y [`contracts/lunar-landing-api-contract.md`](contracts/lunar-landing-api-contract.md).
+**Guía práctica para Frontend y agentes IA:** [`FRONTEND_API_GUIDE.md`](FRONTEND_API_GUIDE.md) (URLs activas, cliente `fetch` TypeScript, tipos y snippets listos para Three.js).
+
+**Contratos** (`contracts/`): las interfaces entre las partes. Ver [`contracts/README.md`](contracts/README.md), [`contracts/lunar-landing-api-contract.md`](contracts/lunar-landing-api-contract.md) y [`contracts/openapi.json`](contracts/openapi.json).
 
 **Simulado** (`mock/`): un servidor de mentira con los mismos cuerpos que el real, para avanzar sin esperar. Ver [`mock/README.md`](mock/README.md).
 
@@ -45,10 +49,9 @@ El estado del trabajo y lo aprendido en cada sesión viven en [`contexto-sesione
 ## Cómo empezar
 
 1. Leer el reto original en [`docs/00-reto-original.md`](docs/00-reto-original.md) y los documentos 1 a 4.
-2. Revisar la especificación de API en [`contracts/lunar-landing-api-contract.md`](contracts/lunar-landing-api-contract.md).
-3. Levantar el simulado de `mock/` y construir contra él, detrás de una interfaz.
+2. Revisar la guía de integración práctica en [`FRONTEND_API_GUIDE.md`](FRONTEND_API_GUIDE.md) y los contratos en [`contracts/lunar-landing-api-contract.md`](contracts/lunar-landing-api-contract.md) y [`contracts/openapi.json`](contracts/openapi.json).
+3. Apuntar el Frontend a la URL pública HTTPS documentada en [`FRONTEND_API_GUIDE.md`](FRONTEND_API_GUIDE.md) (o levantar `mock/` si se requiere trabajar offline).
 4. Anotar cada duda en `PREGUNTAS.md` en lugar de suponer.
-5. Cambiar el simulado por el servicio real cuando esté disponible.
 
 ## Origen
 

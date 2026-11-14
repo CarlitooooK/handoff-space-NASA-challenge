@@ -25,6 +25,7 @@ Carpeta matriz donde cada sesión de trabajo (persona o agente) deja lo que apre
 contexto-sesiones/
 ├── README.md                ← este índice
 ├── _compartido/             ← conocimiento transversal, un archivo por componente
+│   └── backend-api.md       ← API REST v1, URLs activas, endpoints y convenciones 2D/3D
 ├── _plantillas/             ← puntos de partida para copiar (no se editan aquí)
 │   ├── compartido.md
 │   └── iniciativa/
@@ -32,7 +33,7 @@ contexto-sesiones/
 │       ├── CONOCIMIENTO.md
 │       └── HISTORIAL.md
 └── iniciativas/
-    └── <ticket>-<nombre>/
+    └── handoff-api-frontend/
         ├── HANDOFF.md       ← estado actual y cómo retomar (léelo primero)
         ├── CONOCIMIENTO.md  ← reglas, modelo, decisiones y su porqué
         └── HISTORIAL.md     ← cronología: commits, PRs, tickets y decisiones
@@ -65,4 +66,4 @@ contexto-sesiones/
 
 | Iniciativa | Repo / componente | Estado | Última actualización |
 | --- | --- | --- | --- |
-| _Sin iniciativas todavía_ | | | |
+| [handoff-api-frontend](iniciativas/handoff-api-frontend/HANDOFF.md) | `FRONTEND_API_GUIDE.md`, `contracts/`, `docs/` | Lista (guía y contratos alineados) | `2026-11-14` |

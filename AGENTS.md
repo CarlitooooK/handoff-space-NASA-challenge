@@ -4,7 +4,8 @@ Si eres un agente que desarrolla `<nombre-del-proyecto>` (la parte `<cliente | a
 
 ## Fuentes
 
-- **Contrato:** los archivos de `contracts/` (rutas, formatos, esquemas de datos). No uses endpoints, campos ni códigos que no estén ahí.
+- **Contrato:** los archivos de [`contracts/`](contracts/README.md) (`lunar-landing-api-contract.md` y `openapi.json`: rutas, formatos, esquemas de datos). No uses endpoints, campos ni códigos que no estén ahí.
+- **Guía de consumo Frontend:** [`FRONTEND_API_GUIDE.md`](FRONTEND_API_GUIDE.md) (URLs activas del backend, cliente `apiFetch`, tipos TS y snippets Three.js alineados con el contrato).
 - **Reglas del proyecto:** `docs/`. Si un documento y un contrato chocan, manda el contrato y anótalo en `PREGUNTAS.md`.
 - **Términos:** usa los de estos documentos. No introduzcas nombres ni modelos propios sin dejarlo escrito en `docs/09-decisiones.md`.
 
