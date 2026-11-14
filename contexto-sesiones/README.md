@@ -69,4 +69,4 @@ contexto-sesiones/
 | [handoff-api-frontend](iniciativas/handoff-api-frontend/HANDOFF.md) | `FRONTEND_API_GUIDE.md`, `contracts/`, `docs/` | Lista (guía y contratos alineados) | 2026-11-14 |
 | [Lunar Landing Navigator](iniciativas/lunar-landing-navigator/HANDOFF.md) | Repo matriz / Docs / Mock | Hecho | 2026-11-14 |
 | [frontend-console](iniciativas/frontend-console/HANDOFF.md) | `luna-landing-navigator-console` | Fase 1 mockeada | 2026-11-14 |
-| [lunar-globe-renderer](iniciativas/lunar-globe-renderer/HANDOFF.md) | `lunar-globe-renderer` (globo lunar CesiumJS) | Fase 1 lista, falta integrar | 2026-11-14 |
+| [lunar-globe-renderer](iniciativas/lunar-globe-renderer/HANDOFF.md) | [`luna-render-nasa-space-challenge`](https://github.com/CarlitooooK/luna-render-nasa-space-challenge) (globo lunar CesiumJS) | Fase 1 lista, falta integrar | 2026-11-14 |

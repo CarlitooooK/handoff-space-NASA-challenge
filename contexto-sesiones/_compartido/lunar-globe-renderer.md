@@ -2,10 +2,10 @@
 
 Globo lunar 3D estilo Google Earth (CesiumJS + teselas NASA Moon Trek), desarrollado aparte e incrustable en la consola. Documento transversal: el trabajo puntual vive en `iniciativas/lunar-globe-renderer/`.
 
-Verificado leyendo el código de `lunar-globe-renderer/` y probándolo en navegador (2026-11-14). Lo no verificado se marca.
+Verificado leyendo el código del repo del globo y probándolo en navegador (2026-11-14). Lo no verificado se marca.
 
 ## Dónde vive
-- **Repo / ubicación:** `lunar-globe-renderer/`, carpeta hermana de `luna-landing-navigator-console`. Aún sin repo git propio.
+- **Repo / ubicación:** [`luna-render-nasa-space-challenge`](https://github.com/CarlitooooK/luna-render-nasa-space-challenge), rama `main`. Copia local de trabajo: `lunar-globe-renderer/`, carpeta hermana de `luna-landing-navigator-console`.
 - **Cómo correrlo:** `npm install && npm run dev` (copia antes los assets de Cesium a `public/cesium`). Build: `npm run build`.
 - **Uso y protocolo de mensajes:** `README.md` del proyecto (fuente única; no se copia aquí).
 

@@ -25,4 +25,4 @@ Fase 1 del proyecto: un globo lunar detallado, estilo Google Earth, **desarrolla
 - Que el iframe funcione bajo el origen real de la consola y del túnel de despliegue.
 
 ## Pendiente de decisión
-- Dónde se hospeda el globo (repo, URL) y si se acepta el abanico del polo o se cambia a teselas polares. Decide el equipo.
+- Dónde se despliega el globo (URL para el iframe; el código ya vive en su repo, ver `HANDOFF.md`) y si se acepta el abanico del polo o se cambia a teselas polares. Decide el equipo.
