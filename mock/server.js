@@ -84,6 +84,45 @@ const CURATED_SITES = [
     slope_deg: 9.1,
     nearest_psr_km: 3.2,
     description: 'Cresta intermedia entre Shackleton y de Gerlache con ventanas solares periódicas.'
+  },
+  {
+    id: 'apollo-11',
+    name: 'Apollo 11',
+    category: 'Apollo',
+    lat: 0.674,
+    lon: 23.473,
+    polar_x_m: 1400449.5,
+    polar_y_m: 3224968.5,
+    elevation_m: -1925.5,
+    slope_deg: 0.8,
+    nearest_psr_km: 3154.8,
+    description: 'Sitio histórico de alunizaje de Apollo 11 en Mare Tranquillitatis (referencia ecuatorial global).'
+  },
+  {
+    id: 'apollo-15',
+    name: 'Apollo 15',
+    category: 'Apollo',
+    lat: 26.132,
+    lon: 3.634,
+    polar_x_m: 353366.6,
+    polar_y_m: 5563912.6,
+    elevation_m: -1924.7,
+    slope_deg: 1.0,
+    nearest_psr_km: 5266.9,
+    description: 'Sitio histórico de Apollo 15 junto a Hadley Rille y los Montes Apeninos (referencia de latitud media norte).'
+  },
+  {
+    id: 'apollo-17',
+    name: 'Apollo 17',
+    category: 'Apollo',
+    lat: 20.191,
+    lon: 30.772,
+    polar_x_m: 2547972.5,
+    polar_y_m: 4279016.6,
+    elevation_m: -2624.9,
+    slope_deg: 1.1,
+    nearest_psr_km: 4608.6,
+    description: 'Sitio histórico de Apollo 17 en el valle Taurus-Littrow (referencia global de comparación).'
   }
 ];
 
@@ -194,27 +233,34 @@ const PSR_DATABASE = [
 // ============================================================================
 
 /**
- * Validates lunar coordinates for the South Pole (-90.0 to -80.0 lat).
+ * Validates lunar coordinates across the full Moon (-90.0 to 90.0 lat, -180.0 to 360.0 lon).
  */
 function validatePolarCoordinates(lat, lon) {
   if (typeof lat !== 'number' || isNaN(lat)) {
     return { valid: false, message: 'La latitud debe ser un valor numérico.' };
   }
-  if (lat < -90.0 || lat > -80.0) {
+  if (lat < -90.0 || lat > 90.0) {
     return {
       valid: false,
-      message: `La latitud (${lat}) debe estar en la región polar sur lunar (-90.0 a -80.0 grados).`,
-      details: { field: 'lat', value: lat, allowed_range: [-90.0, -80.0] }
+      message: `La latitud (${lat}) debe estar en el rango lunar válido (-90.0 a 90.0 grados).`,
+      details: { field: 'lat', value: lat, allowed_range: [-90.0, 90.0] }
     };
   }
   if (typeof lon !== 'number' || isNaN(lon)) {
     return { valid: false, message: 'La longitud debe ser un valor numérico.' };
   }
+  if (lon < -180.0 || lon > 360.0) {
+    return {
+      valid: false,
+      message: `La longitud (${lon}) debe estar entre -180.0 y 360.0 grados.`,
+      details: { field: 'lon', value: lon, allowed_range: [-180.0, 360.0] }
+    };
+  }
   return { valid: true };
 }
 
 /**
- * Validates date range for ephemeris support (2020-01-01 to 2035-12-31).
+ * Validates date range for ephemeris support (1900-01-01 to 2050-12-31).
  */
 function validateDateRange(startUtc) {
   const d = new Date(startUtc);
@@ -222,11 +268,11 @@ function validateDateRange(startUtc) {
     return { valid: false, message: 'Formato de fecha inválido. Requiere ISO-8601 UTC.' };
   }
   const year = d.getUTCFullYear();
-  if (year < 2020 || year > 2035) {
+  if (year < 1900 || year > 2050) {
     return {
       valid: false,
-      message: `La fecha (${startUtc}) se encuentra fuera de la ventana de efemérides (2020-2035).`,
-      details: { field: 'start_utc', value: startUtc, allowed_years: [2020, 2035] }
+      message: `La fecha (${startUtc}) se encuentra fuera de la ventana de efemérides (1900-2050).`,
+      details: { field: 'start_utc', value: startUtc, allowed_years: [1900, 2050] }
     };
   }
   return { valid: true, date: d };

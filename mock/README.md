@@ -12,11 +12,11 @@ Permite al equipo de frontend, evaluadores y jurados ejecutar la solución de fo
 
 Requiere Node.js (v18 o superior). No necesita ejecutar `npm install`.
 
-> **Nota sobre proyectos ESM (`"type": "module"`):** `mock/server.js` utiliza CommonJS (`require`). Si se copia o invoca dentro de un proyecto Frontend con `"type": "module"` en su `package.json`, ejecuta el mock desde su propia carpeta con un `package.json` local que contenga `{"type": "commonjs"}` (por ejemplo `.handoff/package.json`) o directamente desde este repositorio (`P-004`).
+> **Compatibilidad CommonJS / ESM (`P-004`):** `mock/package.json` declara `{"type": "commonjs"}` para que `node mock/server.js` funcione directamente incluso si se copia dentro de un proyecto Frontend ESM (`"type": "module"`).
 
-> **Base URL para el cliente:** El servidor expone sus rutas bajo `/api/v1/*`, por lo que `VITE_API_BASE_URL` debe apuntar a `http://localhost:3000/api/v1` (`P-002`).
+> **Base URL para el cliente (`P-002`):** El servidor expone sus rutas bajo `/api/v1/*`, por lo que `VITE_API_BASE_URL` debe apuntar a `http://localhost:3000/api/v1`.
 
-> **Rango de latitud en el mock:** Actualmente `mock/server.js` valida `lat` en `[-90.0, -80.0]` (Polo Sur); el backend en vivo ya acepta `[-90.0, 90.0]` (`P-003`).
+> **Cobertura global (`P-003`):** `mock/server.js` acepta `lat` en `[-90.0, 90.0]`, incluye `5` sitios polares + `3` sitios globales Apollo (`apollo-11`, `apollo-15`, `apollo-17`) y fechas entre `1900` y `2050`, alineado con el backend en vivo.
 
 ```bash
 # Iniciar en el puerto por defecto (3000)
@@ -84,13 +84,13 @@ curl -s -X POST http://localhost:3000/api/v1/evaluate \
     "step_minutes": 60
   }'
 
-# 4. Validar manejo de errores (coordenada fuera del polo sur lunar)
+# 4. Validar manejo de errores (coordenada fuera del rango lunar válido [-90, 90])
 curl -s -X POST http://localhost:3000/api/v1/evaluate \
   -H "Content-Type: application/json" \
   -d '{
-    "lat": -60.0,
+    "lat": -95.0,
     "lon": 10.0,
     "start_utc": "2026-12-01T00:00:00Z"
   }'
-# Retorna: 422 Unprocessable Entity con código ERR_INVALID_COORDINATES
+# Retorna: 422 Unprocessable Entity con error.code === "ERR_INVALID_COORDINATES"
 ```

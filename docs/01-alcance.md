@@ -11,7 +11,7 @@ Proporcionar una aplicación intuitiva e interactiva que permita evaluar y compa
 - **Público general y divulgadores:** para explorar visualmente misiones históricas y futuros puntos de alunizaje sin requerir herramientas analíticas complejas.
 
 ## Incluye (v1)
-- **Selección de sitios:** catálogo curado de sitios de alto interés (p. ej., cresta del cráter Shackleton, Malapert Mountain, sitios candidatos Artemis III y misiones CLPS) y opción de ingresar coordenadas lunares personalizadas (latitud `-90.0°` a `-80.0°`, longitud `-180.0°` a `180.0°` / `0.0°` a `360.0°`).
+- **Selección de sitios:** catálogo curado de sitios de alto interés (`10` del Polo Sur Artemis III / CLPS + `3` históricos globales Apollo) y opción de ingresar coordenadas lunares personalizadas (latitud `-90.0°` a `90.0°` —foco de alta resolución `40 m/px` en el polo sur `-90.0°` a `-80.0°` y cobertura global `ldem_64.tif` en el resto de la Luna—, longitud `-180.0°` a `180.0°` / `0.0°` a `360.0°`).
 - **Flexibilidad temporal:** selección interactiva de fecha y hora inicial (UTC) y duración de la misión para evaluar diferentes días y estaciones lunares.
 - **Visualización de Sol y Tierra sobre el horizonte:** cálculo y despliegue de acimut y elevación solar y terrestre respecto al horizonte topográfico local (considerando el entorno de vacío sin refracción atmosférica).
 - **Métricas operativas de energía y enlace:** estimación de perfil de iluminación, ángulo de elevación solar, factor de generación fotovoltaica, y ventanas continuas de comunicación DTE sin necesidad de satélites repetidores.

@@ -30,27 +30,26 @@ Especificación del protocolo de comunicación entre el frontend (visor 2D/3D y 
 
 ---
 
-## Esquema de error (Backend en vivo vs. Mock)
+## Esquema de error (Unificado: Backend en vivo y Mock)
 
-El backend en vivo (`spaceapps-api`, FastAPI) y el servidor mock (`mock/server.js`) emiten formatos distintos en respuestas `4xx`/`5xx`, por lo que el cliente debe soportar ambos (`P-001`):
+Tanto el backend en vivo (`spaceapps-api`, FastAPI) como el servidor mock (`mock/server.js`) emiten el **mismo formato contractual** en respuestas `4xx`/`5xx` (`P-001`, `D-010`):
 
-1. **Backend en vivo (FastAPI — según `contracts/openapi.json`):**
-   - Errores de validación Pydantic (`422`): `{ "detail": [ { "type": "...", "loc": [...], "msg": "...", "input": ... } ] }`.
-   - Errores de validación de negocio o indisponibilidad (`422` / `503`): `{ "detail": "resolution must be one of (64, 128, 256)" }`.
-2. **Servidor Mock (`mock/server.js`):**
-   ```json
-   {
-     "error": {
-       "code": "ERR_INVALID_COORDINATES",
-       "message": "La latitud ingresada (-75.4) se encuentra fuera del rango polar permitido (-90.0 a -80.0).",
-       "details": {
-         "field": "lat",
-         "value": -75.4,
-         "allowed_range": [-90.0, -80.0]
-       }
-     }
-   }
-   ```
+```json
+{
+  "error": {
+    "code": "ERR_INVALID_COORDINATES",
+    "message": "lat: Input should be greater than or equal to -90",
+    "details": {
+      "field": "lat",
+      "value": -95.0,
+      "allowed_range": [-90.0, 90.0]
+    }
+  },
+  "detail": "..."
+}
+```
+
+> El campo `error.code` es la fuente única para la lógica de recuperación del cliente; `detail` se conserva únicamente como espejo opcional de FastAPI/OpenAPI.
 
 ---
 
@@ -60,13 +59,14 @@ La lógica del cliente **debe evaluar exclusivamente la propiedad `error.code`**
 
 | Código de Error | HTTP Status | Cuándo ocurre (Causa raíz) | Qué hace quien consume (Estrategia de recuperación en Frontend) |
 | --- | --- | --- | --- |
-| `ERR_INVALID_COORDINATES` | `422 Unprocessable Entity` | La latitud provista no se encuentra en el rango del Polo Sur lunar (`lat < -90.0` o `lat > -80.0`), o la longitud excede límites válidos. | Resaltar en rojo el campo de entrada en la interfaz, mostrar un *tooltip* explicativo limitando la selección a la franja polar sur (`-90.0°` a `-80.0°`) y enfocar el cursor nuevamente en el selector de latitud o forzar clic en el mapa polar. |
-| `ERR_DATE_OUT_OF_RANGE` | `422 Unprocessable Entity` | La fecha inicial (`start_utc`) o la ventana temporal calculada (`start_utc + duration_days`) cae fuera del rango de efemérides tabuladas en el backend o en JPL Horizons (p. ej., años previos a 2020 o posteriores a 2035). | Mostrar alerta de rango temporal no disponible en el selector de fecha, bloquear el botón de evaluación y sugerir automáticamente una ventana temporal válida centrada en la misión Artemis III (ej. `2026-12-01T00:00:00Z`). |
-| `ERR_TERRAIN_UNAVAILABLE` | `404 Not Found` / `422 Unprocessable Entity` | Las coordenadas corresponden a un sector polar sin cobertura de mosaico DEM de LOLA a la resolución solicitada, o el archivo topográfico correspondiente no está indexado en el servidor. | Advertir al usuario que no hay datos de elevación de alta resolución en esa celda específica. Ofrecer en un menú desplegable el sitio curado más cercano disponible (ej. borde de Shackleton o Malapert) o reducir automáticamente la resolución solicitada (`resolution=64`). |
-| `ERR_UPSTREAM_SERVICE` | `503 Service Unavailable` | El backend no pudo conectar con la API de NASA/JPL Horizons por límite de tasa (*rate limit*), tiempo de espera agotado (*timeout*) o falla de red externa. | Activar de inmediato el modo de contingencia (*Offline Fallback*): notificar al usuario con un banner de advertencia ("Servicio Horizons en modo de respaldo") y cargar los datos precalculados del sitio de referencia seleccionado disponibles en el servidor mock/cache. |
-| `ERR_INVALID_PAYLOAD` | `400 Bad Request` | La petición omite campos obligatorios del cuerpo JSON (como `lat`, `lon` o `start_utc`), o contiene tipos de datos incompatibles (ej. cadenas alfanuméricas en campos numéricos). | Deshabilitar el botón de envío en el formulario hasta que todos los campos mandatorios estén debidamente tipados, mostrando mensajes de validación reactivos en cada componente del formulario. |
-| `ERR_SCENARIO_LIMIT_EXCEEDED` | `422 Unprocessable Entity` | La petición a `POST /api/v1/compare` incluye menos de 2 o más de 5 escenarios simultáneos. | El modal de comparación deshabilita el botón "Agregar Escenario" al llegar a 5 elementos y previene el envío si solo hay 1 escenario configurado. |
-| `ERR_DUPLICATE_SCENARIOS` | `422 Unprocessable Entity` | Se envían dos o más escenarios idénticos (mismas coordenadas y misma fecha de inicio) en una petición de comparación. | Alertar visualmente en la fila duplicada del modal de comparación para que el usuario diferencie el sitio o la fecha antes de ejecutar el cálculo. |
+| `ERR_INVALID_COORDINATES` | `422 Unprocessable Entity` | La latitud está fuera del rango lunar válido (`lat < -90.0` o `lat > 90.0`), o la longitud está fuera de `[-180.0, 360.0]`. | Resaltar en rojo el campo de entrada en la interfaz, mostrar un *tooltip* explicativo indicando el rango válido (`lat`: `-90.0°` a `90.0°`, `lon`: `-180.0°` a `360.0°`) y devolver foco al selector. |
+| `ERR_DATE_OUT_OF_RANGE` | `422 Unprocessable Entity` | La fecha inicial (`start_utc`) cae fuera del rango de efemérides SPICE soportado (`1900`–`2050`). | Mostrar alerta de rango temporal no disponible (`1900-2050`), bloquear el botón de evaluación y sugerir automáticamente una ventana temporal válida centrada en la misión Artemis III (ej. `2026-12-01T00:00:00Z`). |
+| `ERR_TERRAIN_UNAVAILABLE` | `404 Not Found` / `422` / `503` | Faltan los archivos topográficos LOLA DEM en el servidor o no están disponibles en el rango solicitado. | Advertir al usuario que el dataset DEM no está disponible temporalmente. Ofrecer cargar datos desde el respaldo offline (`mock/server.js`) o reintentar. |
+| `ERR_UPSTREAM_SERVICE` | `503 Service Unavailable` | Indisponibilidad temporal de PostgreSQL/PostGIS, del motor físico SPICE o de un servicio externo ascendente. | Activar de inmediato el modo de contingencia (*Offline Fallback*): notificar al usuario con un banner de advertencia y usar el servidor mock local de respaldo. |
+| `ERR_INVALID_PAYLOAD` | `400 Bad Request` / `422` | JSON malformado, omisión de campos obligatorios en el cuerpo (`lat`, `lon`, `start_utc`), o parámetros fuera de catálogo/tipo (ej. `resolution` distinto de `64`, `128`, `256`). | Deshabilitar el envío hasta completar los campos obligatorios o corregir parámetros inválidos, mostrando validación reactiva junto al campo reportado. |
+| `ERR_SCENARIO_LIMIT_EXCEEDED` | `422 Unprocessable Entity` | La petición a `POST /api/v1/compare` incluye menos de 2 o más de 5 escenarios simultáneos. | El modal de comparación deshabilita el botón "Agregar Escenario" al llegar a 5 elementos y previene el envío si hay menos de 2 escenarios. |
+| `ERR_DUPLICATE_SCENARIOS` | `422 Unprocessable Entity` | Se envían dos o más escenarios idénticos (mismas coordenadas normalizadas y misma fecha UTC) en una petición de comparación. | Alertar visualmente en la fila duplicada del modal de comparación para que el usuario diferencie el sitio o la fecha antes de ejecutar el cálculo. |
+| `ERR_NOT_FOUND` | `404 Not Found` | Ruta inexistente en la API. | Verificar el prefijo `/api/v1/...` y reportar error de integración. |
 
 ---
 
@@ -75,7 +75,7 @@ La lógica del cliente **debe evaluar exclusivamente la propiedad `error.code`**
 ```javascript
 async function requestSiteEvaluation(payload) {
   try {
-    const response = await fetch('/api/v1/evaluate', {
+    const response = await fetch(`${VITE_API_BASE_URL}/evaluate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -96,12 +96,12 @@ async function requestSiteEvaluation(payload) {
 }
 
 function handleApiError(error) {
-  switch (error.code) {
+  switch (error?.code) {
     case 'ERR_INVALID_COORDINATES':
-      ui.highlightField('lat', 'Coordenada fuera del polo sur (-90° a -80°)');
+      ui.highlightField('lat', 'Coordenada fuera de rango lunar (-90° a 90°)');
       break;
     case 'ERR_DATE_OUT_OF_RANGE':
-      ui.showDateWarning('Fecha fuera de cobertura de efemérides. Selecciona entre 2024 y 2030.');
+      ui.showDateWarning('Fecha fuera de cobertura de efemérides SPICE (1900-2050).');
       break;
     case 'ERR_UPSTREAM_SERVICE':
     case 'ERR_TERRAIN_UNAVAILABLE':
@@ -109,10 +109,10 @@ function handleApiError(error) {
       loadPrecalculatedSite(error.details?.suggested_site || 'artemis-shackleton-rim');
       break;
     case 'ERR_INVALID_PAYLOAD':
-      ui.showFormError('Por favor verifica los campos obligatorios del formulario.');
+      ui.showFormError('Por favor verifica los campos obligatorios y parámetros del formulario.');
       break;
     default:
-      ui.showGenericError(`Error no catalogado: ${error.message}`);
+      ui.showGenericError(`Error no catalogado: ${error?.message ?? 'Error desconocido'}`);
   }
 }
 ```

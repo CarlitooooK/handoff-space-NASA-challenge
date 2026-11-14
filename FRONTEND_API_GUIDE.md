@@ -8,52 +8,60 @@
 
 ## 1. URLs de Conexión y Cómo Revisar la Documentación
 
-### 1.1 URL Base Pública (HTTPS — Sin Tailscale)
-Usa esta URL para el desarrollo de todo el equipo (túnel HTTPS directo hacia `desktop`):
+### 1.1 URL Base (`VITE_API_BASE_URL` / `NEXT_PUBLIC_API_BASE_URL`)
+Las URLs activas de todos los ambientes (Túnel público HTTPS, red interna Tailscale y Mock local) se mantienen como fuente única en [`docs/07-ambientes-y-pruebas.md`](docs/07-ambientes-y-pruebas.md) para evitar duplicar direcciones efímeras.
 
-- **Base URL API v1:** `https://chart-owned-alabama-choices.trycloudflare.com/api/v1`
-- **Respaldo por Tailscale (IP interna fija):** `http://100.66.139.125:8000/api/v1`
+Define siempre la variable de entorno en `.env.local` tomando el valor vigente de [`docs/07-ambientes-y-pruebas.md`](docs/07-ambientes-y-pruebas.md):
+```env
+# Vite
+VITE_API_BASE_URL=<URL_BASE_DESDE_DOCS_07>/api/v1
 
-> **Nota sobre reinicios:** Como es un Cloudflare Quick Tunnel gratuito, si el servidor `desktop` se reinicia o apaga, el subdominio `*.trycloudflare.com` cambiará. En ese caso, en `desktop` basta correr:
-> ```bash
-> docker logs spaceapps-cloudflared 2>&1 | grep trycloudflare
-> ```
-> Por eso se recomienda definir la URL en tu `.env` (por ejemplo `.env.local`) y no dejarla fija en componentes:
-> ```env
-> # Vite
-> VITE_API_BASE_URL=https://chart-owned-alabama-choices.trycloudflare.com/api/v1
->
-> # Next.js
-> NEXT_PUBLIC_API_BASE_URL=https://chart-owned-alabama-choices.trycloudflare.com/api/v1
-> ```
+# Next.js
+NEXT_PUBLIC_API_BASE_URL=<URL_BASE_DESDE_DOCS_07>/api/v1
+```
 
 ### 1.2 Cómo Revisar y Probar la Documentación Interactiva
 
+Con el host activo listado en [`docs/07-ambientes-y-pruebas.md`](docs/07-ambientes-y-pruebas.md):
 1. **Swagger UI (Recomendado para probar endpoints en vivo):**
-   - Entra a **`https://chart-owned-alabama-choices.trycloudflare.com/docs`** *(si abres la raíz `https://chart-owned-alabama-choices.trycloudflare.com/` te redirige automáticamente aquí)*.
+   - Entra a `<HOST_BACKEND>/docs` *(la raíz `<HOST_BACKEND>/` redirige automáticamente aquí)*.
    - **Cómo usarlo:**
      1. Abre cualquier endpoint (ej. `GET /api/v1/sites` o `POST /api/v1/evaluate`).
      2. Haz clic en **"Try it out"**.
      3. Edita parámetros o JSON y presiona **"Execute"** para ver el `curl` exacto, el código HTTP y el JSON real de respuesta.
-     4. En el selector **"Servers"** arriba de Swagger viene seleccionado `/` por defecto para que siempre dispare sobre el mismo dominio HTTPS actual sin errores de *Mixed Content* (aunque cambie la URL del túnel).
+     4. En el selector **"Servers"** arriba de Swagger viene seleccionado `/` por defecto para que siempre dispare sobre el mismo dominio actual sin errores de *Mixed Content*.
 2. **ReDoc (Vista limpia para leer modelos y campos):**
-   - **`https://chart-owned-alabama-choices.trycloudflare.com/redoc`**
+   - `<HOST_BACKEND>/redoc`
 3. **Esquema OpenAPI 3.1 JSON (para autogenerar tipos TypeScript):**
-   - En vivo: **`https://chart-owned-alabama-choices.trycloudflare.com/openapi.json`**
-   - Copia local en el repositorio: [contracts/openapi.json](contracts/openapi.json)
-   - Generar tipos TS automáticamente:
+   - Copia local sincronizada en el repositorio: [`contracts/openapi.json`](contracts/openapi.json)
+   - En vivo: `<HOST_BACKEND>/openapi.json`
+   - Generar tipos TS automáticamente (vía `npx` para evitar conflictos con TypeScript 7 en Vite, ver `P-005`):
      ```bash
-     npx openapi-typescript https://chart-owned-alabama-choices.trycloudflare.com/openapi.json -o src/types/api.d.ts
+     npx openapi-typescript contracts/openapi.json -o src/types/api.d.ts
      ```
 
 ---
 
 ## 2. Cliente `fetch` Base en TypeScript
 
+Tanto el backend en vivo como el servidor mock emiten el formato unificado `{ error: { code, message, details }, detail }` (`docs/06-contrato-y-errores.md`):
+
 ```ts
-const API_BASE =
-  import.meta.env.VITE_API_BASE_URL ??
-  "https://chart-owned-alabama-choices.trycloudflare.com/api/v1";
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
+if (!API_BASE) {
+  throw new Error("Falta definir VITE_API_BASE_URL (ver docs/07-ambientes-y-pruebas.md)");
+}
+
+export class ApiError extends Error {
+  constructor(
+    public status: number,
+    public code: string,
+    message: string,
+    public details?: Record<string, unknown> | null
+  ) {
+    super(message);
+  }
+}
 
 export async function apiFetch<T>(
   path: string,
@@ -68,12 +76,12 @@ export async function apiFetch<T>(
   });
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ detail: res.statusText }));
-    throw new Error(
-      typeof err.detail === "string"
-        ? err.detail
-        : JSON.stringify(err.detail ?? err)
-    );
+    const body = await res.json().catch(() => null);
+    const code = body?.error?.code ?? "ERR_INVALID_PAYLOAD";
+    const message =
+      body?.error?.message ??
+      (typeof body?.detail === "string" ? body.detail : res.statusText);
+    throw new ApiError(res.status, code, message, body?.error?.details ?? null);
   }
   return res.json() as Promise<T>;
 }
@@ -370,6 +378,7 @@ const psrs = await apiFetch<{
 2. **Escena 3D local (`terrain/patch` + `sun_vector_3d` / `earth_vector_3d`):**
    - `+X` = Este, `+Y` = Elevación / Cenit, `-Z` = Norte (`+Z` = Sur).
    - 1 unidad del mundo 3D = **1 metro lunar real** (puedes escalar `y` por un factor visual como `2x` con un slider de *"Exageración de relieve"* si el usuario quiere acentuar pendientes).
-3. **Códigos HTTP de error:**
-   - `422 Unprocessable Entity`: parámetro inválido (por ejemplo `resolution=100` en lugar de `64|128|256`, o menos de 2 escenarios en `/compare`). `err.detail` trae el detalle exacto del campo.
-   - `503 Service Unavailable`: base de datos o archivos DEM momentáneamente no disponibles.
+3. **Códigos de error unificados (`docs/06-contrato-y-errores.md`):**
+   - `400 Bad Request` (`ERR_INVALID_PAYLOAD`): JSON malformado o campo obligatorio faltante.
+   - `422 Unprocessable Entity`: validación o regla de dominio inválida (`ERR_INVALID_COORDINATES`, `ERR_DATE_OUT_OF_RANGE`, `ERR_SCENARIO_LIMIT_EXCEEDED`, `ERR_DUPLICATE_SCENARIOS`, `ERR_INVALID_PAYLOAD`). La respuesta incluye `error.code`, `error.message` y `error.details` (además de `detail` para compatibilidad).
+   - `503 Service Unavailable` (`ERR_TERRAIN_UNAVAILABLE` / `ERR_UPSTREAM_SERVICE`): base de datos, kernels SPICE o archivos DEM momentáneamente no disponibles.
