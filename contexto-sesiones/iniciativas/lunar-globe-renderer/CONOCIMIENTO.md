@@ -48,6 +48,44 @@ Fase 1 del proyecto: un globo lunar detallado, estilo Google Earth, **desarrolla
 - Al desmontarse el iframe (la consola pasa a la escena local), el globo pierde todo su estado: el puente reenvía sitios, Sol/Tierra, PSR y selección en cada `READY`. Si hay una escena pedida, la inicia en lugar de volar al sitio.
 - La consola evaluada con la API en vivo (2026-12-21T00:00Z, 2 días, paso 60 min) en IM-2 Mons Mouton da `GO`; en otra fecha del mismo sitio el Sol estaba bajo el horizonte (`NO-GO`). El estado depende de la fecha.
 
+## Auditoría consola → render (2026-11-14)
+
+Hecha leyendo el código de la consola (`main`, tras el PR `#4`) y la documentación (`docs/10`, `docs/05`, `docs/ideas/lunar-landing-ui-ux-tdd.md`, `PRODUCT.md`), y verificando los datos contra fuentes externas.
+
+### Qué datos son reales y cuáles son de muestra
+| Fuente | Estado | Evidencia |
+| --- | --- | --- |
+| API pública en vivo: Sol y Tierra (`sun_az_deg`, `sun_el_deg`, `earth_az_deg`, `earth_el_deg`) | **Real** | Contra JPL Horizons (`coord@301`, IM-2 Mons Mouton, 2026-12-21, 24 horas): diferencia 0,00° en azimut y elevación, para Sol y Tierra |
+| API pública: `horizon_profile` (360°) | **Real** (derivado de LOLA) | Recalculado desde el `terrain/patch` del propio backend: diferencia media 0,46° (Mons Mouton) y 0,77° (Shackleton), máxima 2,8° |
+| API pública: elevación del sitio, PSR, catálogo de 13 sitios | **Real** | `elevation_m` de `evaluate` = centro de `terrain/patch` (5144,1 y 880,1 m); el DEM del globo da 866 m en Shackleton |
+| **Mock** (`mock/server.js`) | **Sintético** | Sol: `1.55 + 0.35·sin(año)` (siempre entre 1,2° y 1,9°, nunca se pone). Tierra: fórmula de libración. Horizonte: `0.85 + senos` (0,3° a 2,2°). Terreno: seno. Con el mock no hay amanecer ni ocultamiento real |
+| `power_factor` / `estimated_peak_power_w` | Real del backend, **definición no documentada** | ≈0,994 con el Sol a 6,5° y pico 1 559 W frente a 1 524 W nominales (1361·4·0,28): consistente con un panel que sigue al Sol, no con uno horizontal. No usarlo para el brillo del suelo del render |
+| Catálogo de Missions (`missions.ts`) | Real, con fuentes citadas | Solo hora y coordenadas; las condiciones salen de `POST /evaluate`. IM-2: las coordenadas de LROC difieren de `/sites` (`P-009`) |
+| Descenso, Apollo LM, astronauta, textura de regolito, orientación de la Tierra | **Ilustrativo** | Rotulado como tal en el render y en la interfaz |
+
+La consola ya distingue el mock en su chip ("Sample data" si `/health` no trae `engine`; "Live data" si lo trae).
+
+### Funcionalidad de la consola y su reflejo en el render
+| Funcionalidad (código) | Dato | Reflejo hoy en el globo | Brecha |
+| --- | --- | --- | --- |
+| Elegir sitio: catálogo, búsqueda, pin libre lat/lon (`SetupPanel`) | `GET /sites` | Pin y vuelo (`SELECT_SITE`) | El pin libre no dibuja marcador |
+| Fecha, hora, duración, paso, paneles (`SetupPanel`) | Parámetros de `evaluate` | Indirecto, vía el paso del timeline | — |
+| Run simulation (`evaluate`) | `evaluate`, `terrain/patch`, `psr/nearby` | Pin con GO/CAUTION/NO-GO, PSR | El detalle local lo pinta la escena Three.js de la consola, no el globo |
+| Results Simple: estado, cuenta atrás a sunset y earthset, potencia, pendiente, sombra permanente (`ResultsPanel`) | `summary`, `site`, `timeline[i]` | Solo el color del pin | No se ve el ocaso ni el earthset que anuncian los contadores |
+| Results Detailed: checks, az/el, horizonte, *clearance*, ventanas (`ResultsPanel`) | `timeline[i]`, `summary` | Ninguno | Sol y Tierra con sus az/el y holgura sobre el horizonte |
+| Timeline: pistas, scrubber, play 1×/4×/12×, banderas (`TimelineDock`) | `timeline[]` en memoria (D-003) | Sol, Tierra y terminador siguen al scrubber | En vista orbital el amanecer no se aprecia |
+| Horizon 360° (`HorizonChart`) | `horizon_profile`, az/el y *horizon_el* del paso | Ninguno | Silueta del horizonte en 3D con Sol y Tierra orbitando detrás |
+| Escena local de terreno (`LunarCanvas`) | `terrain/patch` | No aplica (es de la consola) | Vista cenital con esferas de luz, no un plano horizontal |
+| Compare A–E, ranking, matriz, "Show on terrain" (`ComparePanels`) | `POST /compare` | Ninguno | Pines A–E con estado y el mejor resaltado |
+| History (localStorage) (`HistoryPanels`) | Corridas guardadas | Ninguno | Baja prioridad |
+| Missions: replay de 7 alunizajes (`MissionsPanels`) | Catálogo + `evaluate` | Ninguno | Vista de horizonte a la hora del alunizaje y la escena, con descenso rotulado ilustrativo |
+| Simple / Detailed | — | Ninguno | Etiquetas y cifras solo en Detailed |
+| Chip "Sample data" / "Live data" / Offline (`TopBar`) | `/health` | Ninguno | Rotular el render cuando los datos son de muestra |
+| Landing scene (extra) | `evaluate` | Hecho | Ilustrativa |
+
+### Documentación que ya pedía esta vista
+`docs/ideas/lunar-landing-ui-ux-tdd.md` define tres modos de cámara: *Orbital* (por defecto), *Lander POV* (cámara a 2 m del suelo, giro de 360°, "perspectiva de astronauta o rover frente al horizonte") y *Mapa Polar 2D*. La vista de horizonte es ese *Lander POV*, que la consola no implementó.
+
 ## Supuestos sin verificar
 - `sun_vector_3d` es un vector hacia el Sol en el marco local del sitio con la convención D-008; la conversión a marco fijo lunar se probó solo con un vector mock.
 - El rendimiento en el equipo de la demo (GPU real) no se midió; la prueba corrió con renderizado por software.
