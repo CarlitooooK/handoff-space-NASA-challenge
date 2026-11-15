@@ -1,6 +1,6 @@
 # Consola Frontend — Handoff
 
-**Última actualización:** 2026-11-14 (consola `#7`, `#8` y `#9` fusionados) · **Responsable:** Equipo Frontend (consola) · **Repo / componente:** `luna-landing-navigator-console`
+**Última actualización:** 2026-11-14 (consola `#7`, `#8`, `#9` fusionados; `#10` abierto) · **Responsable:** Equipo Frontend (consola) · **Repo / componente:** `luna-landing-navigator-console`
 
 ## En una línea
 El PR `#6` ya está fusionado (D-015, contrato v1.2, `docs/` internas). Fusionados el 2026-11-14: `#7` (contrato v1.3 y baja del mock), `#8` (audit UX y spec de onboarding, lista para implementar) y `#9` (vista de horizonte, del globo).
@@ -12,6 +12,7 @@ El PR `#6` ya está fusionado (D-015, contrato v1.2, `docs/` internas). Fusionad
 | Cascarón, rail, top bar, pantalla completa con paneles plegados | Hecho (`#2`) |
 | Simulate, timeline y horizonte 360°, Compare, History, Missions | Hecho (`#2`) |
 | Puente con el globo y globo como render único (D-015) | Hecho (`#4`, `#6`) |
+| Cielo y PSR del polo antes de evaluar (`/ephemeris`, `/psr`), `evaluate()` tolerante a fallos del terreno, sin refetch si solo cambia la fecha, pines A–E de Compare y marcador del pin libre | En revisión (`#10`, del globo; requiere desplegar el globo `a891c85`) |
 | Vista de horizonte (Lander POV) en la consola: pastilla "Horizon view", `SET_HORIZON`, `SET_SKY_STATE` | Hecho (`#9`); convive con "Terrain detail" |
 | Documentación interna (`docs/01` a `06` de la consola) | Hecho (`#6`) |
 | **Baja del mock:** la consola se desarrolla y prueba contra el Backend oficial de `docs/07`; se quitan `npm run mock` y el rótulo "Sample data" | Hecho (`#7`); el código muerto (`isSampleData`, `SET_DATA_MODE`) se quitó en `#9` |
@@ -22,7 +23,7 @@ El PR `#6` ya está fusionado (D-015, contrato v1.2, `docs/` internas). Fusionad
 | Video demo y AI Tool Disclosure | No iniciado |
 
 ## Pendientes (en orden de valor)
-1. (Hecho) PR `#7`, `#8`, `#9` de la consola y los de este repo fusionados.
+1. Revisar y fusionar la consola `#10`. El onboarding (punto 2) lo toma Diego.
 2. Implementar la spec de onboarding en el orden de su `tasks.md`. Primero va el bloque A, que corrige un P0: hoy no se puede elegir un sitio con teclado.
 3. Recibir respuesta a `P-011` (textos científicos de PSR y `power_factor`) y `P-012` (`hours_to_next_*` en `null` con el astro oculto al inicio). Ninguna bloquea.
 4. Especificar "Terrain detail" a ras de suelo con el equipo del globo. Depende de `P-010`.

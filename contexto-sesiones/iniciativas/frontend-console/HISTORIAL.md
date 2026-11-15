@@ -3,6 +3,7 @@
 Cronología, de lo más nuevo a lo más viejo. Fechas absolutas. No se borra: se agrega.
 
 ## 2026-11-14
+- Consola PR `#10` abierto (carril del globo): `/ephemeris` y `/psr` para la vista global, `Promise.allSettled` en `evaluate()`, parche y PSR reusados si solo cambia la fecha, no repetir el vuelo en el mismo sitio, pines A–E y marcador del pin libre. `rankBy` pasó al store. Cierra cuatro filas de `docs/06` de la consola. El onboarding lo toma Diego.
 - Fusionados consola `#7`, `#8` y `#9` y handoff `#7` y `#8`. Conflicto `#7` × `#9` en `TopBar.tsx` resuelto con el lado de `#7`; se quitó `isSampleData` y `SET_DATA_MODE`. `main` de la consola: `tsc` limpio, 32 pruebas, `oxlint` 0.
 - `VITE_API_BASE_URL` local ya apunta al Backend oficial (`cream-interesting…/api/v1`); no hay otro backend vivo. Un redeploy del backend no cambia la URL (docs/07). El front aún no tiene CI/CD.
 - Audit UX de la consola y spec de onboarding, ayudas "?" y sugerencias (consola PR `#8`, `docs/specs/onboarding-ayudas-sugerencias/`).
