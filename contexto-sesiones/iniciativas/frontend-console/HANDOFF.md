@@ -1,6 +1,6 @@
 # Consola Frontend — Handoff
 
-**Última actualización:** 2026-11-15 (consola `#7` a `#18` fusionados, `#20` en revisión; `main` = `0f91f6e`) · **Responsable:** Equipo Frontend (consola) · **Repo / componente:** `luna-landing-navigator-console`
+**Última actualización:** 2026-11-15 (consola `#7` a `#20` fusionados, `#21` en revisión; `main` = `e8ba471`) · **Responsable:** Equipo Frontend (consola) · **Repo / componente:** `luna-landing-navigator-console`
 
 ## En una línea
 La spec de onboarding está implementada completa (A1–D4) en el PR `#16` de la consola (fusionado el 2026-11-15): tour de 7 pasos, ayudas "?", "Next step" en los cuatro workspaces, botón Help y las correcciones de base del audit. Ya integra `main` hasta `#14`.
@@ -21,7 +21,8 @@ La spec de onboarding está implementada completa (A1–D4) en el PR `#16` de la
 | `hours_to_next_* = null` (respuesta de Backend a `P-012`) | `countdown()` de `#16` ya sigue esa semántica. Compare sigue diciendo "Rises later" sin la hora: Producción ya sirve v1.4 (`*_visible_at_start`, `hours_to_next_*rise`, handoff `#11` fusionado), falta sincronizar el contrato en la consola y usarlos |
 | Vista de horizonte (Lander POV) en la consola: pastilla "Horizon view", `SET_HORIZON`, `SET_SKY_STATE` | Hecho (`#9`); convive con "Terrain detail" |
 | **Horizon view al simular** (Run simulation en Simulate, Replay en Missions, Next step y tour) y píldoras "Recenter", "Grid" y "Elevation" | Fusionado: consola `#18` (`0f91f6e`) junto con el globo `#2` (`6c80e0d`), los dos por Carlo. La píldora "Shadowed regions" de `#17` (`3f6c321`) entró antes y convive con las de `#18` en `SceneControls.tsx`. Al desplegar, el globo debe ser `6c80e0d` o posterior |
-| **Simple y Detailed distintos en Compare** (C-06 del audit) y **timeline siempre en Detailed** (velocidad y vista de abajo en los dos modos) | En revisión: consola [`#20`](https://github.com/CarlitooooK/luna-landing-navigator-console/pull/20) (Diego). Solo consola; no toca el globo |
+| **Simple y Detailed distintos en Compare** (C-06 del audit) y **timeline siempre en Detailed** (velocidad y vista de abajo en los dos modos) | Fusionado: consola `#20` (`e8ba471`, Carlo). Solo consola |
+| **Burbuja en las píldoras de escena**: tras 1 s con el cursor encima (o 1 s de foco por teclado) explica qué muestra u oculta cada una, con el texto del glosario | En revisión: consola [`#21`](https://github.com/CarlitooooK/luna-landing-navigator-console/pull/21) (Diego). Solo consola |
 | Documentación interna (`docs/01` a `06` de la consola) | Hecho (`#6`) |
 | **Baja del mock:** la consola se desarrolla y prueba contra el Backend oficial de `docs/07`; se quitan `npm run mock` y el rótulo "Sample data" | Hecho (`#7`); el código muerto (`isSampleData`, `SET_DATA_MODE`) se quitó en `#9` |
 | **Audit UX y spec de onboarding** (`docs/specs/onboarding-ayudas-sugerencias/` de la consola) | Spec fusionada (`#8`); implementada en `#16` |
@@ -31,7 +32,7 @@ La spec de onboarding está implementada completa (A1–D4) en el PR `#16` de la
 | Video demo y AI Tool Disclosure | No iniciado |
 
 ## Pendientes (en orden de valor)
-0. Revisar y fusionar la consola `#20`. Decidir si "Nearest PSR" en Compare › Detailed muestra "—" fuera del polo (Apollo 11 marca 3 154,8 km; según `P-011` la PSR no tiene sentido ahí). Sigue sin confirmar que "Elevation" (`lolaShade`, recortada al sur de −85°) sea el "mapa de calor por altitud" pedido. Probar `#18` en GPU real.
+0. Revisar y fusionar la consola `#21` (falta probarla con lector de pantalla). Decidir si "Nearest PSR" en Compare › Detailed muestra "—" fuera del polo (Apollo 11 marca 3 154,8 km; según `P-011` la PSR no tiene sentido ahí). Sigue sin confirmar que "Elevation" (`lolaShade`, recortada al sur de −85°) sea el "mapa de calor por altitud" pedido. Probar `#18` en GPU real.
 1. (Hecho) Consola `#15` y `#16` fusionadas. Falta probar el tour en GPU real y con `prefers-reduced-motion`; y corregir el texto de ayuda `site` ("Sun stays within about 2° of the horizon": en IM-2 −84,79° se midieron 4,75°; decir "a few degrees").
 2. Aplicar las respuestas de `P-011` en el glosario (`power` y `psr`, y ocultar la ayuda `psr` fuera del polo) en un PR aparte.
 3. Cuando se fusione el handoff `#11` (contrato v1.4/v1.5): `npm run sync:handoff` en la consola, regenerar tipos y usar `*_visible_at_start` y `hours_to_next_*rise` en `countdownFromSummary()`, para que Compare y History digan cuándo sale un astro que empieza oculto sin pedir `include_timeline`.

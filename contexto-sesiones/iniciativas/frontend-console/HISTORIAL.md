@@ -3,6 +3,14 @@
 Cronología, de lo más nuevo a lo más viejo. Fechas absolutas. No se borra: se agrega.
 
 ## 2026-11-15
+- **Burbuja en las píldoras de escena** (consola PR `#21`, rama `feat/pildoras-con-ayuda`, Diego), a pedido del usuario:
+  - Las 12 píldoras con acción (Recenter, Grid, Elevation, Shadowed regions, Horizon view, Back to globe, Landing scene, Astronaut, Terrain detail, Exit scene, Vertical y Back to globe / Global view en Terrain detail) abren una burbuja tras 1 s con el cursor encima o 1 s de foco por teclado. Las informativas no.
+  - `Pill` acepta `tip` (`ui/TipButton.tsx`, `popover="manual"` para no cerrar el menú Help). Se cierra con Esc, clic, al sacar el cursor o al perder el foco; no aparece con toque.
+  - Textos: nueve entradas nuevas del glosario (grupo Views), leídas con `tipOf()`, así la burbuja y Help dicen lo mismo. El de "Elevation" no da el −85° porque la prueba del glosario no admite ese número sin fuente.
+  - 169 pruebas, `tsc` limpio. Verificado en el navegador con el globo y Producción: nada a 0,5 s, burbuja a 1,2 s, cierres y teclado. **No verificado:** lector de pantalla.
+- Consola `#20` fusionada (`e8ba471`, Carlo).
+
+## 2026-11-15
 - **Simple y Detailed en Compare, timeline siempre en Detailed** (consola PR `#20`, rama `feat/compare-y-timeline-detalle`, Diego), a pedido del usuario:
   - Timeline: con los dos modos se ven la velocidad (1×, 4×, 12×; antes Simple la dejaba fija en 4×), Timeline / Horizon 360°, el reloj "T+N h", las tres pistas con porcentaje y las banderas de Sunset y Earthset. El interruptor Simple/Detailed ya no cambia el timeline.
   - Compare › Simple: 4 filas en lenguaje llano (Daylight, Talk to Earth, First sunset en días, Ground slope), porcentajes enteros y "Recommended" explica en palabras por qué gana. Compare › Detailed: las 8 filas de antes más Average factor, Elevation y Nearest PSR, la hora UTC y las coordenadas de cada escenario, y la regla del orden con el puntaje (`score()`). Cierra C-06 del audit.
