@@ -3,6 +3,8 @@
 Cronología, de lo más nuevo a lo más viejo. Fechas absolutas. No se borra: se agrega.
 
 ## 2026-11-14
+- Fusionados consola `#7`, `#8` y `#9` y handoff `#7` y `#8`. Conflicto `#7` × `#9` en `TopBar.tsx` resuelto con el lado de `#7`; se quitó `isSampleData` y `SET_DATA_MODE`. `main` de la consola: `tsc` limpio, 32 pruebas, `oxlint` 0.
+- `VITE_API_BASE_URL` local ya apunta al Backend oficial (`cream-interesting…/api/v1`); no hay otro backend vivo. Un redeploy del backend no cambia la URL (docs/07). El front aún no tiene CI/CD.
 - Audit UX de la consola y spec de onboarding, ayudas "?" y sugerencias (consola PR `#8`, `docs/specs/onboarding-ayudas-sugerencias/`).
   - **Audit:** 19/40 en las heurísticas de Nielsen. Lo más grave: con teclado no se puede elegir un sitio (P0), un NO-GO en Simple no dice por qué, Detailed muestra `reasons` en español aunque el servidor ya manda `checks`, y "Earth stays in view" aparece donde la Tierra nunca se ve o empieza oculta.
   - **Spec:** tour de 7 pasos con una simulación real (Apollo 11, 2026-12-13), catálogo de ayudas sin umbrales propios, una próxima acción por estado y 21 tareas.

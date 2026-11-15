@@ -36,6 +36,7 @@ React 19 + TypeScript + Vite, Tailwind v4, Three.js con React Three Fiber/drei, 
 - Con la fecha 2026-12-01, casi todo el catálogo da NO-GO (noche lunar o poca luz). La consola arrancará en 2026-12-13 (spec de onboarding, tarea A8).
 - La API se consume solo desde la URL de Producción de `docs/07` (backend oficial, v1.3, D-017). La URL del backend de prueba (v1.1) se apagó.
 - En local, si el puerto 3000 está ocupado por otra app, el mock no arranca y la consola da `ERR_NETWORK`: córrelo con `PORT=<otro> npm run mock` y ajusta `VITE_API_BASE_URL`.
+- La consola publicada leerá `VITE_API_BASE_URL` y `VITE_GLOBE_URL` de la configuración del servidor (D-018), no de `.env.local`. Aún no hay `.woodpecker/` en la consola ni en el globo.
 - El globo y la consola usan el puerto 5173 por defecto: el globo va en 5174 (`docs/11` §3).
 
 ## Seguridad

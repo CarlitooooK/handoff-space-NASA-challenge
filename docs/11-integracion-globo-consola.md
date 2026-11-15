@@ -140,9 +140,9 @@ Lo que el backend sabe y la escena **no usa** (se muestra en los paneles de la c
 - Alturas de pines, PSR y trayectoria siguen al terreno. La altitud de un punto de trayectoria (`altKm`) se interpreta **sobre la superficie**.
 - El abanico de imagen alrededor del polo se redujo a la mitad pero no desapareció: ~10 km de radio en el polo geográfico.
 
-## 8. Vista global sin sitio: pregunta abierta al backend
+## 8. Vista global sin sitio (resuelta)
 
-Para dibujar el cielo antes de elegir un sitio hacen falta direcciones del Sol y la Tierra desde el centro de la Luna. El contrato solo las da dentro de `POST /evaluate`. Se pregunta en `P-007` (no bloquea). Mientras tanto, la consola puede evaluar un sitio de referencia y reenviar sus vectores al globo.
+Para dibujar el cielo antes de elegir un sitio hacen falta direcciones del Sol y la Tierra desde el centro de la Luna. `P-007` está respondida: `GET /api/v1/ephemeris` (contrato v1.2, D-014) da las direcciones del Sol y la Tierra y la distancia real a la Tierra (~365.203 km en la verificación, no los 384.400 km que el globo asume). Pendiente: que la consola lo consuma y lo envíe con `SET_SKY_STATE`.
 
 ## 9. Orden de trabajo sin bloqueos
 
@@ -236,3 +236,5 @@ Respuesta del globo: `HORIZON_PHASE` (`arrival`, `ready`, `leaving`).
 
 > **Nota sobre §2 y D-013.** La consola cambió su arquitectura en su PR `#6` (Frontend): el globo es ahora el render único y **no se desmonta**; tras evaluar se queda en el globo y vuela al sitio, y la escena local del parche pasó a ser "Terrain detail", un fundido opcional encima. Lo que dicen §2 y D-013 sobre "un solo render visible a la vez" y "al evaluar, la escena local" quedó desactualizado. Está documentado en la propia consola (`docs/02-renders.md`). Falta que Frontend lo registre como decisión (por ejemplo D-014) para que el handoff lo refleje.
 
+
+> **Actualización 2026-11-14 (PR `#9` de la consola fusionado).** La vista de horizonte ya está en `main` de la consola (`SET_HORIZON`, `SHOW_HORIZON`, `EXIT_HORIZON`, `SET_SKY_STATE`, `SET_HORIZON_DETAIL`). Con el mock dado de baja (consola `#7`), la consola ya no envía `SET_DATA_MODE`; el mensaje sigue siendo válido en el globo, pero nadie lo usa. `P-008` está respondida (`/terrain/tiles`, D-016): `P-010` (cómo pide el globo esas teselas sin llamar a la API) sigue abierta. Todo el desarrollo y las verificaciones se hacen contra el Backend oficial (`cream-interesting…`, D-017); el backend de prueba anterior está caído.
