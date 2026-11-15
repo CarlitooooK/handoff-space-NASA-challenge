@@ -13,13 +13,17 @@ Construir el visor y dashboard del reto sin esperar al backend, contra el contra
 
 - **Globo lunar como iframe externo (D-011, 2026-11-14).** Lo decidió la iniciativa `lunar-globe-renderer`; la consola solo lo incrusta y le envía datos por `postMessage`. *Porqué:* aísla el peso de Cesium del bundle de la consola. Ver `iniciativas/lunar-globe-renderer/CONOCIMIENTO.md`.
 
+- **Globo como render único (D-015, 2026-11-14).** *Porqué:* desmontar el iframe al evaluar recargaba el globo, cortaba la cámara y cambiaba de Cesium a Three.js con un salto visible; la escena local (12 km, gris, sin imagen) se veía muy por debajo. *Descartado:* fundido cruzado entre motores y una escena de alunizaje propia en Three.js. *Costo:* dos contextos WebGL mientras "Terrain detail" está abierto.
+
 ## Hallazgos verificados
+- La consola no llama a ningún servicio fuera de nuestra API. Las únicas fuentes externas del conjunto son las teselas de `trek.nasa.gov` que carga el globo (`layers.ts`, `terrain.ts`, `polar.ts` de su repo). Verificado el 2026-11-14.
+- `SELECT_SITE` acerca la cámara del globo a 120 km del sitio; cerca del polo (Shackleton, Connecting Ridge) se ve el abanico del mosaico polar (`docs/11` §7).
 - El mock devuelve los campos de `contracts/openapi.json` para `/evaluate` (336 puntos, `horizon_profile` de 360) y `/terrain/patch` (16384 celdas a 128×128), y envía CORS. Su `/health` no trae `engine` ni `timestamp_utc`, que el contrato marca como obligatorios; la consola usa esa ausencia para rotular "Sample data". Probado el `2026-11-14` con el mock de `7988348`.
 - Backend en vivo y mock aceptan `lat` en `[-90, 90]` y responden `ErrorResponse` con `ERR_INVALID_COORDINATES` (HTTP 422) fuera de rango; el backend en vivo sirve 13 sitios y el mock 8 (`P-003`, D-010).
 - `typecheck`, `lint`, `test` y `build` de la consola pasan.
 
 ## Supuestos sin verificar
-- La escena 3D (escala de luces y de esferas del Sol y la Tierra, posición de cámara) se escribió pero no se revisó en el navegador.
+- La escena local se revisó con render por software, no en una GPU real.
 - El backend en vivo se comporta como el mock en estructura de respuesta de las respuestas `200` (solo se contrastó el mock con el OpenAPI; los errores del backend en vivo los verificó Backend en `P-001`).
 
 ## Pendiente de decisión
