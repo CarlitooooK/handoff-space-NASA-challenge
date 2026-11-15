@@ -39,6 +39,10 @@ Clase `LunarGlobe` (`src/LunarGlobe.ts`) sobre un `Viewer` de Cesium sin Ion. `s
 
 - Sin elipsoide terrestre Cesium no crea estrellas: el `SkyBox` va configurado a mano.
 - El Sol está a 9e8 m (no a 1.5e11) por el plano lejano; el tamaño angular sí es el real.
+- A ras de suelo en sitios bajo el radio de referencia, la cámara puede quedar dentro del occluder de Cesium y todo lo que no sea el cielo de estrellas se descarta. `dropOccluderWhenInside()` (globo `#2`, en revisión) lo evita; envuelve una API privada de Cesium.
+- El `look` de Cesium 1.147 gira sobre `camera.up` e ignora `constrainedAxis`: hay que renivelar el horizonte a mano (`HorizonView.level()`).
+- La rueda no se deja a Cesium (`trackpad.ts`): su zoom de rueda puede dar un vector NaN y detener el render.
+- Las posiciones que cambian cada paso van en propiedades de callback: una `ConstantPositionProperty` nueva por paso hace que Cesium reconstruya la geometría y el objeto parpadee.
 
 - Nunca `minimumLevel` en capas de imagen globales (bloquea Cesium); usar `minimumTerrainLevel`.
 - Longitudes de la API (0–360) hay que normalizarlas a −180…180 antes de `sampleTerrain`.
