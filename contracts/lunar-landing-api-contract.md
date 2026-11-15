@@ -251,7 +251,7 @@ Aclaraciones de campos que ya existen; el contrato no cambia de versión. Aplica
 | `summary.next_sunset_utc` / `next_earthset_utc` | Instante de esa transición: la primera muestra ya oculta. El ocaso real ocurrió hasta `step_minutes` antes. `null` en los mismos casos. |
 | `site.nearest_psr_km` | Distancia del sitio al **borde** de la PSR más cercana, medida en la estereográfica polar de LOLA (sobreestima ≤ 0.8 % en −80°). `0` si el sitio está dentro. El catálogo cubre solo las PSR de más de 1 km² al sur de −80° (NASA PGDA, `LPSR_80S_20MPP_ADJ_1km2.CSV`; citar Barker et al. 2023, *Planet. Sci. J.* 4, 183), así que fuera del polo el valor no es útil. |
 
-Para saber si un astro empieza oculto, o cuándo sale, lee `timeline[]` (en `/compare`, con `include_timeline: true`).
+Para saber si un astro empieza oculto, o cuándo sale, lee `timeline[]` (en `/compare`, con `include_timeline: true`). En `/compare` el paso por defecto es de 120 min (60 en `/evaluate`), así que `hours_to_next_*` y `next_*_utc` pueden ir hasta 2 h por detrás del evento real.
 
 > **Vectores 3D:** `sun_vector_3d` y `earth_vector_3d` siguen el marco local de la sección 1.3: `[cos(el)·sin(az), sin(el), −cos(el)·cos(az)]`. En el ejemplo, el Sol a `az 57.38°` (noreste) tiene `z < 0` (norte) y la Tierra a `az 143.96°` (sureste) tiene `z > 0` (sur).
 
