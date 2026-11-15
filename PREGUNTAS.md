@@ -26,18 +26,27 @@ Quien responde llena **Respuesta**, **Respondió** y la fecha, mueve la entrada 
 
 ## Abiertas
 
-### P-008: Teselas de terreno del polo sur para el globo
+### P-010: Cómo obtiene el globo las teselas de terreno sin llamar a la API
 
-- **Pregunta:** El globo usa hoy el DEM global de Moon Trek (~666 m/px, pasos de ~77 m, calibrado contra `terrain/patch`: RMSE ≈ 127 m). El backend tiene LOLA a 80 m/px al sur de -80° (`LDEM_80S_80MPP_ADJ`). ¿Puede servir ese DEM como teselas (por ejemplo `GET /api/v1/terrain/tiles/{z}/{x}/{y}.png`, esquema geográfico 2×1 en el nivel 0 como el de Moon Trek, elevación en 16 bits o formato Terrarium) para sustituir el relieve global solo en la región polar?
-- **Contexto:** `lunar-globe-renderer`, `src/terrain.ts` (la fuente es una sola función, `fetchDemTile`, fácil de cambiar). Sin esto el relieve del polo se ve suave a menos de ~50 km de altura.
-- **Bloquea:** no. Es una mejora de calidad; el globo funciona con el DEM de Moon Trek.
-- **Preguntó:** Globo (`lunar-globe-renderer`) · 2026-11-14
+- **Pregunta:** `P-008` se resolvió con `GET /api/v1/terrain/tiles/{z}/{row}/{col}.png` (D-016), pero [`docs/11-integracion-globo-consola.md`](docs/11-integracion-globo-consola.md) §1 y §4 (D-013) dicen que el globo **nunca** llama a la API ni guarda URLs del backend. ¿Se acepta esta excepción acotada? La consola le pasa al globo la URL base de las teselas por `SET_CONFIG` (por ejemplo `terrainTilesUrl`, armada desde `VITE_API_BASE_URL`), y el globo las pide igual que hoy pide las de Moon Trek: son recursos estáticos y cacheables (`ETag`, `max-age=3600`), no cálculo. Si no llega la URL o falla la red, el globo sigue con Moon Trek. Si se acepta, `docs/11` (§1, §3 y §4) y el protocolo del globo se actualizan en el mismo commit que la respuesta.
+- **Contexto:** `P-008`, D-016, [`contracts/lunar-landing-api-contract.md`](contracts/lunar-landing-api-contract.md) §2.9; en el globo, `fetchDemTile` en `src/terrain.ts`. Con D-015 la escena de alunizaje corre en el globo, así que su relieve es el que se ve a ras de suelo. La alternativa de que la consola descargue las teselas y se las pase por `postMessage` duplicaría la caché y la red del globo.
+- **Bloquea:** no. Mientras tanto el globo sigue con el relieve de Moon Trek.
+- **Preguntó:** Backend / Integración · 2026-11-14
 - **Respuesta:** _pendiente_
 - **Respondió:** —
 
 ---
 
 ## Respondidas
+
+### P-008: Teselas de terreno del polo sur para el globo
+
+- **Pregunta:** El globo usa hoy el DEM global de Moon Trek (~666 m/px, pasos de ~77 m, calibrado contra `terrain/patch`: RMSE ≈ 127 m). El backend tiene LOLA a 80 m/px al sur de -80° (`LDEM_80S_80MPP_ADJ`). ¿Puede servir ese DEM como teselas (por ejemplo `GET /api/v1/terrain/tiles/{z}/{x}/{y}.png`, esquema geográfico 2×1 en el nivel 0 como el de Moon Trek, elevación en 16 bits o formato Terrarium) para sustituir el relieve global solo en la región polar?
+- **Contexto:** `lunar-globe-renderer`, `src/terrain.ts` (la fuente es una sola función, `fetchDemTile`, fácil de cambiar). Sin esto el relieve del polo se ve suave a menos de ~50 km de altura.
+- **Bloquea:** no. Es una mejora de calidad; el globo funciona con el DEM de Moon Trek.
+- **Preguntó:** Globo (`lunar-globe-renderer`) · 2026-11-14
+- **Respuesta:** Sí, y para **toda la Luna**, no solo el polo: `GET /api/v1/terrain/tiles/{z}/{row}/{col}.png` (contrato v1.3, sección 2.9; D-016). Usa el mismo esquema que Moon Trek y `GeographicTilingScheme` (nivel 0 = 2×1, fila 0 = norte, columna 0 = −180°, `z` de 0 a 9) y teselas de 256×256 en centros de píxel, así que en `src/terrain.ts` solo cambia `fetchDemTile`. El formato es PNG RGB **Terrarium**: `elevation_m = R*256 + G + B/256 − 32768` (resolución 1/256 m), sobre la esfera de 1 737 400 m (la de `Ellipsoid.MOON` y `terrain/patch`). No es PNG de 16 bits porque el navegador lee los PNG por un `<canvas>` de 8 bits y los trunca; Terrarium se lee con el mismo `getImageData` y `colorSpaceConversion: 'none'`. Fuente: el DEM LOLA polar que corresponde al zoom (40 m desde `z` 9, 80 m abajo) donde tiene datos y LOLA global (`ldem_64`, ~474 m/px) en el resto; la cabecera `X-Terrain-Source` dice cuál se usó. Al cubrir toda la Luna, el globo puede usar **una sola fuente** y dejar la calibración de Moon Trek (que daba un salto medio de 118 m donde se juntaban las dos). Para el globo, una vez resuelto cómo llegan las teselas (ver abajo): decodificar sin el suavizado 3×3, subir `DEM_MAX_LEVEL` a 9 solo cerca del polo (fuera de él el DEM global no da más detalle desde `z` 6) y dejar Moon Trek solo como respaldo sin red; receta en [`docs/12`](docs/12-contrato-api-v1.2.md) §8.6. **Cómo pide el globo las teselas sin romper [`docs/11`](docs/11-integracion-globo-consola.md) §1 y §4** ("el globo nunca llama a la API") queda en `P-010`. Verificado contra los DEM reales del servidor: exactitud de 0.00 a 0.07 m frente a `terrain/patch` en `z` 9, sin costuras entre teselas vecinas (el borde difiere lo mismo que dos píxeles internos), 18–27 ms por tesela en frío y 1–2 ms en caliente. Ya lo sirve la URL del **Backend oficial**; Producción responde `404` hasta que se promueva (estado en [`docs/07-ambientes-y-pruebas.md`](docs/07-ambientes-y-pruebas.md)). Origen: `AxelT456/lunar_landing_site_navigator_api#7` (`615e64c`).
+- **Respondió:** Backend / Integración · 2026-11-14
 
 ### P-007: Dirección del Sol y la Tierra para la vista global (sin sitio)
 

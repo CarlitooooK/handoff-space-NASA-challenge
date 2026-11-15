@@ -1,6 +1,6 @@
 # Contrato API v1.2 — Lunar Landing Site Navigator
 
-> **Estado:** v1.2 vigente desde 2026-11-14 ([D-014](09-decisiones.md)).
+> **Estado:** v1.2 vigente desde 2026-11-14 ([D-014](09-decisiones.md)). **v1.3** ([D-016](09-decisiones.md)) solo agrega `GET /terrain/tiles` (§4.9, receta en §8.6); lo demás de esta guía no cambia.
 > **Fuente:** backend oficial `AxelT456/lunar_landing_site_navigator_api`, `main` = `c254c22` (código en `app/models.py` y `app/routers/*`), verificado con peticiones reales.
 > **Compatibilidad:** v1.2 solo **agrega** cosas a v1.1; no quita ni renombra campos. Un cliente hecho para v1.1 sigue funcionando sin cambios.
 > **Relación con `contracts/`:** este documento explica el contrato para quien lo consume. El esquema formal es [`contracts/openapi.json`](../contracts/openapi.json) y la especificación, [`contracts/lunar-landing-api-contract.md`](../contracts/lunar-landing-api-contract.md); si chocan, mandan los de `contracts/` ([`AGENTS.md`](../AGENTS.md)).
@@ -16,6 +16,7 @@ Hay dos URLs públicas (Cloudflare, HTTPS, sin VPN). Las dos se publican **solo*
 | Backend | Backend de prueba | Backend oficial `main`, se actualiza con cada merge |
 | Contrato v1.1 | ✅ completo | ✅ completo |
 | Novedades v1.2 (sección 9) | ❌ `/psr` y `/ephemeris` dan `404`; no hay `checks`, `grid.source` ni líneas de tiempo en `/compare` | ✅ todas |
+| Teselas v1.3 (`/terrain/tiles`, §4.9) | ❌ `404` | ✅ |
 | Swagger / OpenAPI | `<URL>/docs` · `<URL>/openapi.json` | `<URL>/docs` · `<URL>/openapi.json` |
 
 - Las dos sirven **datos reales** de la base de datos del servidor (sitios y PSR en PostGIS), de los DEM LOLA y de los kernels SPICE; ninguna es un mock. El mock de este repo (`mock/server.js`) solo corre en local (`localhost:3000`) para trabajar sin internet y devuelve valores simulados.
@@ -96,6 +97,7 @@ Toda respuesta de error usa el mismo sobre:
 | GET | `/psr/nearby` | PSR alrededor de un punto | — |
 | GET | `/psr` | Catálogo completo de PSR, paginado | **nuevo** |
 | GET | `/ephemeris` | Sol y Tierra vistos desde el centro de la Luna | **nuevo** |
+| GET | `/terrain/tiles/{z}/{row}/{col}.png` | Teselas de elevación de toda la Luna (globo) | **nuevo en v1.3** |
 
 ### 4.1 `GET /health`
 
@@ -349,6 +351,16 @@ Dirección del Sol y de la Tierra vistas desde el **centro** de la Luna, para il
 - `sub_lat_deg`/`sub_lon_deg`: punto subsolar y subterrestre (lon Este 0–360).
 - Usa solo SPICE: si faltan los kernels responde `503`; nunca inventa la posición del Sol.
 
+### 4.9 `GET /terrain/tiles/{z}/{row}/{col}.png` *(nuevo en v1.3)*
+
+Teselas de elevación de **toda la Luna** para el relieve del globo (`P-008`). Mismo esquema que Moon Trek y `GeographicTilingScheme` de Cesium: nivel `0` = 2 columnas × 1 fila, cada tesela abarca `180° / 2^z`, fila `0` al norte, columna `0` en `lon −180°`, `z` de `0` a `9`.
+
+- **Formato:** PNG RGB de 256 × 256 en **Terrarium**: `elevation_m = R*256 + G + B/256 − 32768` (resolución 1/256 m), sobre la esfera de 1 737 400 m (la de `terrain/patch`). Se lee con `getImageData`; no uses PNG de 16 bits (el `<canvas>` lo trunca a 8).
+- **Fuente:** DEM LOLA polar (40 m desde `z` 9, 80 m debajo) donde tiene datos; LOLA global (~474 m/px) en el resto. `X-Terrain-Source` lo dice y CORS la expone. Fuera del polo no hay más detalle desde `z ≈ 6`: no pidas más zoom ahí.
+- **Caché:** `Cache-Control: public, max-age=3600` y `ETag` (`If-None-Match` → `304`).
+- **Errores:** `422 ERR_INVALID_PAYLOAD` (índice fuera del esquema), `503 ERR_TERRAIN_UNAVAILABLE` (sin DEM). Ante cualquier error, usa tu relieve de respaldo.
+- **Quién la pide:** en el globo, cómo llegan las teselas sin romper `docs/11` §1 ("el globo nunca llama a la API") se decide en `P-010`.
+
 ---
 
 ## 5. Flujo recomendado del front
@@ -482,6 +494,23 @@ const hasV12 = patch.grid.source != null // en la URL actual llega null
 // /psr y /ephemeris responden 404 (ERR_NOT_FOUND) si el backend no los tiene: oculta esas vistas
 ```
 
+### 8.6 Relieve en Terrarium (teselas de §4.9)
+
+```ts
+// tilesBaseUrl sale de la configuración (VITE_API_BASE_URL o lo que acuerde P-010), nunca fija en el código.
+async function fetchTerrainTile(tilesBaseUrl: string, z: number, row: number, col: number): Promise<Float32Array | null> {
+  const res = await fetch(`${tilesBaseUrl}/terrain/tiles/${z}/${row}/${col}.png`)
+  if (!res.ok) return null // usa el relieve de respaldo
+  const bmp = await createImageBitmap(await res.blob(), { colorSpaceConversion: 'none', premultiplyAlpha: 'none' })
+  const ctx = new OffscreenCanvas(256, 256).getContext('2d', { willReadFrequently: true })!
+  ctx.drawImage(bmp, 0, 0)
+  const px = ctx.getImageData(0, 0, 256, 256).data
+  const elev = new Float32Array(256 * 256) // fila 0 = norte, metros sobre 1 737 400 m
+  for (let i = 0; i < elev.length; i++) elev[i] = px[4 * i] * 256 + px[4 * i + 1] + px[4 * i + 2] / 256 - 32768
+  return elev // sin suavizado: los valores ya son alturas reales
+}
+```
+
 ---
 
 ## 9. Cambios respecto a v1.1
@@ -496,6 +525,8 @@ const hasV12 = patch.grid.source != null // en la URL actual llega null
 | Redondeo en `/terrain/patch` | formato | Elevación a 0.1 m, pendiente a 0.01° (respuesta ~3 veces más pequeña) |
 | `Cache-Control: public, max-age=3600` | cabecera | En los `GET` de datos de referencia |
 | Sitio IM-2 en el punto objetivo de LROC | datos | Responde P-009 (`db/init/20_im2_lroc_site.sql`) |
+
+| `GET /terrain/tiles/{z}/{row}/{col}.png` | nuevo endpoint (**v1.3**) | Teselas Terrarium de toda la Luna para el globo, responde la pregunta P-008 (D-016) |
 
 Sin cambios: rutas, nombres y tipos de v1.1, rangos de validación, sobre de errores y códigos `ERR_*`.
 

@@ -24,6 +24,7 @@ Verificado el `2026-11-14` consultando en vivo `/api/v1/health`, `200 OK` en Apo
 6. `GET /api/v1/psr/nearby` — Devuelve polígonos PSR `MultiPolygon` en metros estereográficos polares sur.
 7. `GET /api/v1/psr` (v1.2) — Catálogo completo de PSRs paginado y simplificado, con un punto interior por polígono.
 8. `GET /api/v1/ephemeris` (v1.2) — Sol y Tierra desde el centro de la Luna en `MOON_ME_DE421` con Skyfield sobre los kernels SPICE; sin kernels responde `503` (no usa el respaldo analítico de `/evaluate`).
+9. `GET /api/v1/terrain/tiles/{z}/{row}/{col}.png` (v1.3) — Teselas Terrarium de 256×256 de toda la Luna para el globo: DEM LOLA polar donde hay datos y global en el resto, leídos sin costuras entre teselas. Detalle en `contracts/lunar-landing-api-contract.md` §2.9.
 
 En v1.2 `/evaluate` y `/compare` agregan `site.checks` y la caché de evaluaciones en PostGIS usa claves `v2|…` (las `v1|…` del backend de prueba no se mezclan).
 

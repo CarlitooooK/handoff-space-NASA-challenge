@@ -20,9 +20,9 @@ El Frontend solo consume las URLs públicas de esta tabla o el mock local; no ne
 
 | Ambiente | Contrato | Nota |
 | --- | --- | --- |
-| Producción / Demo Pública | **v1.1** | Backend de prueba. Pasa a **v1.2** si se promueve el backend oficial detrás de esta URL. Hasta entonces `GET /psr` y `GET /ephemeris` responden `404` y no llegan `site.checks`, `include_timeline` ni los metadatos de `grid`. Esta fila se actualiza al promover. |
-| Backend oficial | **v1.2** | Todos los campos y endpoints de v1.2 ([`docs/12`](12-contrato-api-v1.2.md)). |
-| Local Mock | **v1.2** | Todos los campos y endpoints de v1.2 con datos simulados. |
+| Producción / Demo Pública | **v1.1** | Backend de prueba. Pasa a **v1.3** si se promueve el backend oficial detrás de esta URL. Hasta entonces `GET /psr`, `GET /ephemeris` y `GET /terrain/tiles` responden `404` y no llegan `site.checks`, `include_timeline` ni los metadatos de `grid`. Esta fila se actualiza al promover. |
+| Backend oficial | **v1.3** | Todos los campos y endpoints de v1.2 ([`docs/12`](12-contrato-api-v1.2.md)) más `GET /terrain/tiles` (D-016), desde `AxelT456/lunar_landing_site_navigator_api#7` (`615e64c`). Verificado el 2026-11-14. |
+| Local Mock | **v1.3** | Todos los campos y endpoints de v1.3 con datos simulados (las teselas son relieve sintético, `X-Terrain-Source: synthetic`). |
 
 IM-2 (`P-009`): las dos URLs públicas usan la misma base de datos, que todavía tiene IM-2 en `lon 31.2`. La corrección se ve en ambas cuando se aplique en el servidor.
 
