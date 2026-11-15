@@ -20,6 +20,7 @@ Fase 1 del globo lista y verificada en navegador (CesiumJS + teselas NASA Moon T
 | Escena de alunizaje en plano horizontal (vuelo desde la vista global, descenso, polvo, astronauta) | Hecho (`PLAY_LANDING_SCENE`); verificada con capturas en las 4 fases en IM-2 Mons Mouton |
 | Textura procedural de regolito a ras de suelo | Hecho (ilustrativa) |
 | Escena configurable por la consola (parámetros validados, `SCENE_ERROR`, luz estable si cambia el Sol) | Hecho; probado por `postMessage` desde el origen de la consola con mensajes válidos e inválidos |
+| Vista de horizonte (Lander POV): silueta de `horizon_profile`, Sol y Tierra del scrubber, vuelo continuo desde la esfera | Hecha en el globo (`04d69e9`); en la consola, PR [#9](https://github.com/CarlitooooK/luna-landing-navigator-console/pull/9) abierto, sin fusionar |
 | Puente de mensajes en la consola (`useGlobeBridge`) | Construido y **subido** en la rama `feat/globe-bridge` del repo de la consola (commit `b8551d4`), **Fusionado** en `main` de la consola (PR [#4](https://github.com/CarlitooooK/luna-landing-navigator-console/pull/4), `a000db2`); probado de extremo a extremo con la API en vivo. Guía para Frontend: `docs/11` §10 |
 | Integración en la consola (`<iframe>` + conexión al store) | No iniciado |
 | Repo git propio | Hecho: [`luna-render-nasa-space-challenge`](https://github.com/CarlitooooK/luna-render-nasa-space-challenge) |
@@ -29,11 +30,12 @@ Fase 1 del globo lista y verificada en navegador (CesiumJS + teselas NASA Moon T
 | Texturas LROC NAC de alta resolución | No iniciado (v2, ver `docs/08-pendientes.md`) |
 
 ## Pendientes (en orden de valor)
-1. Responder `P-007` (vista global sin sitio; no bloquea) y probar `SET_PSR` con datos reales.
-2. Frontend: usar y extender el puente ya fusionado en la consola (guía en `docs/11-integracion-globo-consola.md` §10). Opcional: interruptor de `SET_VEHICLES`, indicador de carga con `LOADING`, HUD con `SCENE_PHASE`/`SCENE_TELEMETRY`, integrar con Missions.
-3. Terreno de mayor detalle en el polo: depende de `P-008` (teselas del DEM de 80 m del backend). Sin respuesta, queda el DEM global.
-4. Pulido si hay tiempo: astronauta con pose o animación, rocas o cráteres pequeños en el suelo, y probar la escena en una GPU real (la prueba usó render por software).
-5. Probar con el backend en vivo y medir rendimiento en la máquina de la demo.
+1. Que Frontend revise y fusione el PR #9 de la consola (vista de horizonte). Después: pines A–E de Compare con estado y el mejor resaltado, y marcador para el pin libre.
+2. Responder `P-007` (vista global sin sitio; no bloquea) y probar `SET_PSR` con datos reales.
+3. Frontend: usar y extender el puente ya fusionado en la consola (guía en `docs/11-integracion-globo-consola.md` §10). Opcional: interruptor de `SET_VEHICLES`, indicador de carga con `LOADING`, HUD con `SCENE_PHASE`/`SCENE_TELEMETRY`, integrar con Missions.
+4. Terreno de mayor detalle en el polo: depende de `P-008` (teselas del DEM de 80 m del backend). Sin respuesta, queda el DEM global.
+5. Pulido si hay tiempo: astronauta con pose o animación, rocas o cráteres pequeños en el suelo, y probar la escena en una GPU real (la prueba usó render por software).
+6. Probar con el backend en vivo y medir rendimiento en la máquina de la demo.
 
 ## Cómo retomar
 1. Lee `_compartido/lunar-globe-renderer.md` y `CONOCIMIENTO.md`.
