@@ -2,7 +2,7 @@
 
 > **Para qué sirve este documento.** Es la explicación elemental de lo que hace la consola de Balam, pantalla por pantalla y botón por botón, y de cómo se acompaña con el globo lunar en 3D. Está escrito para entender el proyecto sin leer código: personas del equipo, jurado, quien tome el relevo o un agente que llegue de cero.
 >
-> **Estado que describe:** consola `main` (PR `#23`), globo `main` (PR `#5`) y contrato de API v1.5, al 2026-11-15. Los nombres de botones y textos van entre comillas, tal como se ven en pantalla (la interfaz está en inglés por criterio del reto). El detalle técnico vive en otros documentos y se enlaza al final.
+> **Estado que describe:** consola `main` (PR `#25`), globo `main` (PR `#5`) y contrato de API v1.5, al 2026-11-15. Los nombres de botones y textos van entre comillas, tal como se ven en pantalla (la interfaz está en inglés por criterio del reto). El detalle técnico vive en otros documentos y se enlaza al final.
 
 ---
 
@@ -52,7 +52,7 @@ La pantalla es una sola. El globo ocupa todo el fondo y los paneles de cristal f
 
 **Simple y Detailed.** Es un interruptor de cuánto texto y cuántas cifras se muestran. **Simple** habla en lenguaje llano ("A good place to land", "Daylight", "Talk to Earth"). **Detailed** muestra el desglose completo con los términos técnicos y más decimales. La simulación y el veredicto son los mismos en los dos modos. La línea de tiempo siempre se ve completa, en cualquiera de los dos.
 
-**Pantalla completa** (botón "Full screen" o tecla **F**). Oculta la barra lateral y pliega los paneles en tiras finas para ver más globo. Al acercar el cursor a una tira, el panel se despliega.
+**Pantalla completa** (botón "Full screen" o tecla **F**). Oculta la barra lateral y pliega los paneles en tiras finas para ver más globo. Al acercar el cursor a una tira, el panel se despliega. La línea de tiempo espera 1 segundo antes de plegarse cuando el cursor se va.
 
 **Ayuda en todas partes.** Casi cada término y cada número tiene un "?" que lo explica en una frase. El botón **Help** (o la tecla **?**) abre el glosario completo, la lista de atajos y vuelve a lanzar el recorrido guiado.
 
@@ -74,9 +74,9 @@ La pantalla es una sola. El globo ocupa todo el fondo y los paneles de cristal f
 | **Time step** (solo en Detailed) | Cada cuánto se toma una muestra: 15, 60 o 120 minutos. Un paso corto detecta puestas de Sol breves; uno largo calcula más rápido |
 | **Solar panels** | Área (m²) y eficiencia (%) de los paneles. Solo afectan la estimación de energía, **no** el veredicto |
 | **Run simulation** | Lanza el cálculo. Tarda una fracción de segundo |
-| **Marcador (bookmark)** | Guarda la corrida en el historial. Avisa si ya estaba guardada |
+| **Estrella** (junto a Run simulation) | Marca como importante la corrida en el historial. La corrida ya se guardó sola al calcular |
 
-**Si algo cambia después de simular** (otro sitio, otra fecha), los resultados quedan atenuados con el aviso "Out of date" para que nadie lea cifras de otra configuración. No se pueden guardar mientras estén desactualizados.
+**Si algo cambia después de simular** (otro sitio, otra fecha), los resultados quedan atenuados con el aviso "Out of date" para que nadie lea cifras de otra configuración. No se pueden marcar con la estrella mientras estén desactualizados.
 
 **Panel "Results" (derecha):**
 
@@ -108,18 +108,19 @@ La pantalla es una sola. El globo ocupa todo el fondo y los paneles de cristal f
 
 **Reflejo en el globo.** Mientras se está en Compare, cada escenario aparece sobre el globo con su letra **A, B, C, D, E**, coloreado según el veredicto del servidor y con el recomendado resaltado ("· Best"). Si dos escenarios son del mismo lugar, comparten un solo marcador con las dos letras ("A C"). Al salir de Compare los marcadores desaparecen.
 
-### 4.3 History: las simulaciones guardadas
+### 4.3 History: las simulaciones y comparaciones guardadas
 
-Guarda las corridas **solo en este navegador** (no hay cuentas ni servidor de historial) y conserva hasta 100. Se agrupan por día.
+Se guarda **solo**, sin pulsar nada: cada simulación de Simulate, cada repetición de Missions y cada comparación que el servidor responde. El recorrido guiado no guarda. Repetir lo mismo no lo duplica: sube con la hora nueva. Todo queda **solo en este navegador** (no hay cuentas ni servidor de historial): hasta 100 corridas y 50 comparaciones, agrupadas por día.
 
 | Control | Qué hace |
 | --- | --- |
-| Buscador y filtros (All, Starred, GO, NO-GO) | Encuentra corridas |
+| Buscador y filtros (All, Starred, GO, NO-GO) | Encuentra corridas y comparaciones. GO y NO-GO solo muestran corridas |
 | Estrella y nota | Marca las importantes y permite escribir por qué |
 | **Open in Simulate** | Carga todo y vuelve a calcular |
 | **Duplicate and edit** | Carga los parámetros para ajustarlos antes de calcular |
 | **Add to Compare** | La suma al comparador |
 | **Delete run** | La borra (sin deshacer) |
+| Una comparación | Muestra cada escenario A–E con su veredicto y sus porcentajes de Sol y Tierra. **Open in Compare** la carga y vuelve a comparar; **Delete comparison** la borra |
 
 History no tiene franja de píldoras ni línea de tiempo. Al entrar a History se cierra cualquier escena abierta en el globo.
 
@@ -242,7 +243,7 @@ La consola y el globo son dos programas distintos que se hablan por mensajes. Lo
 - **"?"** junto a casi cada término: abre una frase corta y, a veces, un valor sugerido ("Try…").
 - **Help** (botón o tecla **?**): glosario completo por grupos (Setup, Verdict, Sun and power, Earth link, Terrain, Time, Views, Compare), atajos de teclado y "Take the tour".
 - **Next step:** la sugerencia contextual de cada área.
-- **El recorrido guiado (7 pasos):** (1) bienvenida, (2) "Where, when, run": elige Apollo 11 el 13 de diciembre de 2026 y lo simula, (3) el veredicto y sus razones, (4) el tiempo como control principal, (5) ver el sitio a ras de suelo, (6) los dos niveles de detalle, (7) adónde ir después. Se abre solo la primera vez; se puede saltar, repetir desde Help o forzar con `?tour=1` al final de la dirección. No depende de que se pulse cada acción: se puede recorrer solo leyendo.
+- **El recorrido guiado (7 pasos):** (1) bienvenida, (2) "Where, when, run": elige Apollo 15 el 13 de diciembre de 2026 y lo simula (esa estancia empieza de noche: el Sol sale a los 4 días), (3) el veredicto y sus razones, (4) el tiempo como control principal, (5) ver el sitio a ras de suelo, (6) los dos niveles de detalle, (7) adónde ir después. Se abre solo la primera vez; se puede saltar, repetir desde Help o forzar con `?tour=1` al final de la dirección. No depende de que se pulse cada acción: se puede recorrer solo leyendo.
 - **Atajos:** **F** (pantalla completa), **?** (Help), flechas y Enter en el buscador de sitios, y flechas, PageUp/PageDown, Home/End en la línea de tiempo.
 
 ---
@@ -275,7 +276,7 @@ La consola y el globo son dos programas distintos que se hablan por mensajes. Lo
 
 | Qué | Dónde | Notas |
 | --- | --- | --- |
-| Las simulaciones guardadas (History) | En este navegador | Hasta 100. Se pierden si se borra el navegador. No hay cuenta |
+| Las simulaciones y comparaciones (History) | En este navegador, y por dirección: otro puerto u otro dominio tiene su propio historial | Se guardan solas. Hasta 100 corridas y 50 comparaciones. Se pierden si se borra el navegador. No hay cuenta |
 | Si ya se vio el recorrido guiado | En este navegador | `?tour=0` lo suprime sin tocar nada |
 | Los escenarios de Compare, el sitio elegido, la fecha | En memoria, mientras la pestaña esté abierta | Al recargar, se pierden |
 | Los cálculos | En el servidor | El servidor no guarda las corridas de nadie |
