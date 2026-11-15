@@ -3,6 +3,14 @@
 Cronología, de lo más nuevo a lo más viejo. Fechas absolutas. No se borra: se agrega.
 
 ## 2026-11-15
+- **Horizon view al simular y controles del globo** (consola PR `#18`, rama `feat/globo-controles-y-horizonte`, Diego), en par con el globo PR `#2` (Carlo revisa los dos):
+  - `runSimulation()` arma `horizonNext` con el globo listo: "Run simulation" (Simulate), "Replay landing window" (Missions), "Run again" / "Try again" del Next step y el paso 2 del tour abren la vista de horizonte al llegar la evaluación. Compare y History siguen volando al sitio. El paso 5 del tour, con el horizonte ya abierto, solo lo describe.
+  - Píldoras "Recenter" (`RECENTER`), "Grid" y "Elevation" (`SET_CONFIG {showGrid, layers: {lolaShade}}`, apagadas por defecto, solo en órbita). `SET_CONFIG` queda en un solo tipo con `terrainTilesUrl`.
+  - Rebasada sobre `main` tras `#15` y `#16`. 167 pruebas, `tsc` limpio. Verificado contra Producción con el globo de `#2` en local. **No verificado:** `prefers-reduced-motion` y GPU real.
+  - Choca en texto con `#17` (píldora "Shadowed regions"): mismos tres archivos.
+  - Supuesto: "mapa de calor por altitud" = capa `lolaShade` del globo, que no llega al sur de −85°.
+
+## 2026-11-15
 - **Spec de onboarding implementada completa** (consola PR `#16`, rama `feat/onboarding-bloque-a`, Diego): una tarea por commit, A1–D4 de `docs/specs/onboarding-ayudas-sugerencias/tasks.md`.
   - Bloque A: buscador de sitios (combobox ARIA) y scrubber con teclado; `countdown()` deja de contradecir los datos; aviso "Out of date" y no se guarda una corrida desactualizada; hora de alunizaje en 24 h; fecha por defecto 2026-12-13; pantalla completa con Simple/Detailed y origen de datos; History sin duplicados y con los paneles.
   - Bloque B: catálogo único de ayudas (`features/help/glossary.ts`) con una prueba contra umbrales inventados; "?" en Setup, Results, timeline, barra superior y Compare; porqué del veredicto con `site.checks`.

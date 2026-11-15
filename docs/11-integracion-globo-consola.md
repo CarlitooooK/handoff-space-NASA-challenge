@@ -59,9 +59,10 @@ El Figma pide un render siempre de fondo y paneles de vidrio encima. La propuest
 | El usuario reproduce el descenso | `FOLLOW_TRAJECTORY {enabled}`, `SET_VEHICLES {lander: true}`, `VIEW_VEHICLE {which: 'lander'}` | Cámara que sigue al módulo; el módulo recorre la trayectoria con columna de motor |
 | El usuario quiere ver un astronauta en el sitio | `SET_VEHICLES {astronaut: {lat,lon}}` (`null` lo quita), `VIEW_VEHICLE {which: 'astronaut'}` | Opcional; solo se dibuja a menos de 4 km |
 | Trayectoria para mostrar | `SET_TRAJECTORY` | **No hay endpoint de trayectoria en el contrato.** Cualquier dato que se envíe es ilustrativo y la interfaz debe rotularlo "Sample data" |
-| Cambia el modo de capas | `SET_CONFIG` | `showGrid`, `layers`, `autoRotate`, etc. |
+| Cambia el modo de capas | `SET_CONFIG` | `showGrid`, `layers`, `autoRotate`, etc. La consola usa `showGrid` y `layers.lolaShade` en sus píldoras "Grid" y "Elevation" (consola `#18`) |
 | Reproducción | `PLAY_ANIMATION` | |
-| Volver a la vista global | `RESET` | |
+| Volver a la vista global | `RESET` | Quita la selección del globo |
+| Ver la Luna completa sin perder el sitio | `RECENTER` | Píldora "Recenter" (consola `#18`, globo `#2`). 9 000 km sobre el sitio, latitud acotada a ±60°, y la Luna gira sola hasta la siguiente vista. Cierra escena y horizonte |
 
 | Mensaje del globo | Acción en la consola |
 | --- | --- |

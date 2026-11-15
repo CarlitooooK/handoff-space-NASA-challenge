@@ -21,9 +21,9 @@ React 19 + TypeScript + Vite, Tailwind v4, Three.js con React Three Fiber/drei, 
 
 ## Cómo funciona
 1. Al arrancar consulta `/health` y `/sites`; los sitios van al globo como pines.
-2. "Run simulation" pide en paralelo `/evaluate`, `/terrain/patch` y `/psr/nearby`. El fondo **se queda en el globo** (D-015): el globo vuela al sitio y recibe Sol, Tierra, PSR y el estado del pin.
+2. "Run simulation" pide en paralelo `/evaluate`, `/terrain/patch` y `/psr/nearby`. El fondo **se queda en el globo** (D-015): el globo recibe Sol, Tierra, PSR y el estado del pin. Con la consola `#18` (en revisión), Run simulation y el Replay de Missions (vía `runSimulation()`) abren "Horizon view" en el sitio; Compare y History vuelan sobre él.
 3. El scrubber recorre `evaluation.timeline[]` en memoria (sin red) y reenvía `sun_vector_3d` / `earth_vector_3d` al globo, una vez por fotograma.
-4. "Landing scene" corre la escena de alunizaje del globo en el mismo render. "Terrain detail" funde encima la escena local del parche de 12 km.
+4. Sobre el globo: "Recenter" (`RECENTER`), "Grid" y "Elevation" (`SET_CONFIG`), con `#18` (en revisión). "Landing scene" corre la escena de alunizaje del globo en el mismo render. "Terrain detail" funde encima la escena local del parche de 12 km.
 5. Sin globo (`VITE_GLOBE_URL` vacío o sin `READY` en 8 s), la escena local es el fondo al evaluar.
 
 ## Dependencias y contratos
