@@ -4,6 +4,10 @@ Cronología del proyecto, de lo más nuevo a lo más viejo. Fechas absolutas. No
 
 ---
 
+## 2026-11-15
+
+- **`P-011` y `P-012` respondidas; aporte de Backend a `P-010`** (verificado contra el backend oficial `7326cba` y la URL de Producción de `docs/07`): se definieron `power_factor`, `avg_power_factor`, `estimated_peak_power_w`, `hours_to_next_*`, `next_*_utc` y `nearest_psr_km` en `contracts/` §2.4 y `docs/12` §4.2 y §4.4, sin cambio de versión. `P-010` sigue abierta: la decide Globo y Frontend.
+
 ## 2026-11-14
 
 - **Aviso de Frontend (consola PR `#7` y `#8`):** se preguntaron `P-011` (revisión científica de los textos de ayuda de PSR y `power_factor`) y `P-012` (`hours_to_next_*` llega en `null` también con el astro oculto al inicio; incluye 4 casos del Backend oficial). Ninguna bloquea. La consola dejó de usar `mock/` y prueba contra el Backend oficial de `docs/07`; el mock sigue en este repo sin cambios.

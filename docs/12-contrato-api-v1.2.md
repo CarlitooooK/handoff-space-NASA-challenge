@@ -124,7 +124,7 @@ Sin parámetros. Hoy devuelve 13 sitios: 8 Artemis III, 2 CLPS (`clps-im1-malape
 | `name`, `category` | string | `category`: `"Artemis III"`, `"CLPS"` o `"Apollo"` |
 | `lat`, `lon` | number | `lon` en `[0, 360)` |
 | `polar_x_m`, `polar_y_m` | number | Estereográfica polar sur (sección 7.2) |
-| `elevation_m`, `slope_deg`, `nearest_psr_km` | number, nullable | De LOLA y PostGIS |
+| `elevation_m`, `slope_deg`, `nearest_psr_km` | number, nullable | De LOLA y PostGIS. `nearest_psr_km` es la distancia al **borde** de la PSR más cercana (`0` dentro de una); el catálogo solo tiene PSR de más de 1 km² al sur de -80° (P-011) |
 | `description` | string, nullable | En español |
 
 ### 4.3 `GET /terrain/patch`
@@ -236,7 +236,8 @@ Respuesta (recortada):
 
 - `reasons` (español) y `checks` dicen lo mismo. **Para la UI usa `checks`**: trae código, nivel, valor y umbral para que el front ponga su propio texto, color o icono. `message` viene en inglés.
 - `*_visible` ya considera el relieve: es `true` solo si el astro está por encima del horizonte topográfico (`sun_el_deg > sun_horizon_el_deg`).
-- `next_*_utc` y `hours_to_next_*` son `null` cuando no hay ocaso de Sol o de Tierra dentro de la ventana.
+- `hours_to_next_*` cuenta desde `start_utc` hasta la **primera transición de visible a oculto**, y `next_*_utc` es esa muestra (el ocaso real ocurrió hasta `step_minutes` antes). Son `null` si no hay ninguna en la ventana: visible todo el tiempo, nunca sale, o sale y no se pone. `null` **no** quiere decir "empieza oculto": para eso mira `timeline[0]` (P-012).
+- `power_factor` es la fracción de la potencia máxima de un panel vertical que gira siguiendo al Sol: `cos(sun_el_deg)` por la parte del disco solar sobre la cresta. Vale `0` con el Sol oculto y salta a ~`0.5` al salir. `avg_power_factor` promedia todos los pasos, ceros incluidos. `estimated_peak_power_w` usa la distancia real al Sol, así que cerca del perihelio supera `1361 · panel_efficiency · panel_area_m2` (P-011). Definiciones completas: [`contracts/lunar-landing-api-contract.md`](../contracts/lunar-landing-api-contract.md) §2.4.
 - **Tamaño:** 14 días cada 60 min ≈ 180 KB. Evita pedir más de ~2000 puntos (por ejemplo, 366 días cada 5 min son 105 mil).
 
 ### 4.5 `POST /compare`

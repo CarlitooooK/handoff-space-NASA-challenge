@@ -2,6 +2,9 @@
 
 Cronología, de lo más nuevo a lo más viejo. Fechas absolutas. No se borra: se agrega.
 
+## 2026-11-15
+- Backend respondió `P-011` (textos de ayuda de PSR y `power_factor`, con propuesta en inglés y cita de PGDA) y `P-012` (semántica de `hours_to_next_*`; para Compare usar `include_timeline: true`). Ver `PREGUNTAS.md` y `contracts/` §2.4.
+
 ## 2026-11-14
 - Fusionados consola `#11` (`81db1e6`: cierre de la escena al cambiar de sitio o entrar a History, pausa del globo bajo "Terrain detail", interruptor "Astronaut", créditos en inglés) y `#12` (`c21456b`: Woodpecker, D-018) y handoff `#9` (`P-013`). Sin PRs abiertos en los tres repos. El CI no se puede ver todavía desde GitHub: hay que mirar el primer pipeline en Woodpecker.
 - Se probó "Horizon view" contra Producción (IM-2 Mons Mouton, 2026-12-17): coincide con los datos, pero no muestra relieve cercano. Decisión de Frontend: "Horizon view" es la vista objetivo y "Terrain detail" no se toca por ahora; se preguntó `P-013` (¿dos vistas o una?). En la consola empezó el bloque A de la spec de onboarding (rama `feat/onboarding-bloque-a`).
