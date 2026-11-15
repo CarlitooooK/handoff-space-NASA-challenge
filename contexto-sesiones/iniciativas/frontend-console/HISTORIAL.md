@@ -3,6 +3,16 @@
 Cronología, de lo más nuevo a lo más viejo. Fechas absolutas. No se borra: se agrega.
 
 ## 2026-11-15
+- **Spec de onboarding implementada completa** (consola PR `#16`, rama `feat/onboarding-bloque-a`, Diego): una tarea por commit, A1–D4 de `docs/specs/onboarding-ayudas-sugerencias/tasks.md`.
+  - Bloque A: buscador de sitios (combobox ARIA) y scrubber con teclado; `countdown()` deja de contradecir los datos; aviso "Out of date" y no se guarda una corrida desactualizada; hora de alunizaje en 24 h; fecha por defecto 2026-12-13; pantalla completa con Simple/Detailed y origen de datos; History sin duplicados y con los paneles.
+  - Bloque B: catálogo único de ayudas (`features/help/glossary.ts`) con una prueba contra umbrales inventados; "?" en Setup, Results, timeline, barra superior y Compare; porqué del veredicto con `site.checks`.
+  - Bloque C: `nextStep()` (pura) y bloque "Next step" en Simulate, Compare ("Compare dates" con +0/+7/+14 días, "Least bad"), History y Missions (veredicto y aviso si el registro y la simulación no coinciden).
+  - Bloque D: botón Help con glosario y atajos (tecla `?`); `useOnboardingStore` (`lunar-navigator.onboarding`); tour de 7 pasos en un `<dialog>` con un contorno que respira y viaja entre pasos. `?tour=0` lo suprime y `?tour=1` lo fuerza.
+  - Integra `main` hasta `#14` con un merge (conflicto solo en `docs/06`). Verificado con capturas contra Producción, con globo, sin globo y sin backend. **No verificado:** `prefers-reduced-motion` y fluidez en GPU real.
+  - Desvío detectado: la ayuda `terrain-detail` iba a mostrar `grid.source`; lo resolvió la leyenda de "Terrain detail" de `#13`.
+  - Las respuestas de `P-011` (textos de `psr` y `power`) **no** se aplicaron en `#16`: van en un PR aparte. `countdown()` ya coincide con `P-012`.
+
+## 2026-11-15
 - Backend respondió `P-011` (textos de ayuda de PSR y `power_factor`, con propuesta en inglés y cita de PGDA) y `P-012` (semántica de `hours_to_next_*`; para Compare usar `include_timeline: true`). Ver `PREGUNTAS.md` y `contracts/` §2.4.
 
 ## 2026-11-15

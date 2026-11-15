@@ -1,9 +1,9 @@
 # Consola Frontend — Handoff
 
-**Última actualización:** 2026-11-15 (consola `#7` a `#14` fusionados, `#15` abierto; `main` = `ff3455c`) · **Responsable:** Equipo Frontend (consola) · **Repo / componente:** `luna-landing-navigator-console`
+**Última actualización:** 2026-11-15 (consola `#7` a `#14` fusionados; `#15` y `#16` abiertos; `main` = `ff3455c`) · **Responsable:** Equipo Frontend (consola) · **Repo / componente:** `luna-landing-navigator-console`
 
 ## En una línea
-El PR `#6` ya está fusionado (D-015, contrato v1.2, `docs/` internas). Fusionados el 2026-11-14: `#7` (contrato v1.3 y baja del mock), `#8` (audit UX y spec de onboarding, lista para implementar) y `#9` (vista de horizonte, del globo).
+La spec de onboarding está implementada completa (A1–D4) en el PR `#16` de la consola, en revisión: tour de 7 pasos, ayudas "?", "Next step" en los cuatro workspaces, botón Help y las correcciones de base del audit. Ya integra `main` hasta `#14`.
 
 ## Estado actual
 | Pieza | Estado |
@@ -16,31 +16,28 @@ El PR `#6` ya está fusionado (D-015, contrato v1.2, `docs/` internas). Fusionad
 | Cierre de la escena al cambiar de sitio o entrar a History, pausa del globo bajo "Terrain detail" (`SET_PAUSED`), interruptor "Astronaut", créditos en inglés | Hecho (`#11`, `81db1e6`). Requiere el globo `f24cbe9` o posterior |
 | CI/CD: `.woodpecker/ci.yaml` (lint, typecheck, test, build) y `deploy.yaml` (publica al integrar a `main`, con smoke) | Fusionado (`#12`, Antonio, D-018). Falta ver el primer pipeline y fijar `VITE_API_BASE_URL` / `VITE_GLOBE_URL` en el servidor |
 | Fuente de teselas para el globo (`SET_CONFIG { terrainTilesUrl }`, D-019): relieve LOLA real y polo sur sombreado; PSR del polo más finas | `#14` fusionado; `#15` (renombre al nombre de `P-010`) abierto. Requiere el globo `c8d8f37` o posterior |
-| Textos de ayuda `psr` y `power` y texto de `hours_to_next_* = null` (respuestas de Backend a `P-011` y `P-012`) | Por aplicar en la spec de onboarding (Diego): ver HISTORIAL |
-| Onboarding, bloque A (teclado en la lista de sitios, P0) | En curso (Diego, rama `feat/onboarding-bloque-a`) |
+| **Onboarding completo** (spec A1–D4): buscador y scrubber con teclado, cuentas atrás coherentes, aviso "Out of date", hora en 24 h, fecha por defecto 2026-12-13; ayudas "?" con un catálogo único; porqué del veredicto con `site.checks`; "Next step" por estado; Help con glosario y atajos (`?`); tour de 7 pasos con simulación real (Apollo 11, 2026-12-13) | PR `#16` abierto (Diego, `feat/onboarding-bloque-a`). 166 pruebas, `tsc` y `oxlint` limpios |
+| Textos de ayuda `psr` y `power` (respuesta de Backend a `P-011`) | Por aplicar en un PR aparte, después de `#16`. Anotado en `docs/06` de la consola |
+| `hours_to_next_* = null` (respuesta de Backend a `P-012`) | `countdown()` de `#16` ya sigue esa semántica. Compare sigue sin timeline ("Rises later" sin hora) hasta la v1.4 que propone Backend |
 | Vista de horizonte (Lander POV) en la consola: pastilla "Horizon view", `SET_HORIZON`, `SET_SKY_STATE` | Hecho (`#9`); convive con "Terrain detail" |
 | Documentación interna (`docs/01` a `06` de la consola) | Hecho (`#6`) |
 | **Baja del mock:** la consola se desarrolla y prueba contra el Backend oficial de `docs/07`; se quitan `npm run mock` y el rótulo "Sample data" | Hecho (`#7`); el código muerto (`isSampleData`, `SET_DATA_MODE`) se quitó en `#9` |
-| **Audit UX y spec de onboarding** (`docs/specs/onboarding-ayudas-sugerencias/` de la consola): tour de 7 pasos, ayudas "?", próxima acción por estado y correcciones base, en 21 tareas | Spec fusionada (`#8`). Sin código todavía |
-| Uso de `site.checks` en la interfaz | Especificado (tarea B5 de la spec); no implementado |
+| **Audit UX y spec de onboarding** (`docs/specs/onboarding-ayudas-sugerencias/` de la consola) | Spec fusionada (`#8`); implementada en `#16` |
 | "Terrain detail" rediseñado: relieve con sombras del Sol del scrubber (luz de la Tierra si el Sol está oculto), color por `slopes_deg` con leyenda de la escala del parche, Sol y Tierra a tamaño angular real, marcador del sitio, "Vertical ×1/×2/×4" (por defecto ×2, rotulado), parche de 256 × 256 | Hecho (`#13`, `c623dff`). Con dato global (474 m nativos) el relieve sigue plano fuera del polo |
 | "Terrain detail" a ras de suelo con la cámara del globo | Decidido por el usuario; anotado en `docs/06` de la consola, sin spec. Depende del globo y de `P-010` |
 | Globo desplegado y `VITE_GLOBE_URL` de producción | Pipeline fusionado (globo `#1`); sin confirmar el primer despliegue |
 | Video demo y AI Tool Disclosure | No iniciado |
 
 ## Pendientes (en orden de valor)
-1. (Hecho) PR `#7` a `#10` de la consola fusionados. El onboarding (punto 2) lo toma Diego.
-2. Implementar la spec de onboarding en el orden de su `tasks.md`. Primero va el bloque A, que corrige un P0: hoy no se puede elegir un sitio con teclado.
-3. Recibir respuesta a `P-011` (textos científicos de PSR y `power_factor`) y `P-012` (`hours_to_next_*` en `null` con el astro oculto al inicio). Ninguna bloquea.
+1. Revisar y fusionar la consola `#16` (onboarding). No choca con `#15` (merge de prueba limpio). Antes de fusionar conviene probar el tour en GPU real y con `prefers-reduced-motion`: las capturas automáticas no lo cubren.
+2. Aplicar las respuestas de `P-011` en el glosario (`power` y `psr`, y ocultar la ayuda `psr` fuera del polo) en un PR aparte.
+3. Decidir si Compare pide `include_timeline: true` o espera la v1.4 de Backend (`P-012`) para decir cuándo sale un astro que empieza oculto.
 4. Especificar "Terrain detail" a ras de suelo con el equipo del globo. Depende de `P-010` y de `P-013` (¿dos vistas o una?; Frontend decidió que "Horizon view" es la vista objetivo).
-5. Lo que sigue abierto en `docs/06` de la consola:
-   - robustez de `evaluate()`;
-   - créditos "Ephemeris: NASA/JPL Horizons" (el backend usa SPICE);
-   - probar en GPU real.
+5. Lo que sigue abierto en `docs/06` de la consola, sección "Después de la spec de onboarding" (hallazgos del audit que la spec no cubre) y probar en GPU real.
 6. Desplegar el globo y la consola: los pipelines ya existen; al integrar a `main` se publican. `VITE_API_BASE_URL` y `VITE_GLOBE_URL` los fija la configuración del servidor (D-018), no `.env.local`: verificar con Antonio. Hay que desplegar juntos la consola y un globo `f24cbe9` o posterior. Video demo con AI Tool Disclosure y asignar carriles entre las dos personas.
 
 ## Cómo retomar
-1. Lee `_compartido/frontend-console.md` y, en el repo de la consola, `docs/README.md` y `docs/specs/onboarding-ayudas-sugerencias/README.md`.
+1. Lee `_compartido/frontend-console.md` y, en el repo de la consola, `docs/README.md` y `docs/05-pantallas.md` (tour, "?", Next step y Help).
 2. Sigue el `CLAUDE.md` de la consola: `npm run sync:handoff` antes de implementar, y el Backend oficial en `.env.local` (URL en `docs/07`).
 3. Revisa `../../../PREGUNTAS.md` y `../../../contracts/`: pueden haber cambiado.
 
