@@ -5,15 +5,15 @@ API REST de FastAPI en `desktop` que sirve topografía LOLA multi-resolución, p
 Verificado el `2026-11-14` consultando en vivo `/api/v1/health`, `200 OK` en Apollo 11 `/terrain/patch` (`lat=0.674, lon=23.473`), errores unificados `{ error: { code, message, details } }` (`400`/`404`/`422`), `14/14` tests unitarios del motor en `spaceapps-api`, y regenerando `contracts/openapi.json`.
 
 ## Dónde vive
-- **Servidor en vivo (`desktop`):** Contenedores Docker `spaceapps-api`, `spaceapps-postgres`, `spaceapps-cloudflared`, más stack de CI/CD `spaceapps-woodpecker-server`, `spaceapps-woodpecker-agent` y `spaceapps-ci-cloudflared`. Ver URLs activas (túnel HTTPS y Tailscale) en [`docs/07-ambientes-y-pruebas.md`](../../docs/07-ambientes-y-pruebas.md).
-- **Backend oficial `AxelT456/lunar_landing_site_navigator_api`:** desde `#6` (`c254c22`, 2026-11-14) contiene el código del backend de prueba (`app/engine`, `app/routers`, `app/db.py`) más lo de contrato v1.2 (D-014); antes era un esqueleto sintético. Woodpecker CI despliega cada merge a `main` a staging (`spaceapps-api-staging`, publicado por su propio túnel `spaceapps-official-cloudflared`: es la URL "Backend oficial" de `docs/07`) y producción cambia solo al promover un pipeline; la guía está en `docs/DEPLOY.md` de ese repo. Qué versión sirve producción: [`docs/07`](../../docs/07-ambientes-y-pruebas.md).
-- **Backend de prueba (`spaceapps-api`, imagen `backend-spaceapps-api`):** el que sirve hoy la URL pública con contrato v1.1, hasta la primera promoción del oficial.
+- **Servidor en vivo (`desktop`):** Producción corre en el contenedor `spaceapps-api-prod` (alias de red `spaceapps-api-staging`, al que apunta el túnel), publicado por `spaceapps-official-cloudflared`, con la base `spaceapps-postgres`. El stack de CI/CD son `spaceapps-woodpecker-server` y `spaceapps-woodpecker-agent`. URL vigente en [`docs/07-ambientes-y-pruebas.md`](../../docs/07-ambientes-y-pruebas.md).
+- **Backend oficial `AxelT456/lunar_landing_site_navigator_api`:** desde `#6` (`c254c22`, 2026-11-14) contiene el código del backend de prueba (`app/engine`, `app/routers`, `app/db.py`) más lo de contrato v1.2 (D-014); antes era un esqueleto sintético. Woodpecker CI publica cada merge a `main` en Producción (D-017); la guía de despliegue está en `docs/DEPLOY.md` de ese repo.
+- **Backend de prueba (`spaceapps-api`, imagen `backend-spaceapps-api`, túnel `spaceapps-cloudflared`):** apagado el 2026-11-14 (D-017): los contenedores están detenidos con `restart=no`, sin borrar.
 - **Cómo probarlo:** ver comandos `curl` y `npx openapi-typescript` en [`docs/07-ambientes-y-pruebas.md`](../../docs/07-ambientes-y-pruebas.md).
 
 ## Arquitectura
-- **Motor físico + DEMs LOLA + SPICE (`spaceapps-api`):** Lee GeoTIFFs locales (`40 m/px` y `80 m/px` en Polo Sur `-90°..-80°`; `ldem_64.tif` `64 ppd` global `-90°..+90°`) y kernels SPICE (`de440s.bsp` / `de421.bsp`, `MOON_ME`).
+- **Motor físico + DEMs LOLA + SPICE (contenedor de Producción):** Lee GeoTIFFs locales (`40 m/px` y `80 m/px` en Polo Sur `-90°..-80°`; `ldem_64.tif` `64 ppd` global `-90°..+90°`) y kernels SPICE (`de440s.bsp` / `de421.bsp`, `MOON_ME`).
 - **Base espacial (`spaceapps-postgres` / PostGIS 3.4):** Almacena `13` sitios curados (`10` Polo Sur Artemis III/CLPS + `3` históricos Apollo) y `1,531` polígonos PSR, además de caché de horizontes y efemérides.
-- **Exposición pública (`spaceapps-cloudflared`):** Cloudflare Quick Tunnel hacia `spaceapps-api:8000` con CORS abierto (`allow_origins=["*"]`).
+- **Exposición pública (`spaceapps-official-cloudflared`):** Cloudflare Quick Tunnel hacia `spaceapps-api-staging:8000` (alias de `spaceapps-api-prod`) con CORS abierto (`allow_origins=["*"]`).
 
 ## Cómo funciona
 1. `GET /api/v1/health` — Verifica DB, PostGIS, motor físico, DEMs y kernels SPICE.
@@ -35,8 +35,8 @@ En v1.2 `/evaluate` y `/compare` agregan `site.checks` y la caché de evaluacion
 - Ambientes y variables recomendadas: `docs/07-ambientes-y-pruebas.md`
 
 ## Cosas que muerden
-- **Formato de errores unificado (`P-001` resuelto):** Tanto el backend en vivo (`spaceapps-api`, FastAPI) como `mock/server.js` emiten `{ error: { code, message, details } }` (`ErrorResponse` en `contracts/openapi.json`; `spaceapps-api` conserva además `detail` por compatibilidad). Decidir el manejo de errores por `error.code` (ver [`docs/06-contrato-y-errores.md`](../../docs/06-contrato-y-errores.md)).
-- **Subdominio efímero de Cloudflare Quick Tunnel:** Si `spaceapps-cloudflared` o `desktop` se reinician, cambia el subdominio `*.trycloudflare.com`. Siempre leer la URL base desde `.env`, nunca hardcodearla en componentes (ver [`docs/07-ambientes-y-pruebas.md`](../../docs/07-ambientes-y-pruebas.md)).
+- **Formato de errores unificado (`P-001` resuelto):** Tanto el backend en vivo (FastAPI) como `mock/server.js` emiten `{ error: { code, message, details } }` (`ErrorResponse` en `contracts/openapi.json`; el backend conserva además `detail` por compatibilidad). Decidir el manejo de errores por `error.code` (ver [`docs/06-contrato-y-errores.md`](../../docs/06-contrato-y-errores.md)).
+- **Subdominio efímero de Cloudflare Quick Tunnel:** Si `spaceapps-official-cloudflared` o `desktop` se reinician, cambia el subdominio `*.trycloudflare.com`. Siempre leer la URL base desde `.env`, nunca hardcodearla en componentes (ver [`docs/07-ambientes-y-pruebas.md`](../../docs/07-ambientes-y-pruebas.md)).
 - **Respaldo de efemérides en `/evaluate`:** sin kernels SPICE, `/evaluate` consulta JPL Horizons y, si falla, un modelo analítico; `/ephemeris` no usa respaldos.
 - **Parámetro `resolution` en `/terrain/patch`:** Solo acepta `64`, `128` o `256`; cualquier otro entero devuelve `422 Unprocessable Entity` (`ERR_INVALID_PAYLOAD`).
 - **Alineación 3D en Three.js:** `grid.elevations_m` viene de Norte (`-Z`) a Sur (`+Z`) y Oeste (`-X`) a Este (`+X`). Requiere `geometry.rotateX(-Math.PI / 2)` en `THREE.PlaneGeometry` para coincidir 1:1 con `[+X Este, +Y Arriba, -Z Norte]` de `sun_vector_3d` y `earth_vector_3d`.

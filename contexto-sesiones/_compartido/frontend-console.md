@@ -33,7 +33,7 @@ React 19 + TypeScript + Vite, Tailwind v4, Three.js con React Three Fiber/drei, 
 - `mock/server.js` es CommonJS: la consola aísla su copia con un `package.json` `{"type":"commonjs"}` dentro de `.handoff/` (`P-004`).
 - `openapi-typescript@7` pide `typescript@^5`; se ejecuta vía `npx` (`P-005`). Con v1.2 el tipo generado de `CompareRequest` exige `include_timeline` (tiene valor por defecto): la consola lo manda en `false`.
 - El mock no manda `engine` en `/health`: la consola lo usa para rotular "Sample data".
-- La URL "Producción / Demo Pública" de `docs/07` sirve v1.1; las novedades de v1.2 solo están en "Backend oficial".
+- La API se consume solo desde la URL de Producción de `docs/07` (backend oficial, v1.3, D-017). La URL del backend de prueba (v1.1) se apagó.
 - En local, si el puerto 3000 está ocupado por otra app, el mock no arranca y la consola da `ERR_NETWORK`: córrelo con `PORT=<otro> npm run mock` y ajusta `VITE_API_BASE_URL`.
 - El globo y la consola usan el puerto 5173 por defecto: el globo va en 5174 (`docs/11` §3).
 
