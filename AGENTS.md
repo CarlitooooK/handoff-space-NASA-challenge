@@ -1,6 +1,6 @@
 # Instrucciones para agentes
 
-Si eres un agente que desarrolla `<nombre-del-proyecto>` (la parte `<cliente | app | frontend | análisis>`), sigue esto.
+Si eres un agente que desarrolla **Balam** (D-022) (la parte `<cliente | app | frontend | análisis>`), sigue esto.
 
 ## Fuentes
 
