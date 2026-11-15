@@ -1,6 +1,6 @@
 # Globo lunar (lunar-globe-renderer) — Handoff
 
-**Última actualización:** 2026-11-15 (globo `c8d8f37`, consola `#14` fusionado, `#15` abierto) · **Responsable:** Carlo (con agente Kiro) · **Repo / componente:** [`luna-render-nasa-space-challenge`](https://github.com/CarlitooooK/luna-render-nasa-space-challenge) (rama `main`, primer commit `98ecf5a`); carpeta local `lunar-globe-renderer/`
+**Última actualización:** 2026-11-15 (globo `c8d8f37`, consola `#14`, `#15` y `#16` fusionados) · **Responsable:** Carlo (con agente Kiro) · **Repo / componente:** [`luna-render-nasa-space-challenge`](https://github.com/CarlitooooK/luna-render-nasa-space-challenge) (rama `main`, primer commit `98ecf5a`); carpeta local `lunar-globe-renderer/`
 
 ## En una línea
 Fase 1 del globo lista y verificada en navegador (CesiumJS + teselas NASA Moon Trek, protocolo iframe/postMessage implementado); falta integrarlo en la consola, subir el código a un repo y resolver el relieve 3D y el abanico en el polo.
@@ -33,7 +33,7 @@ Fase 1 del globo lista y verificada en navegador (CesiumJS + teselas NASA Moon T
 | Texturas LROC NAC de alta resolución | No iniciado (v2, ver `docs/08-pendientes.md`) |
 
 ## Pendientes (en orden de valor)
-1. Fusionar la consola `#15` (renombre a `terrainTilesUrl`) y desplegar el globo `c8d8f37` o posterior junto con ella. (Hecho antes) Consola `#10` fusionada: cielo global, PSR del polo, pines A–E, pin libre. Al desplegar, el globo debe ser `a891c85` o posterior.
+1. (Hecho) Consola `#15` fusionada (renombre a `terrainTilesUrl`). Al desplegar, el globo debe ser `c8d8f37` o posterior. Siguiente: usar `heightmap` y `hillshade` del backend (D-021, contrato v1.5, ya en Producción) en lugar de decodificar Terrarium y sombrear en el cliente. (Hecho antes) Consola `#10` fusionada: cielo global, PSR del polo, pines A–E, pin libre. Al desplegar, el globo debe ser `a891c85` o posterior.
 3. Frontend: usar y extender el puente ya fusionado en la consola (guía en `docs/11-integracion-globo-consola.md` §10). Opcional: interruptor de `SET_VEHICLES`, indicador de carga con `LOADING`, HUD con `SCENE_PHASE`/`SCENE_TELEMETRY`, integrar con Missions.
 4. (Hecho: terreno y polo desde `/terrain/tiles`, D-019.) Queda que "Terrain detail" use la vista a ras de suelo del globo (pedido de Frontend).
 4b. (Hecho: créditos en inglés.) Queda X-07: etiquetas de sitio visibles bajo los paneles de vidrio; hay que decidir entre ocultarlas o subir el contraste de los paneles. `P-013` (¿"Horizon view" absorbe a "Terrain detail"?) decide si el globo debe dibujar relieve cercano; además la Tierra puede quedar fuera de cuadro sin indicación de hacia dónde girar.

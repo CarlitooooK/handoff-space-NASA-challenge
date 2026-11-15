@@ -1,9 +1,9 @@
 # Consola Frontend — Handoff
 
-**Última actualización:** 2026-11-15 (consola `#7` a `#14` fusionados; `#15` y `#16` abiertos; `main` = `ff3455c`) · **Responsable:** Equipo Frontend (consola) · **Repo / componente:** `luna-landing-navigator-console`
+**Última actualización:** 2026-11-15 (consola `#7` a `#16` fusionados; `main` = `9344d13`) · **Responsable:** Equipo Frontend (consola) · **Repo / componente:** `luna-landing-navigator-console`
 
 ## En una línea
-La spec de onboarding está implementada completa (A1–D4) en el PR `#16` de la consola, en revisión: tour de 7 pasos, ayudas "?", "Next step" en los cuatro workspaces, botón Help y las correcciones de base del audit. Ya integra `main` hasta `#14`.
+La spec de onboarding está implementada completa (A1–D4) en el PR `#16` de la consola (fusionado el 2026-11-15): tour de 7 pasos, ayudas "?", "Next step" en los cuatro workspaces, botón Help y las correcciones de base del audit. Ya integra `main` hasta `#14`.
 
 ## Estado actual
 | Pieza | Estado |
@@ -15,8 +15,8 @@ La spec de onboarding está implementada completa (A1–D4) en el PR `#16` de la
 | Cielo y PSR del polo antes de evaluar (`/ephemeris`, `/psr`), `evaluate()` tolerante a fallos del terreno, sin refetch si solo cambia la fecha, pines A–E de Compare y marcador del pin libre | Hecho (`#10`). Requiere el globo `a891c85` o posterior |
 | Cierre de la escena al cambiar de sitio o entrar a History, pausa del globo bajo "Terrain detail" (`SET_PAUSED`), interruptor "Astronaut", créditos en inglés | Hecho (`#11`, `81db1e6`). Requiere el globo `f24cbe9` o posterior |
 | CI/CD: `.woodpecker/ci.yaml` (lint, typecheck, test, build) y `deploy.yaml` (publica al integrar a `main`, con smoke) | Fusionado (`#12`, Antonio, D-018). Falta ver el primer pipeline y fijar `VITE_API_BASE_URL` / `VITE_GLOBE_URL` en el servidor |
-| Fuente de teselas para el globo (`SET_CONFIG { terrainTilesUrl }`, D-019): relieve LOLA real y polo sur sombreado; PSR del polo más finas | `#14` fusionado; `#15` (renombre al nombre de `P-010`) abierto. Requiere el globo `c8d8f37` o posterior |
-| **Onboarding completo** (spec A1–D4): buscador y scrubber con teclado, cuentas atrás coherentes, aviso "Out of date", hora en 24 h, fecha por defecto 2026-12-13; ayudas "?" con un catálogo único; porqué del veredicto con `site.checks`; "Next step" por estado; Help con glosario y atajos (`?`); tour de 7 pasos con simulación real (Apollo 11, 2026-12-13) | PR `#16` abierto (Diego, `feat/onboarding-bloque-a`). 166 pruebas, `tsc` y `oxlint` limpios |
+| Fuente de teselas para el globo (`SET_CONFIG { terrainTilesUrl }`, D-019): relieve LOLA real y polo sur sombreado; PSR del polo más finas | `#14` y `#15` (renombre al nombre de `P-010`) fusionados. Requiere el globo `c8d8f37` o posterior |
+| **Onboarding completo** (spec A1–D4): buscador y scrubber con teclado, cuentas atrás coherentes, aviso "Out of date", hora en 24 h, fecha por defecto 2026-12-13; ayudas "?" con un catálogo único; porqué del veredicto con `site.checks`; "Next step" por estado; Help con glosario y atajos (`?`); tour de 7 pasos con simulación real (Apollo 11, 2026-12-13) | Fusionado (`#16`, Diego, `9344d13`). 166 pruebas, `tsc` limpio, CI de Woodpecker verde; Kiro lo probó mezclado con `#15` contra el Backend oficial |
 | Textos de ayuda `psr` y `power` (respuesta de Backend a `P-011`) | Por aplicar en un PR aparte, después de `#16`. Anotado en `docs/06` de la consola |
 | `hours_to_next_* = null` (respuesta de Backend a `P-012`) | `countdown()` de `#16` ya sigue esa semántica. Compare sigue diciendo "Rises later" sin la hora: Producción ya sirve v1.4 (`*_visible_at_start`, `hours_to_next_*rise`, handoff `#11` en revisión), falta sincronizar el contrato en la consola y usarlos |
 | Vista de horizonte (Lander POV) en la consola: pastilla "Horizon view", `SET_HORIZON`, `SET_SKY_STATE` | Hecho (`#9`); convive con "Terrain detail" |
@@ -29,7 +29,7 @@ La spec de onboarding está implementada completa (A1–D4) en el PR `#16` de la
 | Video demo y AI Tool Disclosure | No iniciado |
 
 ## Pendientes (en orden de valor)
-1. Revisar y fusionar la consola `#16` (onboarding). No choca con `#15` (merge de prueba limpio). Antes de fusionar conviene probar el tour en GPU real y con `prefers-reduced-motion`: las capturas automáticas no lo cubren.
+1. (Hecho) Consola `#15` y `#16` fusionadas. Falta probar el tour en GPU real y con `prefers-reduced-motion`; y corregir el texto de ayuda `site` ("Sun stays within about 2° of the horizon": en IM-2 −84,79° se midieron 4,75°; decir "a few degrees").
 2. Aplicar las respuestas de `P-011` en el glosario (`power` y `psr`, y ocultar la ayuda `psr` fuera del polo) en un PR aparte.
 3. Cuando se fusione el handoff `#11` (contrato v1.4/v1.5): `npm run sync:handoff` en la consola, regenerar tipos y usar `*_visible_at_start` y `hours_to_next_*rise` en `countdownFromSummary()`, para que Compare y History digan cuándo sale un astro que empieza oculto sin pedir `include_timeline`.
 4. Especificar "Terrain detail" a ras de suelo con el equipo del globo. Depende de `P-010` y de `P-013` (¿dos vistas o una?; Frontend decidió que "Horizon view" es la vista objetivo).
