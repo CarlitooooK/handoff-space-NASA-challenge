@@ -3,6 +3,13 @@
 Cronología, de lo más nuevo a lo más viejo. Fechas absolutas. No se borra: se agrega.
 
 ## 2026-11-15
+- **Globo PR `#5`** (rama `fix/tierra-textura`, Diego), fusionado (`abd9a52`). A pedido del usuario: la Tierra se veía blanca en el render.
+  - **Textura que nunca llegaba:** desde `6fc7efa` la Tierra era una entidad con posición de callback. En Cesium 1.147, `DynamicEllipsoidGeometryUpdater` crea un `Material` nuevo en cada fotograma y no lo guarda; la textura se sube a la GPU un fotograma después, así que quedaba la textura blanca por defecto de 1×1. Medido en el navegador: textura 1×1, una imagen pendiente sin procesar, `Material.update` 0 veces contra 143 de `Primitive.update`. No dependía de SwiftShader.
+  - **Sin fase:** el sombreado de `MaterialAppearance` (`czm_phong`) ilumina desde dos direcciones fijas respecto a la cámara y no usa la luz de la escena: la Tierra siempre se veía llena.
+  - Arreglo en `src/sky.ts`: primitiva propia creada una vez (solo cambia `modelMatrix`, sin reconstruir ni parpadear) y material propio `earthMaterial()` (textura con Lambert según la luz y 3 % en el lado nocturno). README actualizado.
+  - Verificado: textura con las Américas de frente; fase llena, media y nueva al girar la luz; "Sol y Tierra" la oculta; en la consola con el Backend oficial, horizonte de Apollo 11 con fase gibosa. **No verificado:** GPU real y Play del timeline.
+
+## 2026-11-15
 - Globo `#2` fusionado (`6c80e0d`, Carlo) junto con la consola `#18` (`0f91f6e`). Sigue sin probarse en GPU real.
 - **Globo PR `#2`** (rama `feat/render-fluido-y-controles`, Diego, para revisión de Carlo; rebasado sobre `27831cd`). Corrige lo que reportó Diego en la consola:
   - **El Sol, la Tierra y el módulo desaparecían contra las estrellas** al girar en "Horizon view": en sitios bajo el radio de referencia (Apollo 11 −1,9 km, Chang'e 4 −5,9 km), mirando al cielo no hay teselas en pantalla, el occluder de Cesium queda en 1 737 400 m y la cámara queda dentro. `Occluder` da entonces por oculto todo lo que tiene `occlude` (medido: 1 392 comandos, 0 visibles). `dropOccluderWhenInside()` quita el occluder solo en ese caso.

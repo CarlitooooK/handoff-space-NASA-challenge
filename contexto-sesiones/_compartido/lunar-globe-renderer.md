@@ -13,7 +13,7 @@ Verificado leyendo el código del repo del globo y probándolo en navegador (202
 Clase `LunarGlobe` (`src/LunarGlobe.ts`) sobre un `Viewer` de Cesium sin Ion. `src/moon.ts` fija el elipsoide lunar y debe importarse primero. `src/layers.ts` define las capas WMTS. `src/embed.ts` conecta con la ventana padre por postMessage. `src/main.ts` es la demo y el modo iframe.
 
 ## Cómo funciona
-- Cielo (`src/sky.ts`): estrellas Tycho2, Tierra con textura Natural Earth local y el Sol como billboard de tamaño angular real. Sin dirección del host no hay Sol; la Tierra queda en la posición media.
+- Cielo (`src/sky.ts`): estrellas Tycho2, Tierra con textura Natural Earth local y fase según la luz del Sol, y el Sol como billboard de tamaño angular real. Sin dirección del host no hay Sol; la Tierra queda en la posición media. La Tierra es una `Primitive` propia (no una entidad) con material propio (globo `#5`).
 - Escena de alunizaje (`src/landingScene.ts`): máquina de estados (llegada, descenso, posado, completa) con cámara de espectador a ras de suelo; reutiliza vehículos, terreno y cielo. Textura de regolito en `src/regolith.ts`.
 - Vehículos (`src/vehicles.ts`): módulo de aterrizaje y astronauta con modelos GLB de NASA 3D Resources (`public/models/`, con `ATTRIBUTION.md`) y columna de motor por partículas. El módulo toma su posición de la trayectoria; el astronauta, del terreno.
 - **Fuente de relieve (D-019):** por defecto Moon Trek; con `SET_CONFIG { terrainTilesUrl }` (la consola la arma desde `VITE_API_BASE_URL`) usa `GET /terrain/tiles` del backend (`terrarium.ts`, `terrain.ts`) y dibuja el polo sur como relieve sombreado (`hillshade.ts`).
@@ -31,6 +31,7 @@ Clase `LunarGlobe` (`src/LunarGlobe.ts`) sobre un `Viewer` de Cesium sin Ion. `s
 
 ## Cosas que muerden
 - Hay que importar `src/moon.ts` antes de cualquier objeto de Cesium; si no, dibuja una Tierra.
+- En Cesium 1.147, una entidad elipsoide con posición de callback crea un material nuevo por fotograma: una textura nunca llega y se ve blanca. Por eso la Tierra es una `Primitive`. Y `MaterialAppearance` (`czm_phong`) ignora la dirección de la luz: para que un objeto tenga fase hace falta un material propio que use `czm_lightDirectionEC`.
 - Cesium necesita `CESIUM_BASE_URL` y los assets copiados a `public/cesium` (script `cesium:assets`).
 - La imagen converge en abanico justo en ±90° (proyección geográfica).
 - Con `terrain` activo, entidades y cámara dependen de la altura del terreno (`RELATIVE_TO_GROUND`, `sampleTerrain`); con la red caída el terreno queda plano en esas teselas.

@@ -1,6 +1,6 @@
 # Globo lunar (lunar-globe-renderer) — Handoff
 
-**Última actualización:** 2026-11-15 (globo `c8d8f37`, consola `#14`, `#15` y `#16` fusionados) · **Responsable:** Carlo (con agente Kiro) · **Repo / componente:** [`luna-render-nasa-space-challenge`](https://github.com/CarlitooooK/luna-render-nasa-space-challenge) (rama `main`, primer commit `98ecf5a`); carpeta local `lunar-globe-renderer/`
+**Última actualización:** 2026-11-15 (globo `#5` fusionado, `main` = `abd9a52`) · **Responsable:** Carlo (con agente Kiro) · **Repo / componente:** [`luna-render-nasa-space-challenge`](https://github.com/CarlitooooK/luna-render-nasa-space-challenge) (rama `main`, primer commit `98ecf5a`); carpeta local `lunar-globe-renderer/`
 
 ## En una línea
 Fase 1 del globo lista y verificada en navegador (CesiumJS + teselas NASA Moon Trek, protocolo iframe/postMessage implementado); falta integrarlo en la consola, subir el código a un repo y resolver el relieve 3D y el abanico en el polo.
@@ -31,10 +31,11 @@ Fase 1 del globo lista y verificada en navegador (CesiumJS + teselas NASA Moon T
 | Relieve (LOLA) | Moon Trek por defecto (~666 m/px, 8 bits calibrado). Con `SET_CONFIG { terrainTilesUrl }` (D-019, `P-010` respondida) usa las teselas Terrarium del backend en metros reales (40 m/px en el polo). Hecho y verificado contra el Backend oficial (`terrarium.ts`, `terrain.ts`) |
 | Imagen del polo sur | Con la fuente del backend: relieve sombreado del DEM (`hillshade.ts`, luz fija ilustrativa) sobre el mosaico WAC polar de respaldo; sin ella, el mosaico de Moon Trek (máximo 267 m/px: bloques y bandas radiales de las órbitas de cerca). Queda un "estallido" radial en el pinch del polo (convergencia de la malla lat/lon de Cesium) |
 | Render a ras de suelo y controles de cámara: Sol, Tierra y módulo visibles mirando al cielo (occluder), Tierra sin parpadeo y deslizamiento entre pasos, penumbra sin Sol, horizonte nivelado, etiquetas estables, `RECENTER`, gestos del trackpad, rueda sin congelar el render y salto entre sitios en arco | Fusionado: globo `#2` (`6c80e0d`, Carlo), junto con la consola `#18` (`0f91f6e`). Falta probar en GPU real |
+| **Tierra con textura y fase** (antes salía blanca y lisa en cualquier GPU): primitiva propia que solo mueve su `modelMatrix`, material propio con Lambert según la luz del Sol | Fusionado: globo `#5` (`abd9a52`). Solo globo. Falta probar en GPU real y en Play del timeline |
 | Texturas LROC NAC de alta resolución | No iniciado (v2, ver `docs/08-pendientes.md`) |
 
 ## Pendientes (en orden de valor)
-0. (Hecho: globo `#2` y consola `#18` fusionados.) Probar en GPU real la fluidez del Sol y la Tierra con el timeline en Play y que la Tierra no parpadee. `dropOccluderWhenInside` envuelve `scene.updateFrameState` (API privada de Cesium): revisarlo al subir de versión.
+0. (Hecho: globo `#2`, consola `#18` y globo `#5` fusionados.) Probar en GPU real la fluidez del Sol y la Tierra con el timeline en Play, que la Tierra no parpadee y que muestre textura y fase. `dropOccluderWhenInside` envuelve `scene.updateFrameState` (API privada de Cesium): revisarlo al subir de versión. Al subir Cesium, revisar también si `DynamicEllipsoidGeometryUpdater` ya guarda su material (causa de la Tierra blanca, ver `README` del globo, "Cielo").
 1. (Hecho) Consola `#15` fusionada (renombre a `terrainTilesUrl`). Al desplegar, el globo debe ser `c8d8f37` o posterior. Siguiente: usar `heightmap` y `hillshade` del backend (D-021, contrato v1.5, ya en Producción) en lugar de decodificar Terrarium y sombrear en el cliente. (Hecho antes) Consola `#10` fusionada: cielo global, PSR del polo, pines A–E, pin libre. Al desplegar, el globo debe ser `a891c85` o posterior.
 3. Frontend: usar y extender el puente ya fusionado en la consola (guía en `docs/11-integracion-globo-consola.md` §10). Opcional: interruptor de `SET_VEHICLES`, indicador de carga con `LOADING`, HUD con `SCENE_PHASE`/`SCENE_TELEMETRY`, integrar con Missions.
 4. (Hecho: terreno y polo desde `/terrain/tiles`, D-019.) Queda que "Terrain detail" use la vista a ras de suelo del globo (pedido de Frontend).
