@@ -239,7 +239,7 @@ Respuesta del globo: `HORIZON_PHASE` (`arrival`, `ready`, `leaving`).
 
 > **Actualización 2026-11-14 (PR `#9` de la consola fusionado).** La vista de horizonte ya está en `main` de la consola (`SET_HORIZON`, `SHOW_HORIZON`, `EXIT_HORIZON`, `SET_SKY_STATE`, `SET_HORIZON_DETAIL`). Con el mock dado de baja (consola `#7`), la consola ya no envía `SET_DATA_MODE`; el mensaje sigue siendo válido en el globo, pero nadie lo usa. `P-008` está respondida (`/terrain/tiles`, D-016): `P-010` (cómo pide el globo esas teselas sin llamar a la API) sigue abierta. Todo el desarrollo y las verificaciones se hacen contra el Backend oficial (`cream-interesting…`, D-017); el backend de prueba anterior está caído.
 
-> **Actualización 2026-11-14 (consola PR `#10`, abierto).** Tres mensajes nuevos del globo (`a891c85` en `main` del repo del globo; hay que desplegarlo junto con el PR):
+> **Actualización 2026-11-14 (consola PR `#10`, fusionado en `52ab449`).** Tres mensajes nuevos del globo (`a891c85` en `main` del repo del globo; hay que desplegarlo junto con el PR):
 > - `SET_SKY_GLOBAL {sun:{direction}, earth:{direction, distanceKm?}}`: `GET /ephemeris` tal cual. El globo ya dibuja la Tierra a su distancia real (p. ej. 376.517 km el 2026-12-01) y no solo a los 384.400 km medios. Con una evaluación, el cielo sale de los vectores del sitio y la Tierra vuelve a 384.400 km.
 > - `SET_COMPARE_PINS [{id,label,lat,lon,status?,best?}]`: pines A–E, solo en el workspace Compare. Escenarios en el mismo lugar se agrupan en un pin con varias letras; si sus estados difieren, el pin es gris. `best` sigue el criterio "Rank by".
 > - `SET_CUSTOM_PIN {lat,lon,label?} | null`: marcador del pin libre o de una misión.
