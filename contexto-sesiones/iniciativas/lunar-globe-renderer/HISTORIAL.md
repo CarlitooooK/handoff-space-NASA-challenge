@@ -3,6 +3,7 @@
 Cronología, de lo más nuevo a lo más viejo. Fechas absolutas. No se borra: se agrega.
 
 ## 2026-11-14
+- Aviso de despliegue-ci-cd (D-018): la consola y el globo se publicarán desde el Woodpecker de `desktop`, con un solo ambiente (cada merge a `main` que pase el CI se publica). No hay cambios de código, solo la carpeta `.woodpecker/`. Los pasos de Carlo para conectar los repos están en `docs/07`, sección "Despliegues (CI/CD)".
 - Vista de horizonte (Lander POV) en el globo (`04d69e9`) y en la consola (rama `feat/horizon-view`, PR `#9`, sin fusionar). Probada de extremo a extremo con la API en vivo: amanecer real del 2026-12-17 en IM-2 Mons Mouton y replay de Chandrayaan-3 con el horizonte pedido. Etiquetas y panel Results coinciden. `docs/11` §11.
 - Frontend cambió su arquitectura (consola `#6`): el globo ya no se desmonta y la escena local es "Terrain detail". La vista de horizonte se adaptó a eso. `docs/11` §2 y D-013 quedan desactualizados hasta que Frontend los registre.
 - Auditoría consola → render (ver `CONOCIMIENTO.md`): funcionalidad por funcionalidad con su código, qué reflejo tiene en el globo y qué datos son reales. Verificado contra JPL Horizons (Sol y Tierra, 0,00°) y contra el terreno del backend (horizonte, 0,5° a 0,8°). El mock es sintético: no sirve para validar amaneceres.
