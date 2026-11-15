@@ -44,6 +44,7 @@ Fase 1 del globo lista y verificada en navegador (CesiumJS + teselas NASA Moon T
 6. Despliegue: el Woodpecker de `desktop` ya tiene el pipeline (D-018, globo `#1`); la URL pública del globo y `VITE_GLOBE_URL`/`VITE_API_BASE_URL` los fija la configuración del servidor, no los `.env` del repo. Probar con el backend en vivo y medir rendimiento en la máquina de la demo.
 
 ## Cómo retomar
+0. Para entender qué hace la consola y cómo se acompaña con el globo, sin tecnicismos: [`docs/13`](../../../docs/13-guia-de-la-consola-y-el-render.md).
 1. Lee `_compartido/lunar-globe-renderer.md` y `CONOCIMIENTO.md`.
 2. Código: clona el repo del globo (ver cabecera). `npm install && npm run dev`. Protocolo y uso: `README.md` de ese proyecto.
 3. Antes de seguir, revisa `../../../PREGUNTAS.md` y `../../../contracts/`: pueden haber cambiado.

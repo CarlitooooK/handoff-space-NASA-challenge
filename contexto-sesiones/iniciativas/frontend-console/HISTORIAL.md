@@ -3,6 +3,7 @@
 Cronología, de lo más nuevo a lo más viejo. Fechas absolutas. No se borra: se agrega.
 
 ## 2026-11-15
+- Nuevo [`docs/13`](../../../docs/13-guia-de-la-consola-y-el-render.md): guía sin tecnicismos de todo lo que hace la consola (Simulate, Compare, History, Missions, línea de tiempo, ayudas, tour) y de cómo se acompaña con el globo (vistas, píldoras, marcadores A–E, sombras permanentes, Horizon view, Landing scene, Terrain detail), con la lista de qué es real y qué es ilustrativo. Documentación elemental de la iniciativa y del proyecto.
 - **Timeline en pantalla completa** (consola PR `#23`, rama `fix/timeline-plegado`, Diego), a pedido del usuario: el dock se abría y cerraba en bucle (parecía vibrar).
   - Causa medida en el navegador: el slot del dock no lo alineaba al fondo. Al animar el alto de 58 a 209 px, su borde inferior subía de 860 a 829 px, el cursor quedaba fuera, se perdía `:hover` y se plegaba. El ciclo se repetía cada ~0,9 s.
   - Arreglo: `items-end` en el slot (`ConsoleShell.tsx`), así crece hacia arriba desde el borde inferior; y en `index.css` el timeline (`data-peek="inline"`) espera 1 s antes de plegarse al salir el cursor y el foco. Los paneles laterales no cambian. `docs/01` actualizado.

@@ -43,6 +43,7 @@ La spec de onboarding está implementada completa (A1–D4) en el PR `#16` de la
 6. Desplegar el globo y la consola: los pipelines ya existen; al integrar a `main` se publican. `VITE_API_BASE_URL` y `VITE_GLOBE_URL` los fija la configuración del servidor (D-018), no `.env.local`: verificar con Antonio. Hay que desplegar juntos la consola y un globo `f24cbe9` o posterior. Video demo con AI Tool Disclosure y asignar carriles entre las dos personas.
 
 ## Cómo retomar
+0. Si llegas de cero, lee primero [`docs/13`](../../../docs/13-guia-de-la-consola-y-el-render.md): la consola y el globo explicados sin tecnicismos.
 1. Lee `_compartido/frontend-console.md` y, en el repo de la consola, `docs/README.md` y `docs/05-pantallas.md` (tour, "?", Next step y Help).
 2. Sigue el `CLAUDE.md` de la consola: `npm run sync:handoff` antes de implementar, y el Backend oficial en `.env.local` (URL en `docs/07`).
 3. Revisa `../../../PREGUNTAS.md` y `../../../contracts/`: pueden haber cambiado.

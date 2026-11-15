@@ -53,6 +53,7 @@ Para mantener la claridad del proyecto, este repositorio separa estrictamente do
 | 10 | [Producto y necesidades](docs/10-producto-y-necesidades.md) | Desde quien consume: qué se construye y qué se necesita de la otra parte |
 | 11 | [Integración globo-consola](docs/11-integracion-globo-consola.md) | Reparto de responsabilidades y conexión entre el globo lunar y la consola (propuesta, `P-006`) |
 | 12 | [Contrato API v1.2](docs/12-contrato-api-v1.2.md) | Cómo consumir la API v1.2: qué sirve cada URL, errores, endpoints, flujo, límites, coordenadas y recetas TypeScript (D-014); v1.3 agrega las teselas de terreno (D-016) |
+| 13 | [La consola y el globo, explicados sin tecnicismos](docs/13-guia-de-la-consola-y-el-render.md) | Qué hace la consola, control por control, y cómo se acompaña con el globo 3D: lo real y lo ilustrativo. Documentación elemental del proyecto y de la iniciativa |
 
 ### Interfaces, Guías y Servidor Simulado
 - **Guía práctica Frontend / IA:** [`FRONTEND_API_GUIDE.md`](FRONTEND_API_GUIDE.md) (URLs activas, cliente `fetch` TypeScript, tipos y snippets Three.js).

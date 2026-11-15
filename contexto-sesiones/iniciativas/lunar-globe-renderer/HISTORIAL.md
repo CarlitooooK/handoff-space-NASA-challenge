@@ -3,6 +3,7 @@
 Cronología, de lo más nuevo a lo más viejo. Fechas absolutas. No se borra: se agrega.
 
 ## 2026-11-15
+- Nuevo [`docs/13`](../../../docs/13-guia-de-la-consola-y-el-render.md): guía sin tecnicismos de todo lo que hace la consola (Simulate, Compare, History, Missions, línea de tiempo, ayudas, tour) y de cómo se acompaña con el globo (vistas, píldoras, marcadores A–E, sombras permanentes, Horizon view, Landing scene, Terrain detail), con la lista de qué es real y qué es ilustrativo. Documentación elemental de la iniciativa y del proyecto.
 - **Globo PR `#5`** (rama `fix/tierra-textura`, Diego), fusionado (`abd9a52`). A pedido del usuario: la Tierra se veía blanca en el render.
   - **Textura que nunca llegaba:** desde `6fc7efa` la Tierra era una entidad con posición de callback. En Cesium 1.147, `DynamicEllipsoidGeometryUpdater` crea un `Material` nuevo en cada fotograma y no lo guarda; la textura se sube a la GPU un fotograma después, así que quedaba la textura blanca por defecto de 1×1. Medido en el navegador: textura 1×1, una imagen pendiente sin procesar, `Material.update` 0 veces contra 143 de `Primitive.update`. No dependía de SwiftShader.
   - **Sin fase:** el sombreado de `MaterialAppearance` (`czm_phong`) ilumina desde dos direcciones fijas respecto a la cámara y no usa la luz de la escena: la Tierra siempre se veía llena.
