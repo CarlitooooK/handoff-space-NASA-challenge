@@ -18,7 +18,7 @@ La spec de onboarding está implementada completa (A1–D4) en el PR `#16` de la
 | Fuente de teselas para el globo (`SET_CONFIG { terrainTilesUrl }`, D-019): relieve LOLA real y polo sur sombreado; PSR del polo más finas | `#14` fusionado; `#15` (renombre al nombre de `P-010`) abierto. Requiere el globo `c8d8f37` o posterior |
 | **Onboarding completo** (spec A1–D4): buscador y scrubber con teclado, cuentas atrás coherentes, aviso "Out of date", hora en 24 h, fecha por defecto 2026-12-13; ayudas "?" con un catálogo único; porqué del veredicto con `site.checks`; "Next step" por estado; Help con glosario y atajos (`?`); tour de 7 pasos con simulación real (Apollo 11, 2026-12-13) | PR `#16` abierto (Diego, `feat/onboarding-bloque-a`). 166 pruebas, `tsc` y `oxlint` limpios |
 | Textos de ayuda `psr` y `power` (respuesta de Backend a `P-011`) | Por aplicar en un PR aparte, después de `#16`. Anotado en `docs/06` de la consola |
-| `hours_to_next_* = null` (respuesta de Backend a `P-012`) | `countdown()` de `#16` ya sigue esa semántica. Compare sigue sin timeline ("Rises later" sin hora) hasta la v1.4 que propone Backend |
+| `hours_to_next_* = null` (respuesta de Backend a `P-012`) | `countdown()` de `#16` ya sigue esa semántica. Compare sigue diciendo "Rises later" sin la hora: Producción ya sirve v1.4 (`*_visible_at_start`, `hours_to_next_*rise`, handoff `#11` en revisión), falta sincronizar el contrato en la consola y usarlos |
 | Vista de horizonte (Lander POV) en la consola: pastilla "Horizon view", `SET_HORIZON`, `SET_SKY_STATE` | Hecho (`#9`); convive con "Terrain detail" |
 | Documentación interna (`docs/01` a `06` de la consola) | Hecho (`#6`) |
 | **Baja del mock:** la consola se desarrolla y prueba contra el Backend oficial de `docs/07`; se quitan `npm run mock` y el rótulo "Sample data" | Hecho (`#7`); el código muerto (`isSampleData`, `SET_DATA_MODE`) se quitó en `#9` |
@@ -31,7 +31,7 @@ La spec de onboarding está implementada completa (A1–D4) en el PR `#16` de la
 ## Pendientes (en orden de valor)
 1. Revisar y fusionar la consola `#16` (onboarding). No choca con `#15` (merge de prueba limpio). Antes de fusionar conviene probar el tour en GPU real y con `prefers-reduced-motion`: las capturas automáticas no lo cubren.
 2. Aplicar las respuestas de `P-011` en el glosario (`power` y `psr`, y ocultar la ayuda `psr` fuera del polo) en un PR aparte.
-3. Decidir si Compare pide `include_timeline: true` o espera la v1.4 de Backend (`P-012`) para decir cuándo sale un astro que empieza oculto.
+3. Cuando se fusione el handoff `#11` (contrato v1.4/v1.5): `npm run sync:handoff` en la consola, regenerar tipos y usar `*_visible_at_start` y `hours_to_next_*rise` en `countdownFromSummary()`, para que Compare y History digan cuándo sale un astro que empieza oculto sin pedir `include_timeline`.
 4. Especificar "Terrain detail" a ras de suelo con el equipo del globo. Depende de `P-010` y de `P-013` (¿dos vistas o una?; Frontend decidió que "Horizon view" es la vista objetivo).
 5. Lo que sigue abierto en `docs/06` de la consola, sección "Después de la spec de onboarding" (hallazgos del audit que la spec no cubre) y probar en GPU real.
 6. Desplegar el globo y la consola: los pipelines ya existen; al integrar a `main` se publican. `VITE_API_BASE_URL` y `VITE_GLOBE_URL` los fija la configuración del servidor (D-018), no `.env.local`: verificar con Antonio. Hay que desplegar juntos la consola y un globo `f24cbe9` o posterior. Video demo con AI Tool Disclosure y asignar carriles entre las dos personas.
