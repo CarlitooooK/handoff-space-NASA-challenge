@@ -83,6 +83,16 @@ La consola ya distingue el mock en su chip ("Sample data" si `/health` no trae `
 | Chip "Sample data" / "Live data" / Offline (`TopBar`) | `/health` | Ninguno | Rotular el render cuando los datos son de muestra |
 | Landing scene (extra) | `evaluate` | Hecho | Ilustrativa |
 
+### Detalle de la consola que completa el mapa (segunda pasada, leyendo los archivos enteros)
+- **Setup:** en Simple, buscador y tarjeta del sitio; en Detailed, catálogo en lista o coordenadas libres (`lat` y `lon` validadas, etiqueta "Custom pin"). Ventana: fecha y hora UTC, duración (7, 14 o ciclo completo) y paso (15, 60 o 120 min, solo en Detailed). Paneles: área y eficiencia.
+- **Compare:** escenarios de sitio y fecha (la hora siempre `00:00:00Z`), hasta 5, ranking por prioridad (balanced, power, earth) que solo ordena: el veredicto GO/CAUTION/NO-GO lo da el backend. Ocho métricas por escenario. "Show on terrain" evalúa el escenario como simulación activa.
+- **History:** hasta 100 corridas en `localStorage`; no se guarda el timeline, al reabrir se vuelve a evaluar. Filtros, estrella y notas.
+- **Missions:** 7 alunizajes; el replay evalúa desde la hora en punto anterior al alunizaje durante 14 días, y "Conditions at touchdown" lee `timeline[0]`.
+- **Shell:** chip de origen de datos, Simple/Detailed, pantalla completa con `F`, indicador de caída del servidor con reintento cada 20 s.
+- **Restricción de arquitectura (D-013):** `evaluate()` pone `viewMode: 'site'` siempre, venga de Simulate, Compare, History o Missions. En ese modo el fondo es la escena Three.js de la consola y el globo se desmonta. Para que Compare, History y Missions tengan reflejo en el globo, la vista de horizonte del globo tendría que ser una opción de la vista `site` (decisión de Frontend, ver `P-006`/`docs/11`).
+- **`docs/05-flujos.md` §5.2** pide exactamente la vista de horizonte: dibujar "la trayectoria aparente del Sol y la Tierra respecto a la silueta del relieve lunar" y un visor 3D sincronizado con el timeline. §5.1 menciona un mapa polar 2D con clic para elegir sitio que la consola no implementó (el globo ya permite elegir con clic: `SITE_CLICKED` y `GLOBE_CLICKED`).
+- Lo que **no** hice: recorrer cada pantalla ejecutando la consola. El mapa sale de la lectura del código y los documentos, más la ejecución real de Simulate y la escena de alunizaje.
+
 ### Documentación que ya pedía esta vista
 `docs/ideas/lunar-landing-ui-ux-tdd.md` define tres modos de cámara: *Orbital* (por defecto), *Lander POV* (cámara a 2 m del suelo, giro de 360°, "perspectiva de astronauta o rover frente al horizonte") y *Mapa Polar 2D*. La vista de horizonte es ese *Lander POV*, que la consola no implementó.
 
