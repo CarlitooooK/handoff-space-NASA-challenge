@@ -1,4 +1,6 @@
-# Handoff: Lunar Landing Site Navigator (South Pole Planning Tool)
+# Handoff: Balam — Lunar South Pole Landing Navigator
+
+Proyecto del equipo **Jaguares Astrales** para el reto *Lunar Landing Site Navigator* (nombre: D-020 en [`docs/09`](docs/09-decisiones.md)).
 
 Todo lo que necesita el equipo o agente para construir el visor interactivo y evaluador de sitios de aterrizaje del reto NASA Space Apps Challenge.
 
