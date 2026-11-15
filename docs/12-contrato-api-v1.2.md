@@ -1,6 +1,6 @@
 # Contrato API v1.2 — Lunar Landing Site Navigator
 
-> **Estado:** v1.2 vigente desde 2026-11-14 ([D-014](09-decisiones.md)). **v1.3** ([D-016](09-decisiones.md)) solo agrega `GET /terrain/tiles` (§4.9, receta en §8.6); lo demás de esta guía no cambia.
+> **Estado:** v1.2 vigente desde 2026-11-14 ([D-014](09-decisiones.md)). **v1.3** ([D-016](09-decisiones.md)) solo agrega `GET /terrain/tiles` (§4.9, receta en §8.6); **v1.4** ([D-020](09-decisiones.md)) agrega al `summary` la visibilidad inicial y las salidas del Sol y la Tierra (§4.4); **v1.5** ([D-021](09-decisiones.md)) agrega la malla y el sombreado del globo (§4.10 y §4.11, receta en §8.7) y lleva `/terrain/tiles` a `z = 10`. Lo demás de esta guía no cambia.
 > **Fuente:** backend oficial `AxelT456/lunar_landing_site_navigator_api`, `main` = `c254c22` (código en `app/models.py` y `app/routers/*`), verificado con peticiones reales.
 > **Compatibilidad:** v1.2 solo **agrega** cosas a v1.1; no quita ni renombra campos. Un cliente hecho para v1.1 sigue funcionando sin cambios.
 > **Relación con `contracts/`:** este documento explica el contrato para quien lo consume. El esquema formal es [`contracts/openapi.json`](../contracts/openapi.json) y la especificación, [`contracts/lunar-landing-api-contract.md`](../contracts/lunar-landing-api-contract.md); si chocan, mandan los de `contracts/` ([`AGENTS.md`](../AGENTS.md)).
@@ -94,7 +94,9 @@ Toda respuesta de error usa el mismo sobre:
 | GET | `/psr/nearby` | PSR alrededor de un punto | — |
 | GET | `/psr` | Catálogo completo de PSR, paginado | **nuevo** |
 | GET | `/ephemeris` | Sol y Tierra vistos desde el centro de la Luna | **nuevo** |
-| GET | `/terrain/tiles/{z}/{row}/{col}.png` | Teselas de elevación de toda la Luna (globo) | **nuevo en v1.3** |
+| GET | `/terrain/tiles/{z}/{row}/{col}.png` | Teselas de elevación de toda la Luna (globo) | **nuevo en v1.3**; `z` hasta 10 en v1.5 |
+| GET | `/terrain/tiles/heightmap/{z}/{row}/{col}.bin` | Malla del relieve lista para Cesium (globo) | **nuevo en v1.5** |
+| GET | `/terrain/tiles/hillshade/{z}/{row}/{col}.png` | Relieve sombreado listo para pintar (globo) | **nuevo en v1.5** |
 
 ### 4.1 `GET /health`
 
@@ -203,6 +205,9 @@ Respuesta (recortada):
     "max_continuous_sun_hours": 336.0, "max_continuous_dte_hours": 0.0,
     "next_sunset_utc": null, "hours_to_next_sunset": null,
     "next_earthset_utc": null, "hours_to_next_earthset": null,
+    "sun_visible_at_start": true, "earth_visible_at_start": false,
+    "next_sunrise_utc": null, "hours_to_next_sunrise": null,
+    "next_earthrise_utc": null, "hours_to_next_earthrise": null,
     "avg_power_factor": 0.9995, "estimated_peak_power_w": 1579.18
   },
   "horizon_profile": [ { "az_deg": 0, "horizon_el_deg": 0.419 }, "… 360 puntos (az 0..359)" ],
@@ -236,7 +241,8 @@ Respuesta (recortada):
 
 - `reasons` (español) y `checks` dicen lo mismo. **Para la UI usa `checks`**: trae código, nivel, valor y umbral para que el front ponga su propio texto, color o icono. `message` viene en inglés.
 - `*_visible` ya considera el relieve: es `true` solo si el astro está por encima del horizonte topográfico (`sun_el_deg > sun_horizon_el_deg`).
-- `hours_to_next_*` cuenta desde `start_utc` hasta la **primera transición de visible a oculto**, y `next_*_utc` es esa muestra (el ocaso real ocurrió hasta `step_minutes` antes). Son `null` si no hay ninguna en la ventana: visible todo el tiempo, nunca sale, o sale y no se pone. `null` **no** quiere decir "empieza oculto": para eso mira `timeline[0]` (P-012).
+- `hours_to_next_*` cuenta desde `start_utc` hasta la **primera transición de visible a oculto**, y `next_*_utc` es esa muestra (el ocaso real ocurrió hasta `step_minutes` antes). Son `null` si no hay ninguna en la ventana: visible todo el tiempo, nunca sale, o sale y no se pone. `null` **no** quiere decir "empieza oculto": para eso mira `sun_visible_at_start` / `earth_visible_at_start` (v1.4) o, en backends anteriores, `timeline[0]` (P-012).
+- `hours_to_next_*rise` y `next_*rise_utc` (v1.4) son lo mismo con la transición contraria: la **primera de oculto a visible**. En el ejemplo son `null` porque el Sol nunca se oculta y la Tierra nunca sale.
 - `power_factor` es la fracción de la potencia máxima de un panel vertical que gira siguiendo al Sol: `cos(sun_el_deg)` por la parte del disco solar sobre la cresta. Vale `0` con el Sol oculto y salta a ~`0.5` al salir. `avg_power_factor` promedia todos los pasos, ceros incluidos. `estimated_peak_power_w` usa la distancia real al Sol, así que cerca del perihelio supera `1361 · panel_efficiency · panel_area_m2` (P-011). Definiciones completas: [`contracts/lunar-landing-api-contract.md`](../contracts/lunar-landing-api-contract.md) §2.4.
 - **Tamaño:** 14 días cada 60 min ≈ 180 KB. Evita pedir más de ~2000 puntos (por ejemplo, 366 días cada 5 min son 105 mil).
 
@@ -351,13 +357,30 @@ Dirección del Sol y de la Tierra vistas desde el **centro** de la Luna, para il
 
 ### 4.9 `GET /terrain/tiles/{z}/{row}/{col}.png` *(nuevo en v1.3)*
 
-Teselas de elevación de **toda la Luna** para el relieve del globo (`P-008`). Mismo esquema que Moon Trek y `GeographicTilingScheme` de Cesium: nivel `0` = 2 columnas × 1 fila, cada tesela abarca `180° / 2^z`, fila `0` al norte, columna `0` en `lon −180°`, `z` de `0` a `9`.
+Teselas de elevación de **toda la Luna** para el relieve del globo (`P-008`). Mismo esquema que Moon Trek y `GeographicTilingScheme` de Cesium: nivel `0` = 2 columnas × 1 fila, cada tesela abarca `180° / 2^z`, fila `0` al norte, columna `0` en `lon −180°`, `z` de `0` a `10` (hasta `9` en v1.3).
 
 - **Formato:** PNG RGB de 256 × 256 en **Terrarium**: `elevation_m = R*256 + G + B/256 − 32768` (resolución 1/256 m), sobre la esfera de 1 737 400 m (la de `terrain/patch`). Se lee con `getImageData`; no uses PNG de 16 bits (el `<canvas>` lo trunca a 8).
-- **Fuente:** DEM LOLA polar (40 m desde `z` 9, 80 m debajo) donde tiene datos; LOLA global (~474 m/px) en el resto. `X-Terrain-Source` lo dice y CORS la expone. Fuera del polo no hay más detalle desde `z ≈ 6`: no pidas más zoom ahí.
+- **Fuente:** DEM LOLA polar (20 m en `z` 10, 40 m en `z` 9, 80 m debajo) donde tiene datos; LOLA global (`ldem_256`, ~118 m/px) en el resto. `X-Terrain-Source` dice cuál y `X-Terrain-Resolution-M` (v1.5) cada cuántos metros hay un dato real; CORS expone las dos. Fuera del polo no hay más detalle desde `z ≈ 8`: no pidas más zoom ahí.
 - **Caché:** `Cache-Control: public, max-age=3600` y `ETag` (`If-None-Match` → `304`).
 - **Errores:** `422 ERR_INVALID_PAYLOAD` (índice fuera del esquema), `503 ERR_TERRAIN_UNAVAILABLE` (sin DEM). Ante cualquier error, usa tu relieve de respaldo.
-- **Quién la pide:** en el globo, cómo llegan las teselas sin romper `docs/11` §1 ("el globo nunca llama a la API") se decide en `P-010`.
+- **Quién la pide:** el globo, con la URL base que le pasa la consola (`terrainTilesUrl`, D-019). §4.10 y §4.11 cuelgan de la misma base.
+
+### 4.10 `GET /terrain/tiles/heightmap/{z}/{row}/{col}.bin` *(nuevo en v1.5)*
+
+El relieve de §4.9 ya armado para el terreno de Cesium: el globo no decodifica ni remuestrea.
+
+- **Formato:** 65 × 65 `float32` *little-endian* (16 900 bytes), fila `0` al norte, con las muestras **sobre** los bordes de la tesela; dos teselas vecinas traen valores idénticos en el borde común. Metros sobre la esfera de 1 737 400 m, redondeados a 1/256 m. `z` de `0` a `12` (~21 m entre muestras en `z` 12).
+- **Tamaño:** con `gzip` (lo pide el navegador solo) unos 8 a 12 KB, contra 90 a 160 KB de una tesela Terrarium.
+- **Fuente, cabeceras, caché y errores:** los de §4.9.
+
+### 4.11 `GET /terrain/tiles/hillshade/{z}/{row}/{col}.png` *(nuevo en v1.5)*
+
+Relieve sombreado de toda la Luna, para pintarlo como capa de imágenes.
+
+- **Formato:** PNG en gris de 256 × 256 (gris + alfa con `fade_*`), `gris = round(255 · cos(incidencia))` de una luz lejana y fija; sin sombras proyectadas. `z` de `0` a `10`.
+- **Parámetros (opcionales):** `light_lon` / `light_lat` (dónde cae la luz a plomo; por defecto 135° E, 22° S), `exaggeration` (por defecto 1), y `fade_start_lat` + `fade_end_lat` para fundirlo con otra capa (opacidad 0 → 1 entre esas latitudes).
+- **Precisión:** las pendientes salen de la rejilla propia del DEM, con los vecinos de cada píxel leídos del ráster: no hay costuras entre teselas.
+- **Fuente, cabeceras, caché y errores:** los de §4.9, más `422` por parámetros fuera de rango.
 
 ---
 
@@ -509,6 +532,10 @@ async function fetchTerrainTile(tilesBaseUrl: string, z: number, row: number, co
 }
 ```
 
+### 8.7 Malla y sombreado listos (§4.10 y §4.11)
+
+El código para Cesium (detectar v1.5, `CustomHeightmapTerrainProvider` con la malla y `UrlTemplateImageryProvider` con el sombreado) está en [`FRONTEND_API_GUIDE.md`](../FRONTEND_API_GUIDE.md) §3.9, la fuente única de ejemplos de cliente.
+
 ---
 
 ## 9. Cambios respecto a v1.1
@@ -525,6 +552,8 @@ async function fetchTerrainTile(tilesBaseUrl: string, z: number, row: number, co
 | Sitio IM-2 en el punto objetivo de LROC | datos | Responde P-009 (`db/init/20_im2_lroc_site.sql`) |
 
 | `GET /terrain/tiles/{z}/{row}/{col}.png` | nuevo endpoint (**v1.3**) | Teselas Terrarium de toda la Luna para el globo, responde la pregunta P-008 (D-016) |
+| `summary.sun_visible_at_start`, `earth_visible_at_start`, `next_sunrise_utc`, `hours_to_next_sunrise`, `next_earthrise_utc`, `hours_to_next_earthrise` | campos nuevos (**v1.4**) | Visibilidad inicial y salidas del Sol y la Tierra, complemento de P-012 (D-020) |
+| `GET /terrain/tiles/heightmap/…bin`, `GET /terrain/tiles/hillshade/…png`, `z` 10 en `/terrain/tiles`, `X-Terrain-Resolution-M` | nuevos endpoints y cabecera (**v1.5**) | Malla y sombreado listos para el globo, DEM polar de 20 m (D-021) |
 
 Sin cambios: rutas, nombres y tipos de v1.1, rangos de validación, sobre de errores y códigos `ERR_*`.
 

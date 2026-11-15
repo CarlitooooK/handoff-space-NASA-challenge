@@ -607,6 +607,16 @@ function evaluateScenario(params) {
     });
   }
 
+  // Contract v1.4: first hidden-to-visible change (the first sample already visible), counted from start_utc.
+  const firstRise = (key) => {
+    for (let i = 1; i < timeline.length; i++) if (!timeline[i - 1][key] && timeline[i][key]) return i;
+    return -1;
+  };
+  const sunRise = firstRise('sun_visible');
+  const earthRise = firstRise('earth_visible');
+  const riseUtc = (i) => (i < 0 ? null : timeline[i].timestamp_utc);
+  const riseHours = (i) => (i < 0 ? null : parseFloat(((i * step_minutes) / 60).toFixed(1)));
+
   const sunVisiblePct = parseFloat(((sunVisibleCount / numSteps) * 100).toFixed(1));
   const earthVisiblePct = parseFloat(((earthVisibleCount / numSteps) * 100).toFixed(1));
   const avgPowerFactor = parseFloat((powerFactorSum / numSteps).toFixed(2));
@@ -636,6 +646,12 @@ function evaluateScenario(params) {
       hours_to_next_sunset: hoursToNextSunset !== null ? hoursToNextSunset : parseFloat((duration_days * 24).toFixed(1)),
       next_earthset_utc: nextEarthsetUtc || new Date(startDate.getTime() + totalMinutes * 60000).toISOString(),
       hours_to_next_earthset: hoursToNextEarthset !== null ? hoursToNextEarthset : parseFloat((duration_days * 24).toFixed(1)),
+      sun_visible_at_start: timeline.length ? timeline[0].sun_visible : null,
+      earth_visible_at_start: timeline.length ? timeline[0].earth_visible : null,
+      next_sunrise_utc: riseUtc(sunRise),
+      hours_to_next_sunrise: riseHours(sunRise),
+      next_earthrise_utc: riseUtc(earthRise),
+      hours_to_next_earthrise: riseHours(earthRise),
       avg_power_factor: avgPowerFactor,
       estimated_peak_power_w: estimatedPeakPowerW
     },
@@ -645,10 +661,12 @@ function evaluateScenario(params) {
 }
 
 // ============================================================================
-// Terrain tiles (contract v1.3, GET /terrain/tiles/{z}/{row}/{col}.png)
+// Terrain tiles (contract v1.3, GET /terrain/tiles/{z}/{row}/{col}.png; v1.5 heightmap and hillshade)
 // ============================================================================
 const TILE_SIZE = 256;
-const MAX_TILE_LEVEL = 9;
+const MAX_TILE_LEVEL = 10;
+const HEIGHTMAP_SIZE = 65;
+const MAX_HEIGHTMAP_LEVEL = 12;
 
 // Synthetic relief: a smooth function of lat/lon, so neighbouring tiles share their
 // edges and the antimeridian wraps. Not real data (the backend serves LOLA).
@@ -714,6 +732,70 @@ function terrariumTilePng(z, row, col) {
     pngChunk('IEND', Buffer.alloc(0))
   ]);
 }
+
+/** v1.5: 65x65 little-endian float32 vertex grid (samples on the tile edges), quantized to 1/256 m. */
+function heightmapTile(z, row, col) {
+  const span = 180 / 2 ** z;
+  const buf = Buffer.alloc(HEIGHTMAP_SIZE * HEIGHTMAP_SIZE * 4);
+  for (let j = 0; j < HEIGHTMAP_SIZE; j++) {
+    const lat = 90 - (row + j / (HEIGHTMAP_SIZE - 1)) * span;
+    for (let i = 0; i < HEIGHTMAP_SIZE; i++) {
+      let lon = -180 + (col + i / (HEIGHTMAP_SIZE - 1)) * span;
+      if (lon >= 180) lon -= 360;
+      buf.writeFloatLE(Math.round(syntheticElevationM(lat, lon) * 256) / 256, (j * HEIGHTMAP_SIZE + i) * 4);
+    }
+  }
+  return buf;
+}
+
+/** v1.5: 256x256 gray PNG, round(255 * cos(incidence)) of a distant light; gray + alpha with a latitude fade. */
+function hillshadeTilePng(z, row, col, opts) {
+  const { lightLon, lightLat, exaggeration, fade } = opts;
+  const span = 180 / 2 ** z;
+  const step = span / TILE_SIZE;
+  const rad = Math.PI / 180;
+  const L = [Math.cos(lightLat * rad) * Math.cos(lightLon * rad), Math.cos(lightLat * rad) * Math.sin(lightLon * rad), Math.sin(lightLat * rad)];
+  const channels = fade ? 2 : 1;
+  const raw = Buffer.alloc(TILE_SIZE * (1 + TILE_SIZE * channels));
+  const d = 0.01; // degrees, central differences on the analytic relief
+  for (let r = 0; r < TILE_SIZE; r++) {
+    const off = r * (1 + TILE_SIZE * channels);
+    const lat = 90 - row * span - (r + 0.5) * step;
+    const sp = Math.sin(lat * rad), cp = Math.cos(lat * rad);
+    for (let c = 0; c < TILE_SIZE; c++) {
+      const lon = -180 + col * span + (c + 0.5) * step;
+      const sl = Math.sin(lon * rad), cl = Math.cos(lon * rad);
+      const dN = (syntheticElevationM(lat + d, lon) - syntheticElevationM(lat - d, lon)) / (2 * d * rad * MOON_RADIUS_M);
+      const dE = (syntheticElevationM(lat, lon + d) - syntheticElevationM(lat, lon - d)) / (2 * d * rad * MOON_RADIUS_M * Math.max(cp, 1e-6));
+      const lE = -sl * L[0] + cl * L[1];
+      const lN = -sp * cl * L[0] - sp * sl * L[1] + cp * L[2];
+      const lU = cp * cl * L[0] + cp * sl * L[1] + sp * L[2];
+      const gE = exaggeration * dE, gN = exaggeration * dN;
+      const shade = Math.min(1, Math.max(0, (-gE * lE - gN * lN + lU) / Math.sqrt(gE * gE + gN * gN + 1)));
+      const p = off + 1 + c * channels;
+      raw[p] = Math.round(255 * shade);
+      if (fade) raw[p + 1] = Math.round(255 * Math.min(1, Math.max(0, (lat - fade[0]) / (fade[1] - fade[0]))));
+    }
+  }
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(TILE_SIZE, 0);
+  ihdr.writeUInt32BE(TILE_SIZE, 4);
+  ihdr[8] = 8;
+  ihdr[9] = fade ? 4 : 0; // gray + alpha / gray
+  return Buffer.concat([
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    pngChunk('IHDR', ihdr),
+    pngChunk('IDAT', zlib.deflateSync(raw)),
+    pngChunk('IEND', Buffer.alloc(0))
+  ]);
+}
+
+const TILE_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Expose-Headers': 'X-Terrain-Source, X-Terrain-Resolution-M',
+  'Cache-Control': 'public, max-age=3600',
+  'X-Terrain-Source': 'synthetic'
+};
 
 // ============================================================================
 // HTTP Server & Router
@@ -1075,6 +1157,52 @@ const server = http.createServer(async (req, res) => {
     }
 
     // ------------------------------------------------------------------------
+    // GET /api/v1/terrain/tiles/heightmap/{z}/{row}/{col}.bin (contract v1.5, synthetic relief)
+    // ------------------------------------------------------------------------
+    const hmMatch = /^\/api\/v1\/terrain\/tiles\/heightmap\/(\d+)\/(\d+)\/(\d+)\.bin$/.exec(pathname);
+    if (hmMatch && method === 'GET') {
+      const [z, row, col] = hmMatch.slice(1).map(Number);
+      if (z > MAX_HEIGHTMAP_LEVEL || row >= 2 ** z || col >= 2 ** (z + 1)) {
+        sendError(res, 422, 'ERR_INVALID_PAYLOAD', `Índice de tesela inválido: z 0..${MAX_HEIGHTMAP_LEVEL}, row 0..2^z-1, col 0..2^(z+1)-1.`);
+        return;
+      }
+      let body = heightmapTile(z, row, col);
+      const headers = { ...TILE_HEADERS, 'Content-Type': 'application/octet-stream', Vary: 'Accept-Encoding', 'X-Terrain-Resolution-M': '0' };
+      if (/\bgzip\b/.test(req.headers['accept-encoding'] || '')) {
+        body = zlib.gzipSync(body);
+        headers['Content-Encoding'] = 'gzip';
+      }
+      res.writeHead(200, headers);
+      res.end(body);
+      return;
+    }
+
+    // ------------------------------------------------------------------------
+    // GET /api/v1/terrain/tiles/hillshade/{z}/{row}/{col}.png (contract v1.5, synthetic relief)
+    // ------------------------------------------------------------------------
+    const hsMatch = /^\/api\/v1\/terrain\/tiles\/hillshade\/(\d+)\/(\d+)\/(\d+)\.png$/.exec(pathname);
+    if (hsMatch && method === 'GET') {
+      const [z, row, col] = hsMatch.slice(1).map(Number);
+      const q = parsedUrl.query;
+      const num = (name, def) => (q[name] !== undefined ? Number(q[name]) : def);
+      const lightLon = num('light_lon', 135), lightLat = num('light_lat', -22), exaggeration = num('exaggeration', 1);
+      const fs = num('fade_start_lat', null);
+      const fe = num('fade_end_lat', null);
+      const bad =
+        z > MAX_TILE_LEVEL || row >= 2 ** z || col >= 2 ** (z + 1) ||
+        !(lightLon >= -180 && lightLon <= 360) || !(lightLat >= -90 && lightLat <= 90) ||
+        !(exaggeration >= 0.1 && exaggeration <= 20) || (fs === null) !== (fe === null) ||
+        (fs !== null && (!(fs >= -90 && fs <= 90) || !(fe >= -90 && fe <= 90) || fs === fe));
+      if (bad) {
+        sendError(res, 422, 'ERR_INVALID_PAYLOAD', 'Tesela o parámetros de sombreado fuera de rango (contrato v1.5, §2.11).');
+        return;
+      }
+      res.writeHead(200, { ...TILE_HEADERS, 'Content-Type': 'image/png', 'X-Terrain-Resolution-M': '0' });
+      res.end(hillshadeTilePng(z, row, col, { lightLon, lightLat, exaggeration, fade: fs === null ? null : [fs, fe] }));
+      return;
+    }
+
+    // ------------------------------------------------------------------------
     // GET /api/v1/terrain/tiles/{z}/{row}/{col}.png (contract v1.3, synthetic relief)
     // ------------------------------------------------------------------------
     const tileMatch = /^\/api\/v1\/terrain\/tiles\/(\d+)\/(\d+)\/(\d+)\.png$/.exec(pathname);
@@ -1087,9 +1215,10 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200, {
         'Content-Type': 'image/png',
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Expose-Headers': 'X-Terrain-Source',
+        'Access-Control-Expose-Headers': 'X-Terrain-Source, X-Terrain-Resolution-M',
         'Cache-Control': 'public, max-age=3600',
-        'X-Terrain-Source': 'synthetic'
+        'X-Terrain-Source': 'synthetic',
+        'X-Terrain-Resolution-M': '0'
       });
       res.end(terrariumTilePng(z, row, col));
       return;
@@ -1121,6 +1250,8 @@ if (require.main === module) {
     console.log('  GET  /api/v1/psr?offset=0&limit=500');
     console.log('  GET  /api/v1/ephemeris?utc=2026-12-01T00:00:00Z');
     console.log('  GET  /api/v1/terrain/tiles/9/511/600.png');
+    console.log('  GET  /api/v1/terrain/tiles/heightmap/12/4095/4000.bin');
+    console.log('  GET  /api/v1/terrain/tiles/hillshade/9/511/600.png');
     console.log('============================================================');
   });
 }
