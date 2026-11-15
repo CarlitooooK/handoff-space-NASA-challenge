@@ -3,6 +3,7 @@
 Cronología, de lo más nuevo a lo más viejo. Fechas absolutas. No se borra: se agrega.
 
 ## 2026-11-14
+- Fusionados los PR de `.woodpecker/` de la consola (`#12`, `c21456b`) y del globo (`#1`, `8b1c348`), revisados por Carlo y su agente: llaves y secretos fuera del repo, `known_hosts` fijo, y los scripts `lint`, `typecheck`, `test` y `build` que llaman existen y pasan en local. Desde GitHub no se ven los checks de Woodpecker; falta confirmar el primer pipeline y que el servidor tenga `VITE_API_BASE_URL` y `VITE_GLOBE_URL`.
 - **Producción única en el servidor:**
   - `deploy-backend.sh` despliega en `spaceapps-api-prod`, con alias de red `spaceapps-api-staging` para el túnel. Acepta `production`, y `staging` como alias.
   - Se probó re-ejecutando el pipeline de `615e64c` (#10): deploy, smoke 5/5 y la URL de Producción en `200`. Una revisión de salud sin límite de tiempo se colgó; se agregaron timeouts.

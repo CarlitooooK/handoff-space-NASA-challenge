@@ -113,8 +113,9 @@ La consola ya distingue el mock en su chip ("Sample data" si `/health` no trae `
 - Dónde se despliega el globo (lo hará el Woodpecker de `desktop`, D-018; URL para el iframe; el código ya vive en su repo, ver `HANDOFF.md`) y si se acepta el abanico del polo o se cambia a teselas polares. Decide el equipo.
 
 ## Actualización 2026-11-14 (verificado contra el Backend oficial)
+- `viewer.useDefaultRenderLoop = false` detiene el dibujado de Cesium y `true` lo reanuda; la cámara y los mensajes siguen. Con render por software puede tardar varios segundos en reflejarse.
 - El backend de prueba anterior está caído (D-017). Contra el oficial: Sol y Tierra coinciden con JPL Horizons a 0,00° (az/el); la silueta de `horizon_profile` contra el terreno difiere 0,46° / 0,77° de media.
 - `GET /ephemeris` da la Tierra a ~365.203 km; el globo asume 384.400 km (tamaño aparente ~5 % distinto hasta usar el endpoint).
 - `GET /terrain/tiles/{z}/{row}/{col}.png` (Terrarium) permite sustituir `fetchDemTile` en `terrain.ts` y quitar la calibración del DEM de 8 bits (`elev≈76,8·DN−9049`, R² 0,997), pendiente de `P-010`.
 - El mock es sintético (Sol a 1,2–1,9° de elevación); la consola ya no lo usa. `power_factor` asume un panel que sigue al Sol.
-- Créditos en español aún en el globo (`layers.ts`, `polar.ts`, `terrain.ts`, `regolith.ts`): el criterio 08 pide inglés.
+- Créditos del globo en inglés desde `f24cbe9` (el criterio 08 pide la interfaz en inglés).

@@ -245,3 +245,5 @@ Respuesta del globo: `HORIZON_PHASE` (`arrival`, `ready`, `leaving`).
 > - `SET_CUSTOM_PIN {lat,lon,label?} | null`: marcador del pin libre o de una misión.
 >
 > Además, `evaluate()` usa `Promise.allSettled` (el veredicto no depende del parche ni de las PSR cercanas), reutiliza parche y PSR si solo cambia la fecha, y no repite el vuelo si el sitio es el mismo. Probado de extremo a extremo contra el Backend oficial.
+
+> **Actualización 2026-11-14 (consola `#11`, globo `f24cbe9`).** Mensaje nuevo `SET_PAUSED {paused}`: la consola lo manda 600 ms después de abrir "Terrain detail" y lo revierte al volver. `PLAY_LANDING_SCENE` lleva `astronaut: false` si el interruptor "Astronaut" está apagado. Elegir o evaluar otro lugar durante la escena la cierra (`STOP_LANDING_SCENE` y vuelo al sitio nuevo), y entrar a History cierra escena y horizonte. Despliegue: los repos de la consola y del globo ya tienen `.woodpecker/` (D-018); hay que publicar juntos la consola y un globo `f24cbe9` o posterior. `P-013` pregunta si "Horizon view" absorbe a "Terrain detail".

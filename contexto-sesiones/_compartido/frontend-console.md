@@ -37,7 +37,7 @@ React 19 + TypeScript + Vite, Tailwind v4, Three.js con React Three Fiber/drei, 
 - La API se consume solo desde la URL de Producción de `docs/07` (backend oficial, v1.3, D-017). La URL del backend de prueba (v1.1) se apagó.
 - En local, si el puerto 3000 está ocupado por otra app, el mock no arranca y la consola da `ERR_NETWORK`: córrelo con `PORT=<otro> npm run mock` y ajusta `VITE_API_BASE_URL`.
 - Cielo global y PSR del polo vienen de `/ephemeris` y `/psr?min_area_km2=50`; si fallan, el globo queda sin Sol ni PSR del polo (no se inventan). Con una evaluación el cielo sale de sus vectores.
-- La consola publicada leerá `VITE_API_BASE_URL` y `VITE_GLOBE_URL` de la configuración del servidor (D-018), no de `.env.local`. Aún no hay `.woodpecker/` en la consola ni en el globo.
+- La consola publicada leerá `VITE_API_BASE_URL` y `VITE_GLOBE_URL` de la configuración del servidor (D-018), no de `.env.local`. Ambos repos ya tienen `.woodpecker/` (`ci.yaml` y `deploy.yaml`, consola `#12` y globo `#1`, fusionados 2026-11-14): el CI corre en cada PR y la publicación al integrar a `main`. Falta confirmar que el servidor tenga esas dos variables.
 - El globo y la consola usan el puerto 5173 por defecto: el globo va en 5174 (`docs/11` §3).
 
 ## Seguridad

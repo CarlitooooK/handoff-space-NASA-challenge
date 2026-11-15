@@ -3,6 +3,7 @@
 Cronología, de lo más nuevo a lo más viejo. Fechas absolutas. No se borra: se agrega.
 
 ## 2026-11-14
+- Fusionados consola `#11` (`81db1e6`: cierre de la escena al cambiar de sitio o entrar a History, pausa del globo bajo "Terrain detail", interruptor "Astronaut", créditos en inglés) y `#12` (`c21456b`: Woodpecker, D-018) y handoff `#9` (`P-013`). Sin PRs abiertos en los tres repos. El CI no se puede ver todavía desde GitHub: hay que mirar el primer pipeline en Woodpecker.
 - Se probó "Horizon view" contra Producción (IM-2 Mons Mouton, 2026-12-17): coincide con los datos, pero no muestra relieve cercano. Decisión de Frontend: "Horizon view" es la vista objetivo y "Terrain detail" no se toca por ahora; se preguntó `P-013` (¿dos vistas o una?). En la consola empezó el bloque A de la spec de onboarding (rama `feat/onboarding-bloque-a`).
 - Consola PR `#10` fusionado, `52ab449` (carril del globo): `/ephemeris` y `/psr` para la vista global, `Promise.allSettled` en `evaluate()`, parche y PSR reusados si solo cambia la fecha, no repetir el vuelo en el mismo sitio, pines A–E y marcador del pin libre. `rankBy` pasó al store. Cierra cuatro filas de `docs/06` de la consola. El onboarding lo toma Diego.
 - Fusionados consola `#7`, `#8` y `#9` y handoff `#7` y `#8`. Conflicto `#7` × `#9` en `TopBar.tsx` resuelto con el lado de `#7`; se quitó `isSampleData` y `SET_DATA_MODE`. `main` de la consola: `tsc` limpio, 32 pruebas, `oxlint` 0.
