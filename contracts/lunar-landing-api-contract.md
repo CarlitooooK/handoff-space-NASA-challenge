@@ -239,6 +239,20 @@ Mismo veredicto que `reasons`, como datos. `reasons` conserva las frases en espa
 
 Decidir siempre por `code` y `level`, nunca por el texto (igual que con los errores).
 
+#### Potencia, ocasos y PSR: qué significa cada campo (P-011, P-012)
+Aclaraciones de campos que ya existen; el contrato no cambia de versión. Aplican igual a cada resultado de `/compare`.
+
+| Campo | Definición |
+|---|---|
+| `timeline[].power_factor` | Fracción `0..1` de la potencia máxima de un **panel vertical que gira siguiendo el azimut del Sol**: `disk_frac · cos(sun_el_deg)`, con `disk_frac = min(1, 0.5 + 0.5 · (sun_el_deg − sun_horizon_el_deg) / 0.2666°)`. Vale `0` cuando `sun_visible` es `false`; como el Sol cuenta como visible solo si el **centro** del disco supera la cresta, al salir salta de `0` a ~`0.5`. |
+| `summary.avg_power_factor` | Promedio simple de `power_factor` sobre **todos** los pasos de la ventana, incluidos los ceros. |
+| `summary.estimated_peak_power_w` | Máximo de `(1361 / r²) · panel_efficiency · panel_area_m2 · power_factor`, con `r` la distancia Sol–Luna en UA en ese paso. Puede superar `1361 · panel_efficiency · panel_area_m2` cuando `r < 1` (cerca del perihelio, 3 de enero). |
+| `summary.hours_to_next_sunset` / `hours_to_next_earthset` | Horas desde `start_utc` hasta la **primera transición de visible a oculto** del astro. `null` si no hay ninguna en la ventana: visible toda la ventana, nunca sale, o sale y no se pone. Si empieza oculto, sale y se pone, **sí** trae valor (contado desde `start_utc`). |
+| `summary.next_sunset_utc` / `next_earthset_utc` | Instante de esa transición: la primera muestra ya oculta. El ocaso real ocurrió hasta `step_minutes` antes. `null` en los mismos casos. |
+| `site.nearest_psr_km` | Distancia del sitio al **borde** de la PSR más cercana, medida en la estereográfica polar de LOLA (sobreestima ≤ 0.8 % en −80°). `0` si el sitio está dentro. El catálogo cubre solo las PSR de más de 1 km² al sur de −80° (NASA PGDA, `LPSR_80S_20MPP_ADJ_1km2.CSV`; citar Barker et al. 2023, *Planet. Sci. J.* 4, 183), así que fuera del polo el valor no es útil. |
+
+Para saber si un astro empieza oculto, o cuándo sale, lee `timeline[]` (en `/compare`, con `include_timeline: true`). En `/compare` el paso por defecto es de 120 min (60 en `/evaluate`), así que `hours_to_next_*` y `next_*_utc` pueden ir hasta 2 h por detrás del evento real.
+
 > **Vectores 3D:** `sun_vector_3d` y `earth_vector_3d` siguen el marco local de la sección 1.3: `[cos(el)·sin(az), sin(el), −cos(el)·cos(az)]`. En el ejemplo, el Sol a `az 57.38°` (noreste) tiene `z < 0` (norte) y la Tierra a `az 143.96°` (sureste) tiene `z > 0` (sur).
 
 ---

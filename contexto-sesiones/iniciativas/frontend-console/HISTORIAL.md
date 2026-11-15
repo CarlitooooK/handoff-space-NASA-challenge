@@ -2,6 +2,9 @@
 
 Cronología, de lo más nuevo a lo más viejo. Fechas absolutas. No se borra: se agrega.
 
+## 2026-11-15
+- Backend respondió `P-011` (textos de ayuda de PSR y `power_factor`, con propuesta en inglés y cita de PGDA) y `P-012` (semántica de `hours_to_next_*`; para Compare usar `include_timeline: true`). Ver `PREGUNTAS.md` y `contracts/` §2.4.
+
 ## 2026-11-14
 - Consola `#13` fusionado (`c623dff`, carril del globo): "Terrain detail" rediseñado a petición de Carlo (se veía como una silueta naranja plana sobre negro).
   - Relieve con sombras proyectadas por el Sol real del paso del scrubber (Sol y Tierra del `timeline`); con el Sol oculto, luz de la Tierra y aviso "ground brightened so the relief is visible".

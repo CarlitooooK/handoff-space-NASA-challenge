@@ -30,37 +30,10 @@ Quien responde llena **Respuesta**, **Respondió** y la fecha, mueve la entrada 
 
 - **Pregunta:** `P-008` se resolvió con `GET /api/v1/terrain/tiles/{z}/{row}/{col}.png` (D-016), pero [`docs/11-integracion-globo-consola.md`](docs/11-integracion-globo-consola.md) §1 y §4 (D-013) dicen que el globo **nunca** llama a la API ni guarda URLs del backend. ¿Se acepta esta excepción acotada? La consola le pasa al globo la URL base de las teselas por `SET_CONFIG` (por ejemplo `terrainTilesUrl`, armada desde `VITE_API_BASE_URL`), y el globo las pide igual que hoy pide las de Moon Trek: son recursos estáticos y cacheables (`ETag`, `max-age=3600`), no cálculo. Si no llega la URL o falla la red, el globo sigue con Moon Trek. Si se acepta, `docs/11` (§1, §3 y §4) y el protocolo del globo se actualizan en el mismo commit que la respuesta.
 - **Contexto:** `P-008`, D-016, [`contracts/lunar-landing-api-contract.md`](contracts/lunar-landing-api-contract.md) §2.9; en el globo, `fetchDemTile` en `src/terrain.ts`. Con D-015 la escena de alunizaje corre en el globo, así que su relieve es el que se ve a ras de suelo. La alternativa de que la consola descargue las teselas y se las pase por `postMessage` duplicaría la caché y la red del globo.
+
+  **Aporte de Backend (2026-11-15):** el endpoint ya está listo para que el navegador lo pida directo. En la URL de Producción de [`docs/07`](docs/07-ambientes-y-pruebas.md) responde con `Cache-Control: public, max-age=3600`, `ETag` (con `If-None-Match` da `304`), `X-Terrain-Source` y CORS `*` con `Access-Control-Expose-Headers: X-Terrain-Source` (backend oficial `#7`). CORS es indispensable porque el globo decodifica Terrarium con un `<canvas>`. Pasar la URL por `SET_CONFIG` encaja con D-018: la consola publicada toma `VITE_API_BASE_URL` de la configuración del servidor, así que un cambio de túnel no exige tocar el globo. Detalle para el globo: hoy crea el proveedor de terreno al construirse (`src/LunarGlobe.ts:105`), antes de recibir `SET_CONFIG`, así que al llegar `terrainTilesUrl` tendría que recrearlo (o leer la URL en cada petición). Con el backend oficial `#9` (abierto), las teselas fuera del polo pasarían de ~474 m/px a ~118 m/px. La decisión sigue siendo de Globo y Frontend.
 - **Bloquea:** no. Mientras tanto el globo sigue con el relieve de Moon Trek.
 - **Preguntó:** Backend / Integración · 2026-11-14
-- **Respuesta:** _pendiente_
-- **Respondió:** —
-
-### P-011: Revisión de los textos científicos de las ayudas de la consola (PSR y `power_factor`)
-
-- **Pregunta:** ¿Alguien de ciencia o backend puede revisar dos textos en inglés antes de que la consola los muestre como ayuda "?"?
-  - **`psr`:** "A permanently shadowed region (PSR) never sees the Sun. It is extremely cold and may hold water ice. This is the distance to the nearest one." ¿Es correcto? ¿Qué catálogo usa `/psr/nearby` y qué fuente se debe citar?
-  - **`power`:** "Relative solar power at the time selected on the timeline, as reported by the server." ¿Qué es exactamente `power_factor` (y `avg_power_factor`)? La auditoría del globo (`contexto-sesiones/iniciativas/lunar-globe-renderer/CONOCIMIENTO.md`) observó un factor de unos 0.994 con el Sol a 6.5° y un pico de 1 559 W frente a 1 524 W nominales (1361 · 4 · 0.28), lo que cuadra con un panel que sigue al Sol. ¿Es así? ¿Por qué el pico supera el nominal? ¿Vale 0 con el Sol oculto?
-- **Contexto:** spec de onboarding de la consola, `docs/specs/onboarding-ayudas-sugerencias/design.md` §2.4 (consola PR `#8`). En pantalla: "Permanent shadow 1.8 km away" y "Solar power now · 71% of panel output". El contrato v1.3 no define `power_factor`. El resto del catálogo de ayudas está en §2.3–2.5 de ese archivo, por si quieren revisarlo completo.
-- **Bloquea:** no. Las dos ayudas salen con un texto neutro hasta tener la respuesta.
-- **Preguntó:** Frontend (consola) · 2026-11-14
-- **Respuesta:** _pendiente_
-- **Respondió:** —
-
-### P-012: Qué significa `hours_to_next_sunset` / `hours_to_next_earthset` en `null`
-
-- **Pregunta:** Con el Backend oficial, `hours_to_next_sunset` y `hours_to_next_earthset` llegan en `null` en dos casos distintos: cuando el astro está visible toda la ventana y cuando **empieza oculto** en `timeline[0]`. ¿Es la semántica buscada? Es decir, ¿el campo solo cuenta el ocaso de un astro que está visible al inicio? Si es así, ¿se puede documentar en el contrato y agregar `hours_to_next_sunrise` y `hours_to_next_earthrise` como cambio aditivo?
-- **Contexto:** consultas a `/evaluate` del Backend oficial, 14 días, paso de 60 min (2026-11-14):
-
-  | Sitio y fecha | Astro en `timeline[0]` | `hours_to_next_*` | `*_visible_pct` |
-  | --- | --- | --- | --- |
-  | Peak Near Shackleton, 2026-12-01 | Tierra oculta (sale en el paso 319) | `earthset: null` | Tierra 5.1 % |
-  | Apollo 11, 2026-12-01 | Sol oculto (sale en el paso 328) | `sunset: null` | Sol 2.4 % |
-  | IM-2 Mons Mouton, 2026-12-05 | Sol y Tierra ocultos | los dos `null` | Sol 12.8 %, Tierra 45.8 % |
-  | Shackleton Rim, 2026-12-01 | Sol y Tierra visibles | los dos `1.0` | Sol 0.3 %, Tierra 17.3 % |
-
-  Hoy la consola lee `null` como "no se pone": Peak Near Shackleton diría "Earth stays in view" y Apollo 11, "No sunset in this window" (hallazgos A-05 y A-06 de `docs/specs/onboarding-ayudas-sugerencias/audit.md`, consola PR `#8`). La spec corrige eso leyendo primero `timeline[0]` y, si el astro está oculto, contando las horas hasta el primer punto visible del `timeline[]`, sin calcular física. Pero `/compare` no trae timeline, así que ahí la consola no puede distinguir los dos casos.
-- **Bloquea:** no para Simulate (la consola usa el timeline). Sí limita lo que Compare puede decir en "First sunset" y "First Earthset".
-- **Preguntó:** Frontend (consola) · 2026-11-14
 - **Respuesta:** _pendiente_
 - **Respondió:** —
 
@@ -80,6 +53,35 @@ Quien responde llena **Respuesta**, **Respondió** y la fecha, mueve la entrada 
 ---
 
 ## Respondidas
+
+### P-012: Qué significa `hours_to_next_sunset` / `hours_to_next_earthset` en `null`
+
+- **Pregunta:** Con el Backend oficial, `hours_to_next_sunset` y `hours_to_next_earthset` llegan en `null` en dos casos distintos: cuando el astro está visible toda la ventana y cuando **empieza oculto** en `timeline[0]`. ¿Es la semántica buscada? Es decir, ¿el campo solo cuenta el ocaso de un astro que está visible al inicio? Si es así, ¿se puede documentar en el contrato y agregar `hours_to_next_sunrise` y `hours_to_next_earthrise` como cambio aditivo?
+- **Contexto:** consultas a `/evaluate` del Backend oficial, 14 días, paso de 60 min (2026-11-14):
+
+  | Sitio y fecha | Astro en `timeline[0]` | `hours_to_next_*` | `*_visible_pct` |
+  | --- | --- | --- | --- |
+  | Peak Near Shackleton, 2026-12-01 | Tierra oculta (sale en el paso 319) | `earthset: null` | Tierra 5.1 % |
+  | Apollo 11, 2026-12-01 | Sol oculto (sale en el paso 328) | `sunset: null` | Sol 2.4 % |
+  | IM-2 Mons Mouton, 2026-12-05 | Sol y Tierra ocultos | los dos `null` | Sol 12.8 %, Tierra 45.8 % |
+  | Shackleton Rim, 2026-12-01 | Sol y Tierra visibles | los dos `1.0` | Sol 0.3 %, Tierra 17.3 % |
+
+  Hoy la consola lee `null` como "no se pone": Peak Near Shackleton diría "Earth stays in view" y Apollo 11, "No sunset in this window" (hallazgos A-05 y A-06 de `docs/specs/onboarding-ayudas-sugerencias/audit.md`, consola PR `#8`). La spec corrige eso leyendo primero `timeline[0]` y, si el astro está oculto, contando las horas hasta el primer punto visible del `timeline[]`, sin calcular física. Pero `/compare` no trae timeline, así que ahí la consola no puede distinguir los dos casos.
+- **Bloquea:** no para Simulate (la consola usa el timeline). Sí limita lo que Compare puede decir en "First sunset" y "First Earthset".
+- **Preguntó:** Frontend (consola) · 2026-11-14
+- **Respuesta:** No del todo: `null` **no** significa "empieza oculto". `hours_to_next_*` son las horas desde el **inicio de la ventana** (`start_utc`) hasta la **primera transición de visible a oculto** del astro, y `next_*_utc` es el instante de esa transición (`_find_next_set`, backend oficial `7326cba`, `app/engine/ephemeris.py:428-436`). Son `null` si en toda la ventana no hay ninguna transición así: el astro está visible toda la ventana, nunca sale, o sale pero no alcanza a ponerse. Si empieza oculto, sale y se pone dentro de la ventana, el campo **sí** trae valor, contado desde `start_utc` y no desde la salida. En los ejemplos sale `null` porque la Tierra y el Sol salen en los pasos 319 y 328 de 336 y ya no se ponen. Resolución: el valor marca la primera muestra ya oculta, así que el ocaso real ocurrió entre esa muestra y la anterior (hasta `step_minutes` antes). **Para Compare no hace falta esperar al backend:** desde v1.2, `POST /compare` acepta `include_timeline: true` (D-014, [`docs/12`](docs/12-contrato-api-v1.2.md) §4.5) y devuelve el `timeline` de cada escenario, con el que la consola distingue los casos igual que en Simulate. `hours_to_next_sunrise` / `hours_to_next_earthrise` son viables como cambio aditivo (la misma función con la condición invertida), pero no entran al contrato hasta que estén en el backend oficial: quedan como propuesta para una v1.4 (ver abajo). Verificado en Producción con los mismos cuatro casos en `/compare` (`include_timeline: true`): con 14 días salen `null` y con 30 días traen valor (Peak Near Shackleton `earthset` 642 h; Apollo 11 `sunset` 684 h; IM-2 `sunset` 532 h y `earthset` 586 h), y el timeline muestra las salidas a las 320 h, 328 h, 294 h y 182 h. Solo siguen en `null` los astros visibles los 30 días (el Sol en Peak Near Shackleton, la Tierra en Apollo 11), que es lo correcto. `/compare` usa `step_minutes` 120 por defecto (60 en `/evaluate`), así que ahí el error llega a 2 h. La consola pide `include_timeline: false` a propósito (`src/core/store/useMissionStore.ts:190`, consola `c21456b`); pedirlo cuesta unos 168 puntos por escenario en 14 días y lo decide Frontend. Sugerencia mientras tanto: con `null`, un texto neutro que sea cierto en los tres casos, como *"No sunset in the next 14 days"*, en vez de *"stays in view"*. La v1.4 propuesta agregaría al `summary` `sun_visible_at_start`, `earth_visible_at_start`, `hours_to_next_sunrise` y `hours_to_next_earthrise`, para que Compare lo diga sin timeline. La semántica queda documentada en [`contracts/lunar-landing-api-contract.md`](contracts/lunar-landing-api-contract.md) §2.4 y [`docs/12`](docs/12-contrato-api-v1.2.md) §4.4.
+- **Respondió:** Backend / Integración · 2026-11-15
+
+### P-011: Revisión de los textos científicos de las ayudas de la consola (PSR y `power_factor`)
+
+- **Pregunta:** ¿Alguien de ciencia o backend puede revisar dos textos en inglés antes de que la consola los muestre como ayuda "?"?
+  - **`psr`:** "A permanently shadowed region (PSR) never sees the Sun. It is extremely cold and may hold water ice. This is the distance to the nearest one." ¿Es correcto? ¿Qué catálogo usa `/psr/nearby` y qué fuente se debe citar?
+  - **`power`:** "Relative solar power at the time selected on the timeline, as reported by the server." ¿Qué es exactamente `power_factor` (y `avg_power_factor`)? La auditoría del globo (`contexto-sesiones/iniciativas/lunar-globe-renderer/CONOCIMIENTO.md`) observó un factor de unos 0.994 con el Sol a 6.5° y un pico de 1 559 W frente a 1 524 W nominales (1361 · 4 · 0.28), lo que cuadra con un panel que sigue al Sol. ¿Es así? ¿Por qué el pico supera el nominal? ¿Vale 0 con el Sol oculto?
+- **Contexto:** spec de onboarding de la consola, `docs/specs/onboarding-ayudas-sugerencias/design.md` §2.4 (consola PR `#8`). En pantalla: "Permanent shadow 1.8 km away" y "Solar power now · 71% of panel output". El contrato v1.3 no define `power_factor`. El resto del catálogo de ayudas está en §2.3–2.5 de ese archivo, por si quieren revisarlo completo.
+- **Bloquea:** no. Las dos ayudas salen con un texto neutro hasta tener la respuesta.
+- **Preguntó:** Frontend (consola) · 2026-11-14
+- **Respuesta:** Los dos textos sirven con ajustes. **`power_factor`** (backend oficial `7326cba`, `app/engine/ephemeris.py:624-629`) es la fracción de la potencia máxima de un **panel vertical que gira siguiendo el azimut del Sol**, el diseño típico del polo sur: `disk_frac · cos(elevación del Sol)`. `cos(elevación)` es la incidencia sobre el panel vertical; sí sigue al Sol (cos 6.5° = 0.994, lo que observaron). `disk_frac = min(1, 0.5 + 0.5 · holgura / 0.2666°)` es la parte del disco solar que queda sobre la cresta local (0.2666° es el radio del disco). El Sol cuenta como visible solo cuando su **centro** supera la cresta (`sun_el_deg > sun_horizon_el_deg`); con el centro debajo, `power_factor` vale **0**, así que al salir el Sol salta de 0 a ~0.5: el tramo en que solo asoma el borde no se modela. **`avg_power_factor`** es el promedio simple sobre **todos** los pasos de la ventana, incluidos los ceros. **El pico supera el nominal** porque la irradiancia no es 1361 W/m² fija sino `1361 / r²`, con `r` la distancia real Sol–Luna en UA. En diciembre `r` baja de 1 (el perihelio es el 3 de enero): con r ≈ 0.989 UA son ≈ 1 392 W/m² y 1 392 · 4 m² · 0.28 ≈ 1 559 W, frente a 1 524 W con 1 UA; el ejemplo de `docs/12` §4.4 (1–15 de diciembre, 1 579 W) llega a r ≈ 0.982 UA. Por eso "71% of panel output" es el 71 % de lo que daría ese panel con el Sol de frente **a la distancia de ese momento**, no de un nominal fijo. Texto propuesto: *"Share of the maximum output of a vertical, Sun-tracking solar panel at the time selected on the timeline. It drops as the Sun climbs and while part of the solar disk is behind the terrain; 0% when the Sun is hidden."* **PSR:** `/psr/nearby`, `/psr` y `nearest_psr_km` usan `psr_regions`: los 1 531 polígonos de `LPSR_80S_20MPP_ADJ_1km2.CSV` de NASA PGDA (LOLA 20 m/px), es decir, las PSR de **más de 1 km²** al sur de −80°; el polo norte no está cargado. La distancia (`ST_Distance`, `app/db.py:139`) va del sitio al **borde** de la PSR más cercana, en metros sobre la estereográfica polar de LOLA (en −80° sobreestima un 0.8 % como mucho), y vale 0 si el sitio está dentro de una. El texto es correcto con dos precisiones: "never sees the Sun" se refiere a la luz solar **directa**, y "may hold water ice" está bien planteado como hipótesis. Fuera del polo (Apollo, Chandrayaan-3) la distancia no tiene sentido y conviene no mostrar la ayuda. Texto propuesto: *"A permanently shadowed region (PSR) never receives direct sunlight. It stays extremely cold and may hold water ice. This is the distance to the edge of the nearest one (PSRs larger than 1 km² south of 80°S); 0 if the site is inside one."* Fuente a citar: NASA PGDA, *A New View of the Lunar South Pole from LOLA* (https://pgda.gsfc.nasa.gov/products/90); Barker et al. 2023, *Planet. Sci. J.* 4, 183, https://doi.org/10.3847/PSJ/acf3e1. Las definiciones quedan en [`contracts/lunar-landing-api-contract.md`](contracts/lunar-landing-api-contract.md) §2.4 y [`docs/12`](docs/12-contrato-api-v1.2.md) §4.2 y §4.4; el contrato no cambia de versión.
+- **Respondió:** Backend / Integración · 2026-11-15
 
 ### P-008: Teselas de terreno del polo sur para el globo
 
