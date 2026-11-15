@@ -91,7 +91,7 @@ export async function apiFetch<T>(
 
 ## 3. Cómo Llamar Cada Endpoint (8 Endpoints)
 
-> **v1.2:** los campos y endpoints marcados *(v1.2)* son aditivos. La URL del Backend oficial ya los sirve; la de Producción sigue en v1.1 hasta la promoción (ver [`docs/07-ambientes-y-pruebas.md`](docs/07-ambientes-y-pruebas.md)), así que trátalos como opcionales. Flujo, límites y coordenadas de v1.2: [`docs/12-contrato-api-v1.2.md`](docs/12-contrato-api-v1.2.md).
+> **v1.2:** los campos y endpoints marcados *(v1.2)* son aditivos. La URL de Producción ya los sirve (ver [`docs/07-ambientes-y-pruebas.md`](docs/07-ambientes-y-pruebas.md)); trátalos como opcionales si todavía usas un mock anterior a v1.2. Flujo, límites y coordenadas de v1.2: [`docs/12-contrato-api-v1.2.md`](docs/12-contrato-api-v1.2.md).
 
 ### 3.1 `GET /api/v1/health` — Estado del Backend y Datasets
 Úsalo al arrancar la app o en un indicador de estado si quieres confirmar conexión.

@@ -96,6 +96,11 @@ La consola ya distingue el mock en su chip ("Sample data" si `/health` no trae `
 ### Documentación que ya pedía esta vista
 `docs/ideas/lunar-landing-ui-ux-tdd.md` define tres modos de cámara: *Orbital* (por defecto), *Lander POV* (cámara a 2 m del suelo, giro de 360°, "perspectiva de astronauta o rover frente al horizonte") y *Mapa Polar 2D*. La vista de horizonte es ese *Lander POV*, que la consola no implementó.
 
+- **Vista de horizonte:** la silueta es un muro a 30 km con la altura de `horizon_profile` (elevación aparente); el terreno cercano lo pinta el relieve del globo y el muro aporta el horizonte lejano. Se oscurece con el mismo factor que el suelo. Los astros pasan por detrás por profundidad, así que la visibilidad no se recalcula: la decide la silueta, y coincide con `sun_visible` del backend (paso 76 oculto, paso 78 visible, el mismo dato que el panel).
+- **Amanecer real para probar:** IM-2 Mons Mouton, inicio 2026-12-14, paso 77 (2026-12-17T05:00Z): `sun_visible` pasa de falso a verdadero con el Sol a 4,54° → 4,61° y el terreno a 4,57° (la cresta lo tapa por 0,03°). Es un amanecer muy lento; con el mock no existe ninguno.
+- `orientCamera` usaba el norte de la Luna como "arriba": en el hemisferio sur dejaba la cámara al revés. Ahora usa la vertical del lugar (radial). Afectaba a `lookAtBody` y `viewFromSurface`.
+- La API ya cubre lo que la vista pide: `horizon_profile`, `timeline[i]` con az, el, horizonte y visibilidad de ambos astros. No hace falta endpoint nuevo.
+
 ## Supuestos sin verificar
 - `sun_vector_3d` es un vector hacia el Sol en el marco local del sitio con la convención D-008; la conversión a marco fijo lunar se probó solo con un vector mock.
 - El rendimiento en el equipo de la demo (GPU real) no se midió; la prueba corrió con renderizado por software.

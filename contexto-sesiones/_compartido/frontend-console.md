@@ -32,9 +32,10 @@ React 19 + TypeScript + Vite, Tailwind v4, Three.js con React Three Fiber/drei, 
 
 ## Cosas que muerden
 - `openapi-typescript@7` pide `typescript@^5`; se ejecuta vía `npx` (`P-005`). Con v1.2 el tipo generado de `CompareRequest` exige `include_timeline` (tiene valor por defecto): la consola lo manda en `false`.
-- La URL "Producción / Demo Pública" de `docs/07` sirve v1.1, sin `checks`. La consola usa "Backend oficial".
 - `hours_to_next_sunset` / `hours_to_next_earthset` en `null` no siempre significa "no se pone": también llega así cuando el astro empieza oculto (`P-012`). Hay que mirar `timeline[0]`.
 - Con la fecha 2026-12-01, casi todo el catálogo da NO-GO (noche lunar o poca luz). La consola arrancará en 2026-12-13 (spec de onboarding, tarea A8).
+- La API se consume solo desde la URL de Producción de `docs/07` (backend oficial, v1.3, D-017). La URL del backend de prueba (v1.1) se apagó.
+- En local, si el puerto 3000 está ocupado por otra app, el mock no arranca y la consola da `ERR_NETWORK`: córrelo con `PORT=<otro> npm run mock` y ajusta `VITE_API_BASE_URL`.
 - El globo y la consola usan el puerto 5173 por defecto: el globo va en 5174 (`docs/11` §3).
 
 ## Seguridad

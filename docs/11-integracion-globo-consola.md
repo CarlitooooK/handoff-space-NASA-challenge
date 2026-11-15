@@ -211,3 +211,28 @@ Mapa completo de la consola (qué render se ve en cada caso, de dónde sale cada
 - Desplegar el globo y fijar `VITE_GLOBE_URL` de producción (depende también de este repo y del globo).
 - Probar en una GPU real: la verificación se hizo con renderizado por software.
 
+## 11. Vista de horizonte (Lander POV)
+
+Pedida por el diseño original (`docs/05-flujos.md` §5.2: "la trayectoria aparente del Sol y la Tierra respecto a la silueta del relieve lunar"; `docs/ideas/lunar-landing-ui-ux-tdd.md`: "Lander POV", cámara a 2 m del suelo) y nunca implementada en la consola. Ahora la hace el globo: baja de la esfera al suelo del sitio evaluado con un vuelo continuo, y al mover el scrubber se ve salir el Sol o ocultarse la Tierra tras el horizonte.
+
+| Mensaje (consola → globo) | Dato de origen | Notas |
+| --- | --- | --- |
+| `SET_HORIZON {lat, lon, profile}` | `evaluate.horizon_profile` (360 puntos), tal cual | La silueta es la misma del panel Horizon 360° |
+| `SET_SUN_LOCAL`, `SET_EARTH_LOCAL` | `timeline[stepIndex].sun_vector_3d` y `earth_vector_3d` | Posición de los astros, como ya se hacía |
+| `SET_SKY_STATE {sun, earth}` | `timeline[stepIndex]`: `*_az_deg`, `*_el_deg`, `*_horizon_el_deg`, `*_visible` | Etiquetas; el globo no calcula la visibilidad: la oculta la propia silueta |
+| `SET_HORIZON_DETAIL {detailed}` | `detail` (Simple / Detailed) | Simple: nombres. Detailed: azimut, elevación y holgura sobre el terreno |
+| `SHOW_HORIZON {lat, lon}` / `EXIT_HORIZON` | Píldoras "Horizon view" / "Back to globe" | El vuelo de ida y de vuelta lo hace el globo |
+| `SET_DATA_MODE {sample}` | `/health` sin `engine` (mock) | Rotula "Sample data": el Sol del mock nunca se pone |
+
+Respuesta del globo: `HORIZON_PHASE` (`arrival`, `ready`, `leaving`).
+
+**Reglas**
+- **No inventar el horizonte ni la visibilidad.** Todo dato viene del backend (D-002, D-006); el brillo del suelo y de la silueta es un recurso visual ilustrativo, atenuado por la holgura del Sol (dato real). No se usa `power_factor`, que el backend calcula para un panel que sigue al Sol.
+- **Persiste entre corridas:** con la vista pedida, Compare "Show on terrain", History "Open", Missions "Replay" y Simulate llevan el horizonte al sitio nuevo. Así cada funcionalidad que evalúa tiene reflejo en el render sin código por pantalla.
+- Se excluye con la escena de alunizaje y con las vistas que mueven la cámara (`SELECT_SITE`, `SET_VIEW`, `RESET`).
+- **Con el mock no hay amanecer:** su Sol oscila entre 1,2° y 1,9° y su horizonte es una suma de senos. Se rotula como muestra; la validación visual debe hacerse con la API pública.
+
+**Verificación (2026-11-14, API en vivo, IM-2 Mons Mouton)**: el 2026-12-17 a las 05:00 UTC el Sol pasa de oculto a visible justo sobre la cresta (4,54° → 4,61° con el terreno a 4,57°). El render y el panel Results coinciden: etiqueta "az 51,2° · el 4,6° · +0,1° sobre el terreno" y panel con azimut 51,15°, elevación 4,61°, horizonte 4,56°, holgura +0,06°; un paso antes, "behind the terrain" y "Solar power now 0 %". En Missions → Chandrayaan-3 (2023-08-23 12:00 UTC), Sol a 8,5° con el terreno a 1,5° y potencia 99 %.
+
+> **Nota sobre §2 y D-013.** La consola cambió su arquitectura en su PR `#6` (Frontend): el globo es ahora el render único y **no se desmonta**; tras evaluar se queda en el globo y vuela al sitio, y la escena local del parche pasó a ser "Terrain detail", un fundido opcional encima. Lo que dicen §2 y D-013 sobre "un solo render visible a la vez" y "al evaluar, la escena local" quedó desactualizado. Está documentado en la propia consola (`docs/02-renders.md`). Falta que Frontend lo registre como decisión (por ejemplo D-014) para que el handoff lo refleje.
+

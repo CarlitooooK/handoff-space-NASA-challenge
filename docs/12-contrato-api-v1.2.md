@@ -9,23 +9,20 @@
 
 ## 1. URL base y qué sirve cada una
 
-Hay dos URLs públicas (Cloudflare, HTTPS, sin VPN). Las dos se publican **solo** en [`docs/07-ambientes-y-pruebas.md`](07-ambientes-y-pruebas.md) (filas "Producción / Demo Pública" y "Backend oficial"); **no las escribas en el código**: configúralas con `VITE_API_BASE_URL`.
+La API tiene **una** URL pública (Cloudflare, HTTPS, sin VPN): la fila **Producción** de [`docs/07-ambientes-y-pruebas.md`](07-ambientes-y-pruebas.md), el único lugar donde se publica. **No la escribas en el código**: configúrala con `VITE_API_BASE_URL`.
 
-| | **URL actual** (`docs/07`: Producción / Demo Pública) | **URL nueva** (`docs/07`: Backend oficial) |
+| | **Producción** (`docs/07`) | **Apagada** (`docs/07`) |
 |---|---|---|
-| Backend | Backend de prueba | Backend oficial `main`, se actualiza con cada merge |
-| Contrato v1.1 | ✅ completo | ✅ completo |
-| Novedades v1.2 (sección 9) | ❌ `/psr` y `/ephemeris` dan `404`; no hay `checks`, `grid.source` ni líneas de tiempo en `/compare` | ✅ todas |
-| Teselas v1.3 (`/terrain/tiles`, §4.9) | ❌ `404` | ✅ |
-| Swagger / OpenAPI | `<URL>/docs` · `<URL>/openapi.json` | `<URL>/docs` · `<URL>/openapi.json` |
+| Backend | Backend oficial `main`; cada merge que pasa el CI se publica aquí (D-017) | Backend de prueba, apagado el 2026-11-14 |
+| Contrato | v1.3 completo: v1.1, las novedades de v1.2 (sección 9) y las teselas (§4.9) | Ya no responde (era v1.1) |
+| Swagger / OpenAPI | `<URL>/docs` · `<URL>/openapi.json` | — |
 
-- Las dos sirven **datos reales** de la base de datos del servidor (sitios y PSR en PostGIS), de los DEM LOLA y de los kernels SPICE; ninguna es un mock. El mock de este repo (`mock/server.js`) solo corre en local (`localhost:3000`) para trabajar sin internet y devuelve valores simulados.
-- Las dos son *Quick Tunnels*: si el servidor reinicia el túnel, el subdominio cambia. Consulta siempre [`docs/07`](07-ambientes-y-pruebas.md).
-- Para usar las novedades antes de que la URL actual pase al backend nuevo, apunta `VITE_API_BASE_URL` a la URL nueva **o** haz detección de capacidades (sección 8.5).
+- Producción sirve **datos reales** de la base de datos del servidor (sitios y PSR en PostGIS), de los DEM LOLA y de los kernels SPICE; no es un mock. El mock de este repo (`mock/server.js`) solo corre en local (`localhost:3000`) para trabajar sin internet y devuelve valores simulados.
+- Es un *Quick Tunnel*: si el servidor reinicia el túnel, el subdominio cambia. Consulta siempre [`docs/07`](07-ambientes-y-pruebas.md).
 
 ```env
 # .env.local del front (no se versiona); la URL sale de docs/07
-VITE_API_BASE_URL=<URL del backend oficial en docs/07>/api/v1
+VITE_API_BASE_URL=<URL de Producción en docs/07>/api/v1
 ```
 
 Tipos TypeScript (el esquema de este repo es el mismo que sirve el backend oficial):
@@ -79,7 +76,7 @@ Toda respuesta de error usa el mismo sobre:
 | 422 | `ERR_INVALID_PAYLOAD` | Otro parámetro inválido (p. ej. `resolution=100`, `step_minutes=1`, fecha no ISO) |
 | 422 | `ERR_SCENARIO_LIMIT_EXCEEDED` | `/compare` con menos de 2 o más de 5 escenarios |
 | 422 | `ERR_DUPLICATE_SCENARIOS` | `/compare` con dos escenarios iguales (`lat`, `lon`, `start_utc`) |
-| 404 | `ERR_NOT_FOUND` | Ruta inexistente (también `/psr` y `/ephemeris` en la URL actual) |
+| 404 | `ERR_NOT_FOUND` | Ruta inexistente |
 | 503 | `ERR_TERRAIN_UNAVAILABLE` | Falta el DEM o el motor de terreno |
 | 503 | `ERR_UPSTREAM_SERVICE` | Falla la base de datos o faltan los kernels SPICE |
 
@@ -490,7 +487,7 @@ async function allPsrs(minArea = 0) {
 ### 8.5 Detectar si la URL tiene las novedades v1.2
 
 ```ts
-const hasV12 = patch.grid.source != null // en la URL actual llega null
+const hasV12 = patch.grid.source != null // null en backends anteriores a v1.2
 // /psr y /ephemeris responden 404 (ERR_NOT_FOUND) si el backend no los tiene: oculta esas vistas
 ```
 
@@ -534,8 +531,7 @@ Sin cambios: rutas, nombres y tipos de v1.1, rangos de validación, sobre de err
 
 ## 10. Pendientes conocidos (no bloquean el consumo)
 
-- **URLs efímeras:** las dos son *Quick Tunnels*. Hace falta un Named Tunnel con dominio propio para que no cambien.
-- **URL actual sin v1.2:** queda pendiente decidir si se promueve el backend nuevo detrás de la URL actual o si el front pasa a la URL nueva (actualizando `docs/07`).
+- **URL efímera:** Producción es un *Quick Tunnel*. Hace falta un Named Tunnel con dominio propio para que no cambie (iniciativa `despliegue-ci-cd`).
 - **Terreno fuera del Polo Sur** (Apollo, Chandrayaan-3, Chang'e 4): viene de LOLA global (~474 m/px). La malla es real pero suave, y la **pendiente se calcula a 474 m**, así que subestima riesgos a escala de un aterrizador: trata los `SLOPE_*` fuera del polo como orientativos. `grid.source = "lola_global"` lo indica. Al sur de -80° la resolución es de 40 m y el parche estándar (12 km, 128) no tiene interpolación.
 - **IM-2:** la DB que usa el backend todavía tiene IM-2 en `-84.79, 31.2`. La corrección al punto objetivo de LROC (`-84.78, 29.13`, P-009) está en `db/init/20_im2_lroc_site.sql`, pero aún no se aplica en el servidor (~5.7 km de diferencia).
 - **Contrato del front:** `contracts/openapi.json` del front todavía es v1.1. Regenerar los tipos (sección 1) para usar las novedades.
