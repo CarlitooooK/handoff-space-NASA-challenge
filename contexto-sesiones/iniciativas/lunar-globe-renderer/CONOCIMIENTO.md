@@ -113,6 +113,8 @@ La consola ya distingue el mock en su chip ("Sample data" si `/health` no trae `
 - Dónde se despliega el globo (lo hará el Woodpecker de `desktop`, D-018; URL para el iframe; el código ya vive en su repo, ver `HANDOFF.md`) y si se acepta el abanico del polo o se cambia a teselas polares. Decide el equipo.
 
 ## Actualización 2026-11-14 (verificado contra el Backend oficial)
+- **Cámara a ras de suelo en Cesium:** `minimumZoomDistance` también actúa cuando la cámara se deja de fijar: la sube hasta ese valor sobre el terreno. Para escenas a pocos metros (alunizaje, horizonte) hay que bajarlo (1 m) mientras duren y restaurarlo (1 km) al salir. `flyToBoundingSphere` sube la cámara en arco aunque la distancia sea corta: para acercamientos cortos conviene interpolar la posición uno mismo.
+- Con render por software la escena corre a ~0,5 a 1 fotograma por segundo y `dt` se recorta a 0,1 s: las duraciones en segundos de escena tardan mucho más en reloj. Las pruebas del 14-nov usaron eso.
 - `viewer.useDefaultRenderLoop = false` detiene el dibujado de Cesium y `true` lo reanuda; la cámara y los mensajes siguen. Con render por software puede tardar varios segundos en reflejarse.
 - El backend de prueba anterior está caído (D-017). Contra el oficial: Sol y Tierra coinciden con JPL Horizons a 0,00° (az/el); la silueta de `horizon_profile` contra el terreno difiere 0,46° / 0,77° de media.
 - `GET /ephemeris` da la Tierra a ~365.203 km; el globo asume 384.400 km (tamaño aparente ~5 % distinto hasta usar el endpoint).

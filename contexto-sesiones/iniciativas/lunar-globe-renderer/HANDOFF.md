@@ -1,6 +1,6 @@
 # Globo lunar (lunar-globe-renderer) — Handoff
 
-**Última actualización:** 2026-11-14 (globo `f24cbe9`, consola `#11` y `#12` fusionados) · **Responsable:** Carlo (con agente Kiro) · **Repo / componente:** [`luna-render-nasa-space-challenge`](https://github.com/CarlitooooK/luna-render-nasa-space-challenge) (rama `main`, primer commit `98ecf5a`); carpeta local `lunar-globe-renderer/`
+**Última actualización:** 2026-11-14 (globo `987cf47`, consola `#13` fusionado) · **Responsable:** Carlo (con agente Kiro) · **Repo / componente:** [`luna-render-nasa-space-challenge`](https://github.com/CarlitooooK/luna-render-nasa-space-challenge) (rama `main`, primer commit `98ecf5a`); carpeta local `lunar-globe-renderer/`
 
 ## En una línea
 Fase 1 del globo lista y verificada en navegador (CesiumJS + teselas NASA Moon Trek, protocolo iframe/postMessage implementado); falta integrarlo en la consola, subir el código a un repo y resolver el relieve 3D y el abanico en el polo.
@@ -25,6 +25,7 @@ Fase 1 del globo lista y verificada en navegador (CesiumJS + teselas NASA Moon T
 | Puente de mensajes en la consola (`useGlobeBridge`) | Construido y **subido** en la rama `feat/globe-bridge` del repo de la consola (commit `b8551d4`), **Fusionado** en `main` de la consola (PR [#4](https://github.com/CarlitooooK/luna-landing-navigator-console/pull/4), `a000db2`); probado de extremo a extremo con la API en vivo. Guía para Frontend: `docs/11` §10 |
 | Integración en la consola (`<iframe>` + conexión al store) | Hecho: el globo es el render único de la consola (D-015, PR `#6`); puente fusionado (`#4`, `#9`) |
 | Repo git propio | Hecho: [`luna-render-nasa-space-challenge`](https://github.com/CarlitooooK/luna-render-nasa-space-challenge) |
+| Cierre de la escena de alunizaje: la cámara ya no sube a 1 km al posarse (bajaba el módulo a un punto) y el acercamiento final es un planeo recto y suave hasta ver módulo y astronauta | Hecho en el globo (`163cccc`); verificado en Apollo 11. Hay que desplegar este globo o uno posterior |
 | Pausa del dibujado (`SET_PAUSED`) mientras "Terrain detail" tapa el globo; créditos en inglés | Hecho en el globo (`f24cbe9`); consola `#11` fusionado |
 | CI/CD del globo (`.woodpecker/`: typecheck, build, deploy con smoke de Cesium, modelos 3D y caché de Moon Trek) | Fusionado (globo `#1`, `8b1c348`). Falta ver el primer despliegue y la URL pública para `VITE_GLOBE_URL` |
 | Relieve geométrico global (LOLA vía Moon Trek, calibrado contra el backend) | Hecho (~666 m/px). `P-008` respondida: `GET /terrain/tiles` (Terrarium PNG, D-016) permite reemplazar `fetchDemTile` en `terrain.ts`; falta decidir `P-010` |

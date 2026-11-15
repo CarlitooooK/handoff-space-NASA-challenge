@@ -3,6 +3,14 @@
 Cronología, de lo más nuevo a lo más viejo. Fechas absolutas. No se borra: se agrega.
 
 ## 2026-11-14
+- Consola `#13` fusionado (`c623dff`, carril del globo): "Terrain detail" rediseñado a petición de Carlo (se veía como una silueta naranja plana sobre negro).
+  - Relieve con sombras proyectadas por el Sol real del paso del scrubber (Sol y Tierra del `timeline`); con el Sol oculto, luz de la Tierra y aviso "ground brightened so the relief is visible".
+  - Color por `slopes_deg` del backend, con la escala de ESE parche en la leyenda (sin umbrales inventados), la fuente (`LOLA polar` / `LOLA global`, o "Synthetic (not real terrain)") y la resolución nativa.
+  - Sol y Tierra a tamaño angular real, estrellas, borde difuminado, marcador del sitio, cámara que no baja del suelo.
+  - "Vertical ×1/×2/×4" (por defecto ×2, siempre rotulado). Normales suavizadas cuando el dato nativo es mucho más grueso que la celda, sin tocar la geometría.
+  - El parche se pide a 256 × 256 (~790 KB en el polo, 0,3 s). 53 pruebas, `tsc` y `oxlint` limpios.
+  - Limitación: fuera del polo el dato es global (474 m nativos) y el relieve queda plano; mejora con `P-010` y lo que decida `P-013`.
+- Aterrizaje: corregida en el globo la cámara que subía a 1 km al posarse (ver `lunar-globe-renderer/HISTORIAL.md`). Desplegar el globo `163cccc` o posterior junto con la consola.
 - Fusionados consola `#11` (`81db1e6`: cierre de la escena al cambiar de sitio o entrar a History, pausa del globo bajo "Terrain detail", interruptor "Astronaut", créditos en inglés) y `#12` (`c21456b`: Woodpecker, D-018) y handoff `#9` (`P-013`). Sin PRs abiertos en los tres repos. El CI no se puede ver todavía desde GitHub: hay que mirar el primer pipeline en Woodpecker.
 - Se probó "Horizon view" contra Producción (IM-2 Mons Mouton, 2026-12-17): coincide con los datos, pero no muestra relieve cercano. Decisión de Frontend: "Horizon view" es la vista objetivo y "Terrain detail" no se toca por ahora; se preguntó `P-013` (¿dos vistas o una?). En la consola empezó el bloque A de la spec de onboarding (rama `feat/onboarding-bloque-a`).
 - Consola PR `#10` fusionado, `52ab449` (carril del globo): `/ephemeris` y `/psr` para la vista global, `Promise.allSettled` en `evaluate()`, parche y PSR reusados si solo cambia la fecha, no repetir el vuelo en el mismo sitio, pines A–E y marcador del pin libre. `rankBy` pasó al store. Cierra cuatro filas de `docs/06` de la consola. El onboarding lo toma Diego.

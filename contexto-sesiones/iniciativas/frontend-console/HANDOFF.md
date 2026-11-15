@@ -1,6 +1,6 @@
 # Consola Frontend — Handoff
 
-**Última actualización:** 2026-11-14 (consola `#7` a `#12` fusionados; `main` = `c21456b`) · **Responsable:** Equipo Frontend (consola) · **Repo / componente:** `luna-landing-navigator-console`
+**Última actualización:** 2026-11-14 (consola `#7` a `#13` fusionados; `main` = `c623dff`) · **Responsable:** Equipo Frontend (consola) · **Repo / componente:** `luna-landing-navigator-console`
 
 ## En una línea
 El PR `#6` ya está fusionado (D-015, contrato v1.2, `docs/` internas). Fusionados el 2026-11-14: `#7` (contrato v1.3 y baja del mock), `#8` (audit UX y spec de onboarding, lista para implementar) y `#9` (vista de horizonte, del globo).
@@ -21,6 +21,7 @@ El PR `#6` ya está fusionado (D-015, contrato v1.2, `docs/` internas). Fusionad
 | **Baja del mock:** la consola se desarrolla y prueba contra el Backend oficial de `docs/07`; se quitan `npm run mock` y el rótulo "Sample data" | Hecho (`#7`); el código muerto (`isSampleData`, `SET_DATA_MODE`) se quitó en `#9` |
 | **Audit UX y spec de onboarding** (`docs/specs/onboarding-ayudas-sugerencias/` de la consola): tour de 7 pasos, ayudas "?", próxima acción por estado y correcciones base, en 21 tareas | Spec fusionada (`#8`). Sin código todavía |
 | Uso de `site.checks` en la interfaz | Especificado (tarea B5 de la spec); no implementado |
+| "Terrain detail" rediseñado: relieve con sombras del Sol del scrubber (luz de la Tierra si el Sol está oculto), color por `slopes_deg` con leyenda de la escala del parche, Sol y Tierra a tamaño angular real, marcador del sitio, "Vertical ×1/×2/×4" (por defecto ×2, rotulado), parche de 256 × 256 | Hecho (`#13`, `c623dff`). Con dato global (474 m nativos) el relieve sigue plano fuera del polo |
 | "Terrain detail" a ras de suelo con la cámara del globo | Decidido por el usuario; anotado en `docs/06` de la consola, sin spec. Depende del globo y de `P-010` |
 | Globo desplegado y `VITE_GLOBE_URL` de producción | Pipeline fusionado (globo `#1`); sin confirmar el primer despliegue |
 | Video demo y AI Tool Disclosure | No iniciado |
