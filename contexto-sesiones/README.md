@@ -68,6 +68,6 @@ contexto-sesiones/
 | --- | --- | --- | --- |
 | [Lunar Landing Navigator](iniciativas/lunar-landing-navigator/HANDOFF.md) | Repo matriz / API en vivo / Contratos / Docs / Mock | Contrato v1.3; Producción = backend oficial (D-017); falta aplicar IM-2 | 2026-11-14 |
 | [handoff-api-frontend](iniciativas/handoff-api-frontend/HANDOFF.md) | `FRONTEND_API_GUIDE.md`, `contracts/`, `docs/` | Cerrada (continúa en Lunar Landing Navigator) | 2026-11-14 |
-| [frontend-console](iniciativas/frontend-console/HANDOFF.md) | `luna-landing-navigator-console` | Fase 1 fusionada, con puente al globo | 2026-11-14 |
+| [frontend-console](iniciativas/frontend-console/HANDOFF.md) | `luna-landing-navigator-console` | Globo como render único fusionado; spec de onboarding y baja del mock en revisión | 2026-11-14 |
 | [despliegue-ci-cd](iniciativas/despliegue-ci-cd/HANDOFF.md) | Woodpecker CI en `desktop`: backend, consola y globo | Backend: merge → Producción (D-017); fronts listos para conectar (D-018, pasos de Carlo en `docs/07`) | 2026-11-14 |
 | [lunar-globe-renderer](iniciativas/lunar-globe-renderer/HANDOFF.md) | [`luna-render-nasa-space-challenge`](https://github.com/CarlitooooK/luna-render-nasa-space-challenge) (globo lunar CesiumJS) | Fase 1 lista, falta integrar | 2026-11-14 |
