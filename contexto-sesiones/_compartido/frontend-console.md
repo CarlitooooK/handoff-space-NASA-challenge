@@ -14,7 +14,7 @@ Verificado el `2026-11-15` leyendo el código de la consola (rama del PR `#16`, 
 ## Arquitectura
 React 19 + TypeScript + Vite, Tailwind v4, Three.js con React Three Fiber/drei, Zustand y Vitest.
 - `src/core/api`: único cliente HTTP, un método por endpoint usado, errores por `error.code`.
-- `src/core/store`: `useMissionStore` (configuración · datos de la API · reproducción), `useGlobeStore` (enlace con el globo y escena de alunizaje) y `useHistoryStore` y `useOnboardingStore` (`localStorage`).
+- `src/core/store`: `useMissionStore` (configuración · datos de la API · reproducción), `useGlobeStore` (enlace con el globo y escena de alunizaje) y `useHistoryStore` (corridas y comparaciones, se guardan solas desde `#25`) y `useOnboardingStore` (`localStorage`).
 - `src/features/viewport3d`: fondo (`SceneBackground`), iframe del globo y puente (`useGlobeBridge`, único que habla con el iframe), escena local Three.js.
 - `src/features/help`, `src/features/suggest` y `src/features/onboarding`: catálogo de ayudas y menú Help, "Next step" (`nextStep()`, pura) y tour (`resolveSteps()`, pura, y `Tour.tsx`).
 - `src/types/api.d.ts`: generado desde `contracts/openapi.json` (v1.3 desde el PR `#7`).

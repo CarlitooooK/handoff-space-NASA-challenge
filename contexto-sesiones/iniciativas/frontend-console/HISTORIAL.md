@@ -3,6 +3,14 @@
 Cronología, de lo más nuevo a lo más viejo. Fechas absolutas. No se borra: se agrega.
 
 ## 2026-11-15
+- **History guarda solo** (consola PR `#25`, `0a7b17f`, Diego), a pedido del usuario ("no se están guardando las simulaciones y comparaciones").
+  - Diagnóstico: History ya usaba `localStorage`. Solo guardaba con el marcador de Setup (decisión A7 de la spec) y nunca guardaba comparaciones. Además `localStorage` es distinto en cada origen: otro puerto no ve lo guardado.
+  - El usuario eligió guardar solos "Run simulation" (Simulate) y el "Replay" de Missions, y también las comparaciones. El tour no guarda.
+  - `useHistoryStore` v2 (`migrateHistory` conserva las corridas v1): `save` sube la entrada si ya existe, `saveComparison` nuevo, `comparisons` con límite 50. `runSimulation()` guarda con `evaluatedFor`; `compare()` guarda la comparación; `restoreComparison()` la reabre. History mezcla las dos listas (`mergeEntries`) con un detalle propio para comparaciones. El marcador pasó a ser la estrella (`useStarRun`) y el Next step de GO dice "Star this run".
+  - 175 pruebas. Verificado contra el Backend oficial leyendo `localStorage`: sin duplicados al repetir, el replay de Missions se guarda, la comparación se guarda una vez, sobrevive a la recarga, "Open in Compare" restaura y el tour deja 0 corridas.
+- **Tour con Apollo 15** (consola PR `#24`, `efeabe1`, Diego), a pedido del usuario. Misma fecha y duración; GO con 1,1° de pendiente, 71 % de Sol y 100 % de Tierra. Empieza de noche: se propuso el 2026-12-18 (sin respuesta). De "las preselecciones" el usuario aclaró que solo era el tour.
+- Consola `#22` y `#23` fusionadas (`4f62293`, `2cc79d3`).
+- `docs/13` puesto al día: estrella en vez de marcador, History que guarda solo con comparaciones, tour con Apollo 15 y la espera de 1 s del timeline.
 - Nuevo [`docs/13`](../../../docs/13-guia-de-la-consola-y-el-render.md): guía sin tecnicismos de todo lo que hace la consola (Simulate, Compare, History, Missions, línea de tiempo, ayudas, tour) y de cómo se acompaña con el globo (vistas, píldoras, marcadores A–E, sombras permanentes, Horizon view, Landing scene, Terrain detail), con la lista de qué es real y qué es ilustrativo. Documentación elemental de la iniciativa y del proyecto.
 - **Timeline en pantalla completa** (consola PR `#23`, rama `fix/timeline-plegado`, Diego), a pedido del usuario: el dock se abría y cerraba en bucle (parecía vibrar).
   - Causa medida en el navegador: el slot del dock no lo alineaba al fondo. Al animar el alto de 58 a 209 px, su borde inferior subía de 860 a 829 px, el cursor quedaba fuera, se perdía `:hover` y se plegaba. El ciclo se repetía cada ~0,9 s.
