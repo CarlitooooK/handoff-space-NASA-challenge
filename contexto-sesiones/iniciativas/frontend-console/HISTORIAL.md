@@ -3,6 +3,19 @@
 Cronología, de lo más nuevo a lo más viejo. Fechas absolutas. No se borra: se agrega.
 
 ## 2026-11-15
+- **Timeline en pantalla completa** (consola PR `#23`, rama `fix/timeline-plegado`, Diego), a pedido del usuario: el dock se abría y cerraba en bucle (parecía vibrar).
+  - Causa medida en el navegador: el slot del dock no lo alineaba al fondo. Al animar el alto de 58 a 209 px, su borde inferior subía de 860 a 829 px, el cursor quedaba fuera, se perdía `:hover` y se plegaba. El ciclo se repetía cada ~0,9 s.
+  - Arreglo: `items-end` en el slot (`ConsoleShell.tsx`), así crece hacia arriba desde el borde inferior; y en `index.css` el timeline (`data-peek="inline"`) espera 1 s antes de plegarse al salir el cursor y el foco. Los paneles laterales no cambian. `docs/01` actualizado.
+  - Verificado: con el cursor fijo arriba, al medio y abajo de la franja se abre una vez y se queda; se pliega ~1,16 s después de `pointerleave`; salir y volver en ~1 s no lo cierra. **No verificado:** GPU real.
+- **Desbordes de UI** (consola PR `#22`, rama `fix/ui-desbordes`, Diego), a pedido del usuario. Revisión de todas las pantallas a 1440×900 y 1280×720:
+  - Las burbujas "?" heredaban `whitespace-nowrap` del control padre aunque se pinten en la capa superior (Live data salía en una línea y cortada): `whitespace-normal` en `HelpTip`, `TipButton` y el menú Help.
+  - Missions › "Recreate a mission": solo la lista se desplaza (igual que History); la nota de fuentes ya no se sale de la tarjeta y el buscador no se aplasta. `docs/05` actualizado.
+  - Timeline a 1280 px: "Horizon 360°" baja a una segunda fila si no cabe.
+  - Compare: el nombre del escenario va solo en su fila (antes "Shac…", "IM…"); la matriz reserva 224 px para no tapar el timeline.
+  - 169 pruebas, `tsc` y `oxlint` limpios. Queda igual: la columna derecha de Missions se desplaza a 720 px de alto.
+- Consola `#21` fusionada (`22ba7ee`). Globo `#5` (Tierra blanca) fusionado: ver el historial del globo.
+
+## 2026-11-15
 - **Burbuja en las píldoras de escena** (consola PR `#21`, rama `feat/pildoras-con-ayuda`, Diego), a pedido del usuario:
   - Las 12 píldoras con acción (Recenter, Grid, Elevation, Shadowed regions, Horizon view, Back to globe, Landing scene, Astronaut, Terrain detail, Exit scene, Vertical y Back to globe / Global view en Terrain detail) abren una burbuja tras 1 s con el cursor encima o 1 s de foco por teclado. Las informativas no.
   - `Pill` acepta `tip` (`ui/TipButton.tsx`, `popover="manual"` para no cerrar el menú Help). Se cierra con Esc, clic, al sacar el cursor o al perder el foco; no aparece con toque.
