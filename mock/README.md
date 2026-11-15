@@ -1,6 +1,6 @@
 # Servidor Simulado (Mock Server)
 
-Servidor HTTP autónomo con **cero dependencias externas de `npm`**, desarrollado con los módulos nativos de Node.js (`http`, `url`, `zlib`). Emula el contrato de interfaz oficial **v1.3** especificado en [`contracts/lunar-landing-api-contract.md`](../contracts/lunar-landing-api-contract.md), con datos simulados.
+Servidor HTTP autónomo con **cero dependencias externas de `npm`**, desarrollado con los módulos nativos de Node.js (`http`, `url`, `zlib`). Emula el contrato de interfaz oficial **v1.5** especificado en [`contracts/lunar-landing-api-contract.md`](../contracts/lunar-landing-api-contract.md), con datos simulados.
 
 Permite al equipo de frontend, evaluadores y jurados ejecutar la solución de forma desacoplada, con respuestas en milisegundos y sin requerir conexión a internet ni compilación de kernels SPICE.
 
@@ -42,6 +42,8 @@ Available endpoints:
   GET  /api/v1/psr?offset=0&limit=500
   GET  /api/v1/ephemeris?utc=2026-12-01T00:00:00Z
   GET  /api/v1/terrain/tiles/9/511/600.png
+  GET  /api/v1/terrain/tiles/heightmap/12/4095/4000.bin
+  GET  /api/v1/terrain/tiles/hillshade/9/511/600.png
 ============================================================
 ```
 
@@ -66,9 +68,11 @@ npx @stoplight/prism-cli mock contracts/lunar-landing-api-contract.yaml -p 3000
 | `GET` | `/api/v1/psr/nearby` | Polígonos GeoJSON de Regiones Permanentemente Sombreadas (PSRs). | `lat`, `lon`, `radius_km`. |
 | `GET` | `/api/v1/psr` | Catálogo de PSRs paginado (v1.2); el mock tiene 4. | `offset`, `limit` (1..500), `simplify_m`, `min_area_km2`. |
 | `GET` | `/api/v1/ephemeris` | Sol y Tierra desde el centro de la Luna (v1.2). Valores aproximados anclados al resultado SPICE del backend para `2026-12-01T00:00:00Z`. | `utc` (1900..2050). |
-| `GET` | `/api/v1/terrain/tiles/{z}/{row}/{col}.png` | Teselas Terrarium de 256×256 (v1.3) con relieve **sintético** continuo (no es LOLA); `X-Terrain-Source: synthetic`, sin `ETag`. | `z` 0..9, `row` 0..2^z−1, `col` 0..2^(z+1)−1. |
+| `GET` | `/api/v1/terrain/tiles/{z}/{row}/{col}.png` | Teselas Terrarium de 256×256 (v1.3) con relieve **sintético** continuo (no es LOLA); `X-Terrain-Source: synthetic`, sin `ETag`. | `z` 0..10, `row` 0..2^z−1, `col` 0..2^(z+1)−1. |
+| `GET` | `/api/v1/terrain/tiles/heightmap/{z}/{row}/{col}.bin` | Malla de 65×65 `float32` (v1.5) del mismo relieve sintético, con las muestras sobre los bordes; gzip si se acepta. | `z` 0..12. |
+| `GET` | `/api/v1/terrain/tiles/hillshade/{z}/{row}/{col}.png` | Sombreado en gris (v1.5) del relieve sintético; gris + alfa con `fade_start_lat` y `fade_end_lat`. | `z` 0..10; `light_lon`, `light_lat`, `exaggeration` y `fade_*` con los rangos del contrato §2.11. |
 
-Las respuestas `200` de `sites`, `terrain/patch`, `psr`, `psr/nearby`, `ephemeris` y `terrain/tiles` llevan `Cache-Control: public, max-age=3600`, como el backend.
+Las respuestas `200` de `sites`, `terrain/patch`, `psr`, `psr/nearby`, `ephemeris` y `terrain/tiles` (con `heightmap` y `hillshade`) llevan `Cache-Control: public, max-age=3600`, como el backend.
 
 ---
 

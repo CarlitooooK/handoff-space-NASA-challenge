@@ -1,6 +1,6 @@
 # Guía de Consumo API para Frontend — *Lunar Landing Site Navigator*
 
-**Última actualización:** 2026-11-14 (contrato v1.2)  
+**Última actualización:** 2026-11-15 (contrato v1.5)  
 **Backend:** FastAPI + PostgreSQL/PostGIS + LOLA DEM Multi-resolución (`40 m/px` Polo Sur + `80 m/px` + Global `64 ppd` `ldem_64.tif` `-90°..+90°`) + SPICE (`de440s.bsp` / `MOON_ME`)  
 **CORS:** Habilitado abierto (`allow_origins=["*"]`) — puedes llamar directo desde `localhost` (`Vite`, `Next.js`, `CRA`) o producción sin proxy adicional.
 
@@ -89,7 +89,7 @@ export async function apiFetch<T>(
 
 ---
 
-## 3. Cómo Llamar Cada Endpoint (8 Endpoints)
+## 3. Cómo Llamar Cada Endpoint (11 Endpoints)
 
 > **v1.2:** los campos y endpoints marcados *(v1.2)* son aditivos. La URL de Producción ya los sirve (ver [`docs/07-ambientes-y-pruebas.md`](docs/07-ambientes-y-pruebas.md)); trátalos como opcionales si todavía usas un mock anterior a v1.2. Flujo, límites y coordenadas de v1.2: [`docs/12-contrato-api-v1.2.md`](docs/12-contrato-api-v1.2.md).
 
@@ -250,6 +250,13 @@ const evalResult = await apiFetch<{
     hours_to_next_sunset: number | null;
     next_earthset_utc: string | null;
     hours_to_next_earthset: number | null;
+    // (v1.4) estado en timeline[0] y primera salida (oculto -> visible) dentro de la ventana; null si no ocurre
+    sun_visible_at_start?: boolean | null;
+    earth_visible_at_start?: boolean | null;
+    next_sunrise_utc?: string | null;
+    hours_to_next_sunrise?: number | null;
+    next_earthrise_utc?: string | null;
+    hours_to_next_earthrise?: number | null;
     avg_power_factor: number;
     estimated_peak_power_w: number;
   };
@@ -434,7 +441,105 @@ const eph = await apiFetch<{ utc: string; frame: string; sun: EphemerisBody; ear
 // 503 ERR_UPSTREAM_SERVICE si el servidor no tiene SPICE: no dibujes el Sol (no hay respaldo aproximado).
 ```
 
-> **Caché (v1.2):** `sites`, `terrain/patch`, `psr`, `psr/nearby` y `ephemeris` responden con `Cache-Control: public, max-age=3600`; el navegador las reutiliza sin código extra.
+### 3.9 Teselas de terreno del globo: `/terrain/tiles` (v1.3) y malla y sombreado (v1.5)
+Solo para el **globo** (excepción acotada de D-019). La consola no las pide: le pasa al globo la URL base y el globo las pide directo, como las de Moon Trek. Contrato completo: [`contracts/lunar-landing-api-contract.md`](contracts/lunar-landing-api-contract.md) §2.9 a §2.11.
+
+**La URL base no cambia.** Es la misma de D-019: `terrainTilesUrl = <VITE_API_BASE_URL>/terrain/tiles`, que la consola manda en `SET_CONFIG` (consola PR `#15`). Los tres productos cuelgan de ella; no hace falta otro mensaje ni otra variable de entorno.
+
+| Qué | URL (relativa a `terrainTilesUrl`) | Formato | Niveles | Para |
+|---|---|---|---|---|
+| Elevación (v1.3) | `/{z}/{row}/{col}.png` | PNG Terrarium 256×256, centros de píxel | `z` 0–10 (v1.3: 0–9) | Leer alturas si hace falta procesarlas |
+| **Malla (v1.5)** | `/heightmap/{z}/{row}/{col}.bin` | 65×65 `float32` LE, muestras **sobre** los bordes | `z` 0–12 | `CustomHeightmapTerrainProvider` **sin procesar** |
+| **Sombreado (v1.5)** | `/hillshade/{z}/{row}/{col}.png?…` | PNG gris 256×256 (gris + alfa con `fade_*`) | `z` 0–10 | Capa de imágenes **sin procesar** |
+
+Esquema de teselas: el de Moon Trek y `GeographicTilingScheme` de Cesium con `Ellipsoid.MOON` (nivel 0 = 2 columnas × 1 fila; `row` 0 al norte; `col` 0 en −180°). En Cesium, `{y}` es `row` y `{x}` es `col`.
+
+**1. Detecta qué sirve el backend** (una vez, al recibir `terrainTilesUrl`):
+
+```ts
+// v1.5 si responde la malla de nivel 0; si no, v1.3 (Terrarium); si nada responde, Moon Trek.
+async function terrainTilesVersion(base: string): Promise<'v1.5' | 'v1.3' | null> {
+  const ok = async (u: string) => { try { return (await fetch(u)).ok } catch { return false } }
+  if (await ok(`${base}/heightmap/0/0/0.bin`)) return 'v1.5'
+  if (await ok(`${base}/0/0/0.png`)) return 'v1.3'
+  return null
+}
+```
+
+**2. Relieve con la malla** (v1.5): el arreglo va directo a Cesium. Más allá del nivel 12 interpola la malla del ancestro.
+
+```ts
+import { CustomHeightmapTerrainProvider, Ellipsoid, GeographicTilingScheme } from 'cesium'
+
+const N = 65 // muestras por lado; la (i, j) está en lon = oeste + i·span/64, lat = norte − j·span/64
+const MAX_Z = 12
+
+async function fetchHeightmap(base: string, z: number, row: number, col: number): Promise<Float32Array | null> {
+  const res = await fetch(`${base}/heightmap/${z}/${row}/${col}.bin`) // gzip lo descomprime el navegador
+  if (!res.ok) return null // 404/422 definitivos; 5xx o red: reintenta con espera
+  const a = new Float32Array(await res.arrayBuffer())
+  return a.length === N * N ? a : null
+}
+
+export function createApiTerrain(base: string) {
+  return new CustomHeightmapTerrainProvider({
+    width: N,
+    height: N,
+    tilingScheme: new GeographicTilingScheme({ ellipsoid: Ellipsoid.MOON }),
+    callback: async (x, y, level) => {
+      const z = Math.min(level, MAX_Z)
+      const shift = level - z
+      const hm = await fetchHeightmap(base, z, y >> shift, x >> shift) // cachea por URL para no repetir
+      if (!hm) return new Float32Array(N * N) // sin datos: plano
+      if (shift === 0) return new Float32Array(hm) // copia: Cesium se queda con el arreglo
+      const span = 2 ** shift
+      const out = new Float32Array(N * N)
+      for (let j = 0; j < N; j++) {
+        const v = ((y + j / (N - 1)) / span - (y >> shift)) * (N - 1)
+        const j0 = Math.min(N - 2, Math.floor(v)), fy = v - j0
+        for (let i = 0; i < N; i++) {
+          const u = ((x + i / (N - 1)) / span - (x >> shift)) * (N - 1)
+          const i0 = Math.min(N - 2, Math.floor(u)), fx = u - i0
+          const top = hm[j0 * N + i0] * (1 - fx) + hm[j0 * N + i0 + 1] * fx
+          const bot = hm[(j0 + 1) * N + i0] * (1 - fx) + hm[(j0 + 1) * N + i0 + 1] * fx
+          out[j * N + i] = top * (1 - fy) + bot * fy
+        }
+      }
+      return out
+    },
+  })
+}
+```
+
+**3. Polo sombreado** (v1.5): una capa de imágenes normal; el navegador no calcula nada.
+
+```ts
+import { GeographicTilingScheme, Ellipsoid, Rectangle, UrlTemplateImageryProvider } from 'cesium'
+
+const shade = new UrlTemplateImageryProvider({
+  // Mismos valores que usaba el globo: exageración 1.6, se funde con el mosaico entre −83° y −85°
+  url: `${base}/hillshade/{z}/{y}/{x}.png?exaggeration=1.6&fade_start_lat=-83&fade_end_lat=-85`,
+  tilingScheme: new GeographicTilingScheme({ ellipsoid: Ellipsoid.MOON }),
+  rectangle: Rectangle.fromDegrees(-180, -90, 180, -83),
+  maximumLevel: 10,
+  tileWidth: 256,
+  tileHeight: 256,
+})
+const layer = viewer.imageryLayers.addImageryProvider(shade)
+// El estilo es del cliente: layer.brightness, layer.contrast, layer.gamma (el backend da cos(incidencia) lineal)
+```
+
+**Qué tener en cuenta:**
+- **Luz del sombreado:** fija e ilustrativa (`light_lon`, `light_lat`: dónde cae a plomo; por defecto 135° E, 22° S). No es el Sol de la simulación y no hay sombras proyectadas: rotúlalo como relieve sombreado.
+- **Parámetros:** se redondean a 0.01; usa siempre los mismos valores para aprovechar la caché. Fuera de rango, o un solo `fade_*`, da `422 ERR_INVALID_PAYLOAD`.
+- **Cabeceras** (legibles por CORS): `X-Terrain-Source` (DEM usado) y `X-Terrain-Resolution-M` (cada cuántos metros hay un dato real; si es mayor que el píxel, el detalle extra es interpolado). Fuera del polo el DEM global (118 m) no da más detalle desde `z ≈ 8`.
+- **Caché HTTP:** `Cache-Control: public, max-age=3600` y `ETag` (`304` con `If-None-Match`); el navegador lo hace solo. La malla con gzip lleva su propia `ETag` (termina en `-gz"`).
+- **Errores:** `422` (índice o parámetro fuera de rango) y `503 ERR_TERRAIN_UNAVAILABLE` son definitivos para esa tesela: usa el respaldo (relieve plano o el mosaico de debajo). Ante errores de red o `5xx`, reintenta con espera y **no** guardes el fallo en caché.
+- **Concurrencia:** limita las peticiones en vuelo (el globo usa 6 para `fetch` propios); `UrlTemplateImageryProvider` ya pasa por el `RequestScheduler` de Cesium.
+- **Primera carga:** las teselas de `z` 0 a 2 tardan varios segundos la primera vez después de cada despliegue del backend (lectura del DEM global); luego quedan en caché. Ya pasaba con `/terrain/tiles` y se está optimizando.
+- **Mock local:** `mock/` sirve las tres rutas con relieve sintético (`X-Terrain-Source: synthetic`).
+
+> **Caché (v1.2):** `sites`, `terrain/patch`, `psr`, `psr/nearby`, `ephemeris` y `terrain/tiles` (con `heightmap` y `hillshade`) responden con `Cache-Control: public, max-age=3600`; el navegador las reutiliza sin código extra.
 
 ---
 
