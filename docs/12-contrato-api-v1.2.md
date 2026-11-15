@@ -534,24 +534,7 @@ async function fetchTerrainTile(tilesBaseUrl: string, z: number, row: number, co
 
 ### 8.7 Malla y sombreado listos (§4.10 y §4.11)
 
-```ts
-// terrainTilesUrl llega por SET_CONFIG (D-019): `<VITE_API_BASE_URL>/terrain/tiles`.
-const terrain = new Cesium.CustomHeightmapTerrainProvider({
-  width: 65, height: 65,
-  tilingScheme: new Cesium.GeographicTilingScheme({ ellipsoid: Cesium.Ellipsoid.MOON }),
-  // Niveles 0 a 12; para niveles mayores, interpola la malla del ancestro (como hace el globo).
-  callback: async (x, y, level) => {
-    const res = await fetch(`${terrainTilesUrl}/heightmap/${level}/${y}/${x}.bin`)
-    return res.ok ? new Float32Array(await res.arrayBuffer()) : new Float32Array(65 * 65) // sin datos: plano
-  },
-})
-const shade = new Cesium.UrlTemplateImageryProvider({
-  url: `${terrainTilesUrl}/hillshade/{z}/{y}/{x}.png?exaggeration=1.6&fade_start_lat=-83&fade_end_lat=-85`,
-  tilingScheme: new Cesium.GeographicTilingScheme({ ellipsoid: Cesium.Ellipsoid.MOON }),
-  rectangle: Cesium.Rectangle.fromDegrees(-180, -90, 180, -83),
-  maximumLevel: 10,
-})
-```
+El código para Cesium (detectar v1.5, `CustomHeightmapTerrainProvider` con la malla y `UrlTemplateImageryProvider` con el sombreado) está en [`FRONTEND_API_GUIDE.md`](../FRONTEND_API_GUIDE.md) §3.9, la fuente única de ejemplos de cliente.
 
 ---
 

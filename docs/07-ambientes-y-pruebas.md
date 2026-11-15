@@ -20,9 +20,9 @@ El Frontend solo consume la URL de **Producción** o el mock local; no necesita 
 
 | Ambiente | Contrato | Nota |
 | --- | --- | --- |
-| Producción (backend oficial) | **v1.3** | Todos los campos y endpoints de v1.2 ([`docs/12`](12-contrato-api-v1.2.md)) más `GET /terrain/tiles` (D-016), desde `AxelT456/lunar_landing_site_navigator_api#7` (`615e64c`). Verificado el 2026-11-14. |
+| Producción (backend oficial) | **v1.5** | Todos los campos y endpoints de v1.2 ([`docs/12`](12-contrato-api-v1.2.md)), `GET /terrain/tiles` (D-016), los campos v1.4 de `summary` (D-020) y la malla y el sombreado del globo (D-021), desde `AxelT456/lunar_landing_site_navigator_api#11` (`848ac4a`). Verificado el 2026-11-15. |
 | Apagada | — | Ya no responde. |
-| Local Mock | **v1.3** | Todos los campos y endpoints de v1.3 con datos simulados (las teselas son relieve sintético, `X-Terrain-Source: synthetic`). |
+| Local Mock | **v1.5** | Todos los campos y endpoints de v1.5 con datos simulados (las teselas, la malla y el sombreado son relieve sintético, `X-Terrain-Source: synthetic`). |
 
 IM-2 (`P-009`): la base de datos de Producción todavía tiene IM-2 en `lon 31.2`. La corrección se ve en cuanto se aplique en el servidor.
 

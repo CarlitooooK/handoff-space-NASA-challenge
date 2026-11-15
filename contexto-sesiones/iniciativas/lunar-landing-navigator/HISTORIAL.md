@@ -6,7 +6,7 @@ Cronología del proyecto, de lo más nuevo a lo más viejo. Fechas absolutas. No
 
 ## 2026-11-15
 
-- **Contrato v1.4 (D-020) y v1.5 (D-021)** copiados de `AxelT456/lunar_landing_site_navigator_api#10` (`dc515e9`) y `#11` (`29ada11`): salidas del Sol y la Tierra en `summary`; malla (`/terrain/tiles/heightmap`) y sombreado (`/terrain/tiles/hillshade`) listos para el globo, `z` 10 con el DEM polar de 20 m y `X-Terrain-Resolution-M`. Se actualizaron `contracts/` (`openapi.json` exportado de los dos integrados), `docs/12` §4.4, §4.9–§4.11 y §8.7, y `_compartido/backend-api.md`. `docs/07` sigue en v1.3 hasta que Producción publique ambos merges.
+- **Contrato v1.4 (D-020) y v1.5 (D-021)** copiados de `AxelT456/lunar_landing_site_navigator_api#10` (`dc515e9`) y `#11` (`848ac4a`): salidas del Sol y la Tierra en `summary`; malla (`/terrain/tiles/heightmap`) y sombreado (`/terrain/tiles/hillshade`) listos para el globo, `z` 10 con el DEM polar de 20 m y `X-Terrain-Resolution-M`. Se actualizaron `contracts/` (`openapi.json` exportado de los dos integrados), `docs/12` §4.4, §4.9–§4.11 y §8.7, y `_compartido/backend-api.md`. Producción sirve v1.5 desde `848ac4a` (verificado el 2026-11-15; `docs/07` actualizado). Cómo consumirlo desde el globo: `FRONTEND_API_GUIDE.md` §3.9.
 - **`P-011` y `P-012` respondidas; aporte de Backend a `P-010`** (verificado contra el backend oficial `7326cba` y la URL de Producción de `docs/07`): se definieron `power_factor`, `avg_power_factor`, `estimated_peak_power_w`, `hours_to_next_*`, `next_*_utc` y `nearest_psr_km` en `contracts/` §2.4 y `docs/12` §4.2 y §4.4, sin cambio de versión. `P-010` sigue abierta: la decide Globo y Frontend.
 
 ## 2026-11-14

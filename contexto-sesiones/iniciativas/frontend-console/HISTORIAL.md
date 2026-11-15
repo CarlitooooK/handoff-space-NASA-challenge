@@ -3,6 +3,7 @@
 Cronología, de lo más nuevo a lo más viejo. Fechas absolutas. No se borra: se agrega.
 
 ## 2026-11-15
+- **Contrato v1.4 y v1.5 (D-020, D-021), aviso de Backend:** `summary` trae `sun_visible_at_start`, `earth_visible_at_start` y `next_*rise_*` (Compare ya no necesita `timeline` para saber si un astro empieza oculto o cuándo sale). Para el globo no cambia nada en la consola: la malla y el sombreado cuelgan del mismo `terrainTilesUrl` de D-019 (sigue haciendo falta la consola PR `#15`). Ver `FRONTEND_API_GUIDE.md` §3.4 y §3.9.
 - Backend respondió `P-011` (textos de ayuda de PSR y `power_factor`, con propuesta en inglés y cita de PGDA) y `P-012` (semántica de `hours_to_next_*`; para Compare usar `include_timeline: true`). Ver `PREGUNTAS.md` y `contracts/` §2.4.
 
 ## 2026-11-15
