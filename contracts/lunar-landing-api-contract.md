@@ -1,4 +1,4 @@
-# Lunar Landing Site Navigator — API Contract Specification (v1.2)
+# Lunar Landing Site Navigator — API Contract Specification (v1.3)
 
 Documentación de interfaz de comunicación (Request/Response) entre el Frontend (Visor 2D/3D y Dashboard) y el Backend (Motor topográfico LOLA y efemérides SPICE/Horizons).
 
@@ -9,12 +9,12 @@ Documentación de interfaz de comunicación (Request/Response) entre el Frontend
 ### 1.1 Estándares de Comunicación y Ambientes
 * **URLs activas, variables de entorno y comandos de prueba:** consultar la fuente única en [`docs/07-ambientes-y-pruebas.md`](../docs/07-ambientes-y-pruebas.md).
 * **Esquema OpenAPI 3.1.0:** [`contracts/openapi.json`](openapi.json).
-* **CORS:** Habilitado abierto (`allow_origins=["*"]`) para llamadas directas desde `localhost` o producción.
+* **CORS:** Habilitado abierto (`allow_origins=["*"]`) para llamadas directas desde `localhost` o producción. Expone la cabecera `X-Terrain-Source` (v1.3) para que el navegador la lea.
 * **Formato de intercambio:** `application/json` (UTF-8)
 * **Formato de fechas:** ISO-8601 en UTC estricto (`YYYY-MM-DDTHH:mm:ssZ`), rango soportado **`1900-01-01` a `2050-12-31`**.
 * **Guía de consumo de v1.2:** [`docs/12-contrato-api-v1.2.md`](../docs/12-contrato-api-v1.2.md) (flujo recomendado, límites, coordenadas y recetas TypeScript).
-* **Versiones:** v1.2 solo **agrega** campos y endpoints a v1.1 (`site.checks`, `include_timeline` en `/compare`, `grid.source` y `grid.native_resolution_m`, `GET /psr`, `GET /ephemeris`); no quita ni renombra nada. Qué versión sirve cada ambiente: [`docs/07-ambientes-y-pruebas.md`](../docs/07-ambientes-y-pruebas.md).
-* **Caché HTTP:** las respuestas `200` de `GET /sites`, `/terrain/patch`, `/psr`, `/psr/nearby` y `/ephemeris` llevan `Cache-Control: public, max-age=3600` (datos de referencia que no cambian por petición). `/health` y los errores no se cachean.
+* **Versiones:** v1.2 solo **agrega** campos y endpoints a v1.1 (`site.checks`, `include_timeline` en `/compare`, `grid.source` y `grid.native_resolution_m`, `GET /psr`, `GET /ephemeris`), y v1.3 agrega `GET /terrain/tiles/{z}/{row}/{col}.png`; ninguna quita ni renombra nada. Qué versión sirve cada ambiente: [`docs/07-ambientes-y-pruebas.md`](../docs/07-ambientes-y-pruebas.md).
+* **Caché HTTP:** las respuestas `200` de `GET /sites`, `/terrain/patch`, `/psr`, `/psr/nearby`, `/ephemeris` y `/terrain/tiles` llevan `Cache-Control: public, max-age=3600` (datos de referencia que no cambian por petición). `/terrain/tiles` agrega `ETag` y responde `304` a `If-None-Match`. `/health` y los errores no se cachean.
 * **Códigos de Estado HTTP:**
   * `200 OK`: Cálculo o consulta exitosa.
   * `400 Bad Request`: JSON malformado o ausencia de campos obligatorios del payload (`ERR_INVALID_PAYLOAD`).
@@ -431,6 +431,32 @@ Sol y Tierra vistos desde el **centro de la Luna**, para dibujar el cielo del gl
 
 ---
 
+### 2.9 `GET /api/v1/terrain/tiles/{z}/{row}/{col}.png` (v1.3)
+Teselas de elevación de **toda la Luna** para el globo (`P-008`), en el mismo esquema que NASA Moon Trek y `GeographicTilingScheme` de Cesium. Las mallas de un sitio siguen saliendo de `GET /terrain/patch`.
+
+* **Path Parameters:**
+  * `z`: nivel de `0` a `9`. El nivel `0` tiene 2 columnas × 1 fila; cada tesela abarca `180° / 2^z`.
+  * `row`: `0` a `2^z − 1`; la fila `0` es el borde norte (`lat 90°`).
+  * `col`: `0` a `2^(z+1) − 1`; la columna `0` empieza en `lon −180°`.
+* **Respuesta (`200 OK`, `image/png`):** PNG RGB de 8 bits, **256 × 256** muestras en los centros de píxel (fila `0` al norte). Codificación **Terrarium**:
+
+```
+elevation_m = R * 256 + G + B / 256 - 32768      (resolución 1/256 m)
+```
+
+  La elevación es relativa a la esfera de `1 737 400 m`, la misma de `terrain/patch` y de `Ellipsoid.MOON`. No se usa PNG de 16 bits porque el navegador lee los PNG a través de un `<canvas>` de 8 bits; Terrarium se lee con `getImageData` y `colorSpaceConversion: 'none'`.
+
+| Cabecera | Significado |
+|---|---|
+| `X-Terrain-Source` | DEM usado: `lola_polar_40mpp`, `lola_polar_80mpp`, `lola_global` o una combinación (`lola_polar_80mpp+lola_global`) |
+| `ETag` | Cambia si cambian los DEM del servidor; con `If-None-Match` responde `304` sin cuerpo |
+| `Cache-Control` | `public, max-age=3600` |
+
+* **Fuentes:** el DEM LOLA del Polo Sur que corresponde al zoom (40 m desde `z = 9`, 80 m debajo) donde tiene datos, y LOLA global (`ldem_64`, ~474 m/px) en el resto. En zoom bajo los DEM se leen diezmados por bloques alineados al origen del ráster, así que teselas vecinas coinciden en su borde (sin costuras), y el DEM global da la vuelta en ±180°. Fuera del polo el DEM global no aporta más detalle desde `z ≈ 6`.
+* **Errores:** `422 ERR_INVALID_PAYLOAD` si `z`, `row` o `col` están fuera del esquema; `503 ERR_TERRAIN_UNAVAILABLE` si los DEM del servidor no cubren la tesela. Una ruta sin `.png` responde `404 ERR_NOT_FOUND`.
+
+---
+
 ## 3. Mapeo Arquitectónico: Frontend vs Backend
 
 | Componente UI (Frontend) | Endpoint Consumido | Propósito de Datos |
@@ -445,3 +471,4 @@ Sol y Tierra vistos desde el **centro de la Luna**, para dibujar el cielo del gl
 | **Pistas por escenario** (Comparador) | `POST /api/v1/compare` con `include_timeline: true` | `results[].timeline[]`. |
 | **PSRs de todo el polo** (Globo) | `GET /api/v1/psr` | Recorrer páginas y dibujar polígonos con `label_point`. |
 | **Sol y Tierra en la vista global** (Globo) | `GET /api/v1/ephemeris?utc=` | `direction` o punto subsolar / subterrestre en el marco fijo lunar. |
+| **Relieve del globo** (Globo) | `GET /api/v1/terrain/tiles/{z}/{row}/{col}.png` | Alturas Terrarium en metros reales para el `CustomHeightmapTerrainProvider`, de toda la Luna. |

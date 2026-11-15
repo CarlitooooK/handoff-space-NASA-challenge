@@ -14,10 +14,10 @@ Herramienta intuitiva para evaluar y comparar rápidamente sitios y fechas de at
 | Pieza | Estado |
 | --- | --- |
 | Documentación de contexto y alcance (`docs/`) | Lista (10/10 guías completas) |
-| Backend API REST v1 (`desktop` / Túnel HTTPS) | Dos URLs públicas ([`docs/07`](docs/07-ambientes-y-pruebas.md)): Producción con el backend de prueba (v1.1) y Backend oficial (`main`, v1.2) |
-| Contrato de API (`contracts/lunar-landing-api-contract.md` + `contracts/openapi.json`) | v1.2 (D-014), aditivo sobre v1.1 |
+| Backend API REST v1 (`desktop` / Túnel HTTPS) | Dos URLs públicas ([`docs/07`](docs/07-ambientes-y-pruebas.md)): Producción con el backend de prueba (v1.1) y Backend oficial (`main`, v1.3) |
+| Contrato de API (`contracts/lunar-landing-api-contract.md` + `contracts/openapi.json`) | v1.3 (D-016, teselas de terreno), aditivo sobre v1.2 (D-014) |
 | Guía de Consumo Frontend (`FRONTEND_API_GUIDE.md`) | Lista |
-| Servidor mock autónomo zero-dependency (`mock/`) | Listo con v1.2 (`mock/server.js` + `mock/package.json` en puerto 3000, `8` sitios) |
+| Servidor mock autónomo zero-dependency (`mock/`) | Listo con v1.3 (`mock/server.js` + `mock/package.json` en puerto 3000, `8` sitios, teselas sintéticas) |
 | Frontend (Visor 2D/3D & Dashboard) | Fase 1 fusionada, con puente al globo; faltan capa PSR y despliegue del globo, ver [`frontend-console`](contexto-sesiones/iniciativas/frontend-console/HANDOFF.md) |
 | Globo lunar 3D (CesiumJS), repo [`luna-render-nasa-space-challenge`](https://github.com/CarlitooooK/luna-render-nasa-space-challenge) | Fase 1 lista y verificada; falta integrarlo en la consola, ver [`lunar-globe-renderer`](contexto-sesiones/iniciativas/lunar-globe-renderer/HANDOFF.md) |
 | Handoff de iniciativas de sesión | Activo ([`contexto-sesiones/`](contexto-sesiones/README.md)) |
@@ -49,7 +49,7 @@ Para mantener la claridad del proyecto, este repositorio separa estrictamente do
 | 9 | [Decisiones](docs/09-decisiones.md) | Las decisiones ya tomadas (ADRs) y dónde están escritas |
 | 10 | [Producto y necesidades](docs/10-producto-y-necesidades.md) | Desde quien consume: qué se construye y qué se necesita de la otra parte |
 | 11 | [Integración globo-consola](docs/11-integracion-globo-consola.md) | Reparto de responsabilidades y conexión entre el globo lunar y la consola (propuesta, `P-006`) |
-| 12 | [Contrato API v1.2](docs/12-contrato-api-v1.2.md) | Cómo consumir la API v1.2: qué sirve cada URL, errores, endpoints, flujo, límites, coordenadas y recetas TypeScript (D-014) |
+| 12 | [Contrato API v1.2](docs/12-contrato-api-v1.2.md) | Cómo consumir la API v1.2: qué sirve cada URL, errores, endpoints, flujo, límites, coordenadas y recetas TypeScript (D-014); v1.3 agrega las teselas de terreno (D-016) |
 
 ### Interfaces, Guías y Servidor Simulado
 - **Guía práctica Frontend / IA:** [`FRONTEND_API_GUIDE.md`](FRONTEND_API_GUIDE.md) (URLs activas, cliente `fetch` TypeScript, tipos y snippets Three.js).

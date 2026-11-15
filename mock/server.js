@@ -3,7 +3,7 @@
 /**
  * Lunar Landing Site Navigator — Zero-Dependency Mock Server
  *
- * Implements the complete v1.2 API contract for local frontend development,
+ * Implements the complete v1.3 API contract for local frontend development,
  * offline hackathon demos, and automated testing without external dependencies.
  *
  * Usage:
@@ -13,6 +13,7 @@
 
 const http = require('http');
 const url = require('url');
+const zlib = require('zlib');
 
 const PORT = parseInt(process.env.PORT || '3000', 10);
 const MOON_RADIUS_M = 1737400.0;
@@ -644,6 +645,77 @@ function evaluateScenario(params) {
 }
 
 // ============================================================================
+// Terrain tiles (contract v1.3, GET /terrain/tiles/{z}/{row}/{col}.png)
+// ============================================================================
+const TILE_SIZE = 256;
+const MAX_TILE_LEVEL = 9;
+
+// Synthetic relief: a smooth function of lat/lon, so neighbouring tiles share their
+// edges and the antimeridian wraps. Not real data (the backend serves LOLA).
+function syntheticElevationM(latDeg, lonDeg) {
+  const lat = (latDeg * Math.PI) / 180;
+  const lon = (lonDeg * Math.PI) / 180;
+  return 1500 * Math.sin(3 * lat) * Math.cos(2 * lon) + 600 * Math.cos(5 * lon + 7 * lat) - 300;
+}
+
+const CRC_TABLE = (() => {
+  const table = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    table[n] = c >>> 0;
+  }
+  return table;
+})();
+
+function crc32(buf) {
+  let c = 0xffffffff;
+  for (let i = 0; i < buf.length; i++) c = CRC_TABLE[(c ^ buf[i]) & 0xff] ^ (c >>> 8);
+  return (c ^ 0xffffffff) >>> 0;
+}
+
+function pngChunk(type, data) {
+  const len = Buffer.alloc(4);
+  len.writeUInt32BE(data.length);
+  const body = Buffer.concat([Buffer.from(type, 'ascii'), data]);
+  const crc = Buffer.alloc(4);
+  crc.writeUInt32BE(crc32(body));
+  return Buffer.concat([len, body, crc]);
+}
+
+/** 256x256 Terrarium PNG: elevation_m = R*256 + G + B/256 - 32768 (row 0 = north). */
+function terrariumTilePng(z, row, col) {
+  const span = 180 / 2 ** z;
+  const lonW = -180 + col * span;
+  const latN = 90 - row * span;
+  const step = span / TILE_SIZE;
+  const raw = Buffer.alloc(TILE_SIZE * (1 + TILE_SIZE * 3));
+  for (let r = 0; r < TILE_SIZE; r++) {
+    const off = r * (1 + TILE_SIZE * 3);
+    raw[off] = 0; // filter: none
+    const lat = latN - (r + 0.5) * step;
+    for (let c = 0; c < TILE_SIZE; c++) {
+      const v = Math.round((syntheticElevationM(lat, lonW + (c + 0.5) * step) + 32768) * 256);
+      const p = off + 1 + c * 3;
+      raw[p] = (v >> 16) & 0xff;
+      raw[p + 1] = (v >> 8) & 0xff;
+      raw[p + 2] = v & 0xff;
+    }
+  }
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(TILE_SIZE, 0);
+  ihdr.writeUInt32BE(TILE_SIZE, 4);
+  ihdr[8] = 8; // bit depth
+  ihdr[9] = 2; // RGB
+  return Buffer.concat([
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    pngChunk('IHDR', ihdr),
+    pngChunk('IDAT', zlib.deflateSync(raw)),
+    pngChunk('IEND', Buffer.alloc(0))
+  ]);
+}
+
+// ============================================================================
 // HTTP Server & Router
 // ============================================================================
 
@@ -1003,6 +1075,27 @@ const server = http.createServer(async (req, res) => {
     }
 
     // ------------------------------------------------------------------------
+    // GET /api/v1/terrain/tiles/{z}/{row}/{col}.png (contract v1.3, synthetic relief)
+    // ------------------------------------------------------------------------
+    const tileMatch = /^\/api\/v1\/terrain\/tiles\/(\d+)\/(\d+)\/(\d+)\.png$/.exec(pathname);
+    if (tileMatch && method === 'GET') {
+      const [z, row, col] = tileMatch.slice(1).map(Number);
+      if (z > MAX_TILE_LEVEL || row >= 2 ** z || col >= 2 ** (z + 1)) {
+        sendError(res, 422, 'ERR_INVALID_PAYLOAD', `Índice de tesela inválido: z 0..${MAX_TILE_LEVEL}, row 0..2^z-1, col 0..2^(z+1)-1.`);
+        return;
+      }
+      res.writeHead(200, {
+        'Content-Type': 'image/png',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Expose-Headers': 'X-Terrain-Source',
+        'Cache-Control': 'public, max-age=3600',
+        'X-Terrain-Source': 'synthetic'
+      });
+      res.end(terrariumTilePng(z, row, col));
+      return;
+    }
+
+    // ------------------------------------------------------------------------
     // Route Not Found
     // ------------------------------------------------------------------------
     sendError(res, 404, 'ERR_NOT_FOUND', `Ruta no encontrada: ${method} ${pathname}`);
@@ -1027,6 +1120,7 @@ if (require.main === module) {
     console.log('  GET  /api/v1/psr/nearby?lat=-89.66&lon=222.7');
     console.log('  GET  /api/v1/psr?offset=0&limit=500');
     console.log('  GET  /api/v1/ephemeris?utc=2026-12-01T00:00:00Z');
+    console.log('  GET  /api/v1/terrain/tiles/9/511/600.png');
     console.log('============================================================');
   });
 }
@@ -1039,6 +1133,8 @@ module.exports = {
   computeStatusAndChecks,
   simulatedEphemeris,
   generateTerrainPatch,
+  terrariumTilePng,
+  syntheticElevationM,
   generateHorizonProfile,
   validatePolarCoordinates,
   validateDateRange
