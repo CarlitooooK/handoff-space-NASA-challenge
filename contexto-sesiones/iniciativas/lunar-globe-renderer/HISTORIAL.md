@@ -3,6 +3,7 @@
 Cronología, de lo más nuevo a lo más viejo. Fechas absolutas. No se borra: se agrega.
 
 ## 2026-11-15
+- Globo `#2` fusionado (`6c80e0d`, Carlo) junto con la consola `#18` (`0f91f6e`). Sigue sin probarse en GPU real.
 - **Globo PR `#2`** (rama `feat/render-fluido-y-controles`, Diego, para revisión de Carlo; rebasado sobre `27831cd`). Corrige lo que reportó Diego en la consola:
   - **El Sol, la Tierra y el módulo desaparecían contra las estrellas** al girar en "Horizon view": en sitios bajo el radio de referencia (Apollo 11 −1,9 km, Chang'e 4 −5,9 km), mirando al cielo no hay teselas en pantalla, el occluder de Cesium queda en 1 737 400 m y la cámara queda dentro. `Occluder` da entonces por oculto todo lo que tiene `occlude` (medido: 1 392 comandos, 0 visibles). `dropOccluderWhenInside()` quita el occluder solo en ese caso.
   - **Parpadeo de la Tierra:** cada paso creaba una `ConstantPositionProperty` nueva y Cesium reconstruía el elipsoide de forma asíncrona. Ahora usa propiedades de callback. El Sol y la Tierra se deslizan entre pasos (90 ms; saltos de más de 12° de golpe). Solo presentación (D-002).
