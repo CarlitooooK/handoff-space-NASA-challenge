@@ -1,6 +1,6 @@
 # 11. Integración del globo lunar en la consola
 
-> **Estado: aceptada (`P-006`, D-013). Puente ya fusionado en la consola (PR #4): ver §10.** Define cómo se conectan el globo ([`luna-render-nasa-space-challenge`](https://github.com/CarlitooooK/luna-render-nasa-space-challenge), D-011) y la consola (`luna-landing-navigator-console`) para que cada parte construya lo suyo sin duplicar ni pisar a la otra.
+> **Estado: aceptada (`P-006`, D-013, ajustada por D-015). Puente ya fusionado en la consola (PR #4): ver §10. Desde la consola PR #6 el globo es el render único de la simulación (D-015).** Define cómo se conectan el globo ([`luna-render-nasa-space-challenge`](https://github.com/CarlitooooK/luna-render-nasa-space-challenge), D-011) y la consola (`luna-landing-navigator-console`) para que cada parte construya lo suyo sin duplicar ni pisar a la otra.
 >
 > Fuentes: protocolo de mensajes en el `README.md` del repo del globo (**fuente única**, aquí no se copia), contrato en `contracts/openapi.json`, diseño en [`ideas/console-ui-figma.md`](ideas/console-ui-figma.md) (no vinculante).
 
@@ -19,14 +19,14 @@ La regla para no empalmar: **cada cosa tiene un solo dueño**. Si algo no está 
 | Escena local del sitio: malla `terrain/patch`, horizonte, luces locales, capa PSR en 3D | **Consola** | Es el detalle de ~12 km; el globo no la reemplaza |
 | Cálculo físico (Sol, Tierra, horizonte, DTE) | **Backend** | D-002 y D-006: ni la consola ni el globo lo calculan |
 
-**Consecuencia directa:** el globo es la vista **global** (elegir y ubicar el sitio, ver la trayectoria) y la escena de la consola es la vista **local** del sitio. No se construyen dos globos ni dos escenas locales.
+**Consecuencia directa:** el globo es el render de la simulación: vista global, vuelo al sitio y escena de alunizaje (D-015). La escena de la consola es el detalle **local** opcional del parche ("Terrain detail"). No se construyen dos globos ni dos escenas locales.
 
 ## 2. Cómo se monta en la pantalla
 
 El Figma pide un render siempre de fondo y paneles de vidrio encima. La propuesta compatible con eso:
 
 - El globo es un `<iframe>` de `position: fixed; inset: 0; z-index: 0`. Los paneles van encima con `pointer-events: none` en su contenedor y `auto` en cada panel, de modo que arrastrar el espacio libre mueve el globo.
-- **Un solo render visible a la vez** (`viewMode: 'globe' | 'site'` en el store). Sin sitio seleccionado, o en modo Explore, se ve el globo; al evaluar un sitio se hace la transición a la escena local. La que no se ve se pausa: no se mantienen dos contextos WebGL activos.
+- **El globo es el render único y no se desmonta** (D-015). Al evaluar, el globo vuela al sitio y la simulación sigue en él. `viewMode: 'site'` (botón "Terrain detail") funde encima la escena local del parche y deja el globo transparente debajo; "Back to globe" la quita. Mientras la escena local está abierta hay dos contextos WebGL: el globo sigue dibujando porque no existe un mensaje para pausarlo. Sin `VITE_GLOBE_URL`, o si el globo no responde, al evaluar se muestra la escena local (§5).
 - `F` (pantalla completa) actúa sobre el cascarón de la consola, no sobre el iframe. El fondo no cambia.
 - **Atribución:** el globo muestra sus créditos de NASA/LRO y el logo de Cesium abajo a la izquierda. Los paneles, incluido el timeline, deben dejar esa franja libre (≈ 32 px) o la consola repite esa atribución completa (`docs/03-datos-y-accesos.md`).
 - Textos de la interfaz en inglés (Figma, criterio 08). Los textos dentro del globo son los nombres de sitio que envíe la consola.
@@ -165,7 +165,8 @@ El puente se fusionó en la consola con el PR [#4](https://github.com/Carlitoooo
 | `features/viewport3d/useGlobeBridge.ts` | **Único** archivo que habla con el iframe: suscribe el store, envía y recibe | Para conectar un mensaje nuevo |
 | `features/viewport3d/GlobeFrame.tsx` | Monta el iframe y cae al placeholder si el globo no responde | Rara vez |
 | `core/store/useGlobeStore.ts` | Estado del enlace (`idle`, `loading`, `ready`, `unavailable`) y de la escena | Para leer el estado en la interfaz |
-| `features/simulate/SceneControls.tsx` | Botones "Landing scene" / "Exit scene" y el texto de fase | Para cambiar la interfaz de la escena |
+| `features/simulate/SceneControls.tsx` | Píldoras "Landing scene" / "Exit scene", "Terrain detail" / "Back to globe", y la fase y telemetría de la escena | Para cambiar la interfaz de la escena |
+| `features/viewport3d/SceneBackground.tsx` | Mantiene el globo montado y funde encima la escena local | Para cambiar qué render se ve |
 
 ### Cómo probarlo en local
 1. **Globo** (repo `luna-render-nasa-space-challenge`): `npm install && npm run dev -- --port 5174`.
@@ -175,12 +176,15 @@ El puente se fusionó en la consola con el PR [#4](https://github.com/Carlitoooo
 5. La CORS del globo y el origen: la consola ya le pasa su propio origen en `?allowedOrigins=`. En producción, el globo debe estar desplegado y `VITE_GLOBE_URL` apuntar a él (pendiente: aún no hay URL de despliegue).
 
 ### Qué hace el puente (no lo reimplementes)
-- **Al montarse el iframe y recibir `READY`** envía todo el estado: sitios (con GO/CAUTION/NO-GO solo del sitio evaluado), Sol y Tierra del paso actual, PSR, y la selección. El iframe se desmonta al pasar a la escena local (D-013), así que esto ocurre cada vez que vuelves al globo.
+- **Al montarse el iframe y recibir `READY`** envía todo el estado: sitios (con GO/CAUTION/NO-GO solo del sitio evaluado), Sol y Tierra del paso actual, PSR, y la selección. El iframe ya no se desmonta (D-015): en una sesión normal hay un solo `READY`; si el globo se recarga, el siguiente lo reenvía todo.
+- **Al elegir un sitio y al terminar cada evaluación** envía `SELECT_SITE` y el globo vuela al sitio. No lo hace mientras corre la escena de alunizaje.
 - **Mientras está listo** reenvía por fotograma el Sol y la Tierra cuando cambia `stepIndex` (el scrubber), sin red.
-- **Escena de alunizaje:** el botón pide `requestLanding()` y vuelve al globo; el puente manda el Sol/Tierra y luego `PLAY_LANDING_SCENE {lat, lon}` del sitio evaluado. El resto de parámetros (ángulo de cámara, altura inicial, duración) los decide el globo con valores por defecto; se pueden pasar desde `landingMessage()` si el diseño lo pide (rangos en el `README.md` del globo).
+- **Escena de alunizaje:** el botón pide `requestLanding()` y la escena corre en el globo que ya está en pantalla; el puente manda el Sol/Tierra y luego `PLAY_LANDING_SCENE {lat, lon}` del sitio evaluado. "Exit scene" manda `STOP_LANDING_SCENE` y vuelve a volar al sitio. El resto de parámetros (ángulo de cámara, altura inicial, duración) los decide el globo con valores por defecto; se pueden pasar desde `landingMessage()` si el diseño lo pide (rangos en el `README.md` del globo).
 - **Clics:** `SITE_CLICKED` y `GLOBE_CLICKED` solo seleccionan. Evaluar sigue siendo del usuario.
 - **Seguridad:** solo se aceptan mensajes del `contentWindow` del iframe y de su origen exacto (`fromGlobe`). Los mensajes se envían siempre con ese origen como destino.
 - **Falla suave:** sin `READY` en 8 s el enlace pasa a `unavailable` y el fondo vuelve al placeholder.
+
+Mapa completo de la consola (qué render se ve en cada caso, de dónde sale cada dato, qué mensajes van y cuándo): `docs/` del repo de la consola, en especial `02-renders.md` y `04-puente-globo.md`.
 
 ### Reglas al extender
 1. **Un mensaje nuevo** se añade en tres sitios y en este orden: tipo en `globeProtocol.ts`, función pura con prueba en `globeBridge.ts`, y envío o recepción en `useGlobeBridge.ts`. No copies tipos a otros archivos.
