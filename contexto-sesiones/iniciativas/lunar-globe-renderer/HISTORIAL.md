@@ -3,6 +3,7 @@
 Cronología, de lo más nuevo a lo más viejo. Fechas absolutas. No se borra: se agrega.
 
 ## 2026-11-14
+- Aviso de Frontend (D-015, consola PR `#6`): la consola ya no desmonta el iframe al evaluar. El globo es el render de toda la simulación (`SELECT_SITE` al evaluar, escena de alunizaje en él) y sigue montado, transparente, mientras la consola muestra "Terrain detail" encima. No cambia el protocolo. Pedidos que salen de ahí, sin urgencia: un mensaje para pausar el render mientras está oculto (o `requestRenderMode`), traducir al inglés el crédito "Textura de regolito procedural (ilustrativa)" y reducir el abanico polar que se ve al volar a Shackleton (`P-008`).
 - `P-007` respondida: `GET /api/v1/ephemeris` (contrato v1.2, D-014; guía en `docs/12`). También `GET /api/v1/psr` para las PSR de todo el polo. Ya disponibles en la URL del Backend oficial de `docs/07`.
 - PR #4 de la consola fusionado (`a000db2`). Se añadió `docs/11` §10, la guía de conexión para Frontend (dónde está cada archivo, cómo probarlo, reglas al extender, problemas conocidos y pendientes opcionales).
 - PR #4 abierto en la consola (`feat/globe-bridge` → `main`) con el puente y la escena de alunizaje.

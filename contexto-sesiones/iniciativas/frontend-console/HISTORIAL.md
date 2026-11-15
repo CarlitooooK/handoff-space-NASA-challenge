@@ -3,6 +3,10 @@
 Cronología, de lo más nuevo a lo más viejo. Fechas absolutas. No se borra: se agrega.
 
 ## 2026-11-14
+- Consola PR `#6`: el globo pasa a ser el render único de la simulación (D-015, `docs/11` §1, §2 y §10 ajustados). El iframe ya no se desmonta al evaluar; la escena de alunizaje corre en el globo y la escena local queda como "Terrain detail". Motivo: el cambio de motor al evaluar se veía como un corte y la escena local era de mucha menor calidad.
+- Se revisó el handoff hasta `cb5d0e8` y la consola sincronizó el contrato v1.2 (`f62f81d`, D-014). Sigue sin usar `checks`, `grid.source`, `/psr` ni `/ephemeris`.
+- Se documentó el funcionamiento interno de la consola en su `docs/` (`2db0cae`); `_compartido/frontend-console.md` ahora lo cita en lugar de describirlo.
+- Verificado con el backend oficial: `/terrain/patch` usa `lola_polar` (40 m nativos) al sur de -80° y `lola_global` (473,8 m) en el resto; el parche de 12 km a 128 queda a ~94 m por vértice.
 - `P-009` respondida: IM-2 pasa al sitio de LROC (D-014), visible cuando se aplique en la base del servidor. Contrato v1.2 (`docs/12`): `site.checks` (veredicto con `message` en inglés) e `include_timeline` en `/compare`, ya en la URL del Backend oficial de `docs/07`.
 - `HANDOFF.md` actualizado a pedido de Carlo: consola `#2`, `#3` y `#4` fusionadas; el puente deja de ser pendiente; pendientes reordenados (despliegue del globo, capa PSR, opcionales del globo, `P-009`).
 - El puente con el globo quedó fusionado en la consola (PR #4, `a000db2`): `globeProtocol.ts`, `globeBridge.ts`, `useGlobeBridge.ts`, `useGlobeStore` y los botones de escena. Ya no hay que construirlo; guía en `docs/11` §10. El `HANDOFF.md` de esta iniciativa aún lista el puente como pendiente: lo actualiza su responsable.
