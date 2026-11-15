@@ -3,6 +3,7 @@
 Cronología, de lo más nuevo a lo más viejo. Fechas absolutas. No se borra: se agrega.
 
 ## 2026-11-14
+- Aviso de Frontend: "Horizon view" es la vista objetivo a ras de suelo y la que se va a refinar. Se preguntó `P-013`: ¿absorbe a "Terrain detail" dibujando el relieve cercano al sitio, o quedan dos vistas? También: la Tierra puede quedar fuera de cuadro sin indicación de hacia dónde girar.
 - Consola y globo relanzados desde `main` (`52ab449` y `a891c85`) contra el Backend oficial.
 - Globo `a891c85`: `SET_SKY_GLOBAL` (Sol y Tierra de `/ephemeris`, con distancia real a la Tierra), `SET_COMPARE_PINS` (letras A–E, agrupadas por lugar, el recomendado resaltado) y `SET_CUSTOM_PIN`. Consola PR [`#10`](https://github.com/CarlitooooK/luna-landing-navigator-console/pull/10) fusionado (`52ab449`): 39 pruebas, `tsc` y `oxlint` limpios. E2E contra el Backend oficial: cielo y 1.139 polígonos de PSR del polo antes de evaluar, corrida con `/terrain/patch` caído (veredicto GO y aviso), reintento, cambio solo de fecha (solo `/evaluate`), pines con agrupación y cambio de "Rank by", marcador libre.
 - `GET /psr` pagina de a 500 como máximo y ordena por área; la consola pide `min_area_km2=50` (≈ 67 de 1.531 regiones) en una sola llamada.

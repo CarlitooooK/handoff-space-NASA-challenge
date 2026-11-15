@@ -64,6 +64,19 @@ Quien responde llena **Respuesta**, **Respondió** y la fecha, mueve la entrada 
 - **Respuesta:** _pendiente_
 - **Respondió:** —
 
+### P-013: ¿"Horizon view" y "Terrain detail" quedan como dos vistas o se unifican?
+
+- **Pregunta:** Hoy la consola tiene dos vistas del sitio a ras de suelo:
+  - **"Horizon view"** (globo, `docs/11` §11): cámara a 2 m del suelo, silueta real de `horizon_profile` y el Sol y la Tierra del timeline.
+  - **"Terrain detail"** (escena local Three.js de la consola): el parche de `GET /terrain/patch` (12 km, 128 × 128) visto desde arriba.
+
+  Frontend decidió que **"Horizon view" es la vista objetivo** y la que se va a refinar, y que "Terrain detail" se queda como está por ahora. ¿Se mantienen las dos o "Horizon view" absorbe a "Terrain detail"? Si se unifican: ¿puede el globo dibujar el relieve cercano al sitio (pendientes, rocas, cráteres pequeños) dentro de "Horizon view", para retirar después "Terrain detail" y su segundo contexto WebGL? Y si siguen separadas, ¿qué responde cada una, para que la interfaz las explique sin que se confundan?
+- **Contexto:** probado el 2026-11-14 con la Producción de `docs/07` y el globo `a891c85`, en IM-2 Mons Mouton (2026-12-17). "Horizon view" coincide con los datos: el amanecer de las 05:00 UTC cae justo sobre la cresta, con holgura +0.01°. Pero el suelo es una banda lisa sin relieve cercano, así que no sirve para ver pendientes. La Tierra (azimut 321°) además queda fuera de cuadro sin indicación de hacia dónde girar. Detalle en `docs/specs/onboarding-ayudas-sugerencias/audit.md` (S-05) y `docs/06-limitaciones-y-pendientes.md` de la consola. El relieve fino depende de `P-010` (teselas de 40 m, D-016).
+- **Bloquea:** no. Mientras tanto, el tour y las ayudas de la consola presentan las dos vistas tal como están.
+- **Preguntó:** Frontend (consola) · 2026-11-14
+- **Respuesta:** _pendiente_
+- **Respondió:** —
+
 ---
 
 ## Respondidas
