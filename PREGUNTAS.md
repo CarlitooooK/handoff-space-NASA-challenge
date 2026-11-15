@@ -35,6 +35,35 @@ Quien responde llena **Respuesta**, **Respondió** y la fecha, mueve la entrada 
 - **Respuesta:** _pendiente_
 - **Respondió:** —
 
+### P-011: Revisión de los textos científicos de las ayudas de la consola (PSR y `power_factor`)
+
+- **Pregunta:** ¿Alguien de ciencia o backend puede revisar dos textos en inglés antes de que la consola los muestre como ayuda "?"?
+  - **`psr`:** "A permanently shadowed region (PSR) never sees the Sun. It is extremely cold and may hold water ice. This is the distance to the nearest one." ¿Es correcto? ¿Qué catálogo usa `/psr/nearby` y qué fuente se debe citar?
+  - **`power`:** "Relative solar power at the time selected on the timeline, as reported by the server." ¿Qué es exactamente `power_factor` (y `avg_power_factor`)? La auditoría del globo (`contexto-sesiones/iniciativas/lunar-globe-renderer/CONOCIMIENTO.md`) observó un factor de unos 0.994 con el Sol a 6.5° y un pico de 1 559 W frente a 1 524 W nominales (1361 · 4 · 0.28), lo que cuadra con un panel que sigue al Sol. ¿Es así? ¿Por qué el pico supera el nominal? ¿Vale 0 con el Sol oculto?
+- **Contexto:** spec de onboarding de la consola, `docs/specs/onboarding-ayudas-sugerencias/design.md` §2.4 (consola PR `#8`). En pantalla: "Permanent shadow 1.8 km away" y "Solar power now · 71% of panel output". El contrato v1.3 no define `power_factor`. El resto del catálogo de ayudas está en §2.3–2.5 de ese archivo, por si quieren revisarlo completo.
+- **Bloquea:** no. Las dos ayudas salen con un texto neutro hasta tener la respuesta.
+- **Preguntó:** Frontend (consola) · 2026-11-14
+- **Respuesta:** _pendiente_
+- **Respondió:** —
+
+### P-012: Qué significa `hours_to_next_sunset` / `hours_to_next_earthset` en `null`
+
+- **Pregunta:** Con el Backend oficial, `hours_to_next_sunset` y `hours_to_next_earthset` llegan en `null` en dos casos distintos: cuando el astro está visible toda la ventana y cuando **empieza oculto** en `timeline[0]`. ¿Es la semántica buscada? Es decir, ¿el campo solo cuenta el ocaso de un astro que está visible al inicio? Si es así, ¿se puede documentar en el contrato y agregar `hours_to_next_sunrise` y `hours_to_next_earthrise` como cambio aditivo?
+- **Contexto:** consultas a `/evaluate` del Backend oficial, 14 días, paso de 60 min (2026-11-14):
+
+  | Sitio y fecha | Astro en `timeline[0]` | `hours_to_next_*` | `*_visible_pct` |
+  | --- | --- | --- | --- |
+  | Peak Near Shackleton, 2026-12-01 | Tierra oculta (sale en el paso 319) | `earthset: null` | Tierra 5.1 % |
+  | Apollo 11, 2026-12-01 | Sol oculto (sale en el paso 328) | `sunset: null` | Sol 2.4 % |
+  | IM-2 Mons Mouton, 2026-12-05 | Sol y Tierra ocultos | los dos `null` | Sol 12.8 %, Tierra 45.8 % |
+  | Shackleton Rim, 2026-12-01 | Sol y Tierra visibles | los dos `1.0` | Sol 0.3 %, Tierra 17.3 % |
+
+  Hoy la consola lee `null` como "no se pone": Peak Near Shackleton diría "Earth stays in view" y Apollo 11, "No sunset in this window" (hallazgos A-05 y A-06 de `docs/specs/onboarding-ayudas-sugerencias/audit.md`, consola PR `#8`). La spec corrige eso leyendo primero `timeline[0]` y, si el astro está oculto, contando las horas hasta el primer punto visible del `timeline[]`, sin calcular física. Pero `/compare` no trae timeline, así que ahí la consola no puede distinguir los dos casos.
+- **Bloquea:** no para Simulate (la consola usa el timeline). Sí limita lo que Compare puede decir en "First sunset" y "First Earthset".
+- **Preguntó:** Frontend (consola) · 2026-11-14
+- **Respuesta:** _pendiente_
+- **Respondió:** —
+
 ---
 
 ## Respondidas
