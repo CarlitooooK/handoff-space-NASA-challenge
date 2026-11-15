@@ -1,6 +1,6 @@
 # Globo lunar (lunar-globe-renderer) — Handoff
 
-**Última actualización:** 2026-11-14 (globo `987cf47`, consola `#13` fusionado) · **Responsable:** Carlo (con agente Kiro) · **Repo / componente:** [`luna-render-nasa-space-challenge`](https://github.com/CarlitooooK/luna-render-nasa-space-challenge) (rama `main`, primer commit `98ecf5a`); carpeta local `lunar-globe-renderer/`
+**Última actualización:** 2026-11-15 (globo `c8d8f37`, consola `#14` fusionado, `#15` abierto) · **Responsable:** Carlo (con agente Kiro) · **Repo / componente:** [`luna-render-nasa-space-challenge`](https://github.com/CarlitooooK/luna-render-nasa-space-challenge) (rama `main`, primer commit `98ecf5a`); carpeta local `lunar-globe-renderer/`
 
 ## En una línea
 Fase 1 del globo lista y verificada en navegador (CesiumJS + teselas NASA Moon Trek, protocolo iframe/postMessage implementado); falta integrarlo en la consola, subir el código a un repo y resolver el relieve 3D y el abanico en el polo.
@@ -28,14 +28,14 @@ Fase 1 del globo lista y verificada en navegador (CesiumJS + teselas NASA Moon T
 | Cierre de la escena de alunizaje: la cámara ya no sube a 1 km al posarse (bajaba el módulo a un punto) y el acercamiento final es un planeo recto y suave hasta ver módulo y astronauta | Hecho en el globo (`163cccc`); verificado en Apollo 11. Hay que desplegar este globo o uno posterior |
 | Pausa del dibujado (`SET_PAUSED`) mientras "Terrain detail" tapa el globo; créditos en inglés | Hecho en el globo (`f24cbe9`); consola `#11` fusionado |
 | CI/CD del globo (`.woodpecker/`: typecheck, build, deploy con smoke de Cesium, modelos 3D y caché de Moon Trek) | Fusionado (globo `#1`, `8b1c348`). Falta ver el primer despliegue y la URL pública para `VITE_GLOBE_URL` |
-| Relieve geométrico global (LOLA vía Moon Trek, calibrado contra el backend) | Hecho (~666 m/px). `P-008` respondida: `GET /terrain/tiles` (Terrarium PNG, D-016) permite reemplazar `fetchDemTile` en `terrain.ts`; falta decidir `P-010` |
-| Imagen sin abanico en el polo (mosaico polar reproyectado) | Hecho en parte: abanico reducido a la mitad, quedan ~10 km y costuras tenues |
+| Relieve (LOLA) | Moon Trek por defecto (~666 m/px, 8 bits calibrado). Con `SET_CONFIG { terrainTilesUrl }` (D-019, `P-010` respondida) usa las teselas Terrarium del backend en metros reales (40 m/px en el polo). Hecho y verificado contra el Backend oficial (`terrarium.ts`, `terrain.ts`) |
+| Imagen del polo sur | Con la fuente del backend: relieve sombreado del DEM (`hillshade.ts`, luz fija ilustrativa) sobre el mosaico WAC polar de respaldo; sin ella, el mosaico de Moon Trek (máximo 267 m/px: bloques y bandas radiales de las órbitas de cerca). Queda un "estallido" radial en el pinch del polo (convergencia de la malla lat/lon de Cesium) |
 | Texturas LROC NAC de alta resolución | No iniciado (v2, ver `docs/08-pendientes.md`) |
 
 ## Pendientes (en orden de valor)
-1. (Hecho) Consola `#10` fusionada: cielo global, PSR del polo, pines A–E, pin libre. Al desplegar, el globo debe ser `a891c85` o posterior.
+1. Fusionar la consola `#15` (renombre a `terrainTilesUrl`) y desplegar el globo `c8d8f37` o posterior junto con ella. (Hecho antes) Consola `#10` fusionada: cielo global, PSR del polo, pines A–E, pin libre. Al desplegar, el globo debe ser `a891c85` o posterior.
 3. Frontend: usar y extender el puente ya fusionado en la consola (guía en `docs/11-integracion-globo-consola.md` §10). Opcional: interruptor de `SET_VEHICLES`, indicador de carga con `LOADING`, HUD con `SCENE_PHASE`/`SCENE_TELEMETRY`, integrar con Missions.
-4. Terreno de mayor detalle: cambiar `fetchDemTile` a `/terrain/tiles` cuando `P-010` se resuelva, y que "Terrain detail" use la vista a ras de suelo del globo (pedido de Frontend).
+4. (Hecho: terreno y polo desde `/terrain/tiles`, D-019.) Queda que "Terrain detail" use la vista a ras de suelo del globo (pedido de Frontend).
 4b. (Hecho: créditos en inglés.) Queda X-07: etiquetas de sitio visibles bajo los paneles de vidrio; hay que decidir entre ocultarlas o subir el contraste de los paneles. `P-013` (¿"Horizon view" absorbe a "Terrain detail"?) decide si el globo debe dibujar relieve cercano; además la Tierra puede quedar fuera de cuadro sin indicación de hacia dónde girar.
 5. Pulido si hay tiempo: astronauta con pose o animación, rocas o cráteres pequeños en el suelo, y probar la escena en una GPU real (la prueba usó render por software).
 6. Despliegue: el Woodpecker de `desktop` ya tiene el pipeline (D-018, globo `#1`); la URL pública del globo y `VITE_GLOBE_URL`/`VITE_API_BASE_URL` los fija la configuración del servidor, no los `.env` del repo. Probar con el backend en vivo y medir rendimiento en la máquina de la demo.

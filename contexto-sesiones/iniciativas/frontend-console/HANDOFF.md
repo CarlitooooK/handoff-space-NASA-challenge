@@ -1,6 +1,6 @@
 # Consola Frontend — Handoff
 
-**Última actualización:** 2026-11-14 (consola `#7` a `#13` fusionados; `main` = `c623dff`) · **Responsable:** Equipo Frontend (consola) · **Repo / componente:** `luna-landing-navigator-console`
+**Última actualización:** 2026-11-15 (consola `#7` a `#14` fusionados, `#15` abierto; `main` = `ff3455c`) · **Responsable:** Equipo Frontend (consola) · **Repo / componente:** `luna-landing-navigator-console`
 
 ## En una línea
 El PR `#6` ya está fusionado (D-015, contrato v1.2, `docs/` internas). Fusionados el 2026-11-14: `#7` (contrato v1.3 y baja del mock), `#8` (audit UX y spec de onboarding, lista para implementar) y `#9` (vista de horizonte, del globo).
@@ -15,6 +15,8 @@ El PR `#6` ya está fusionado (D-015, contrato v1.2, `docs/` internas). Fusionad
 | Cielo y PSR del polo antes de evaluar (`/ephemeris`, `/psr`), `evaluate()` tolerante a fallos del terreno, sin refetch si solo cambia la fecha, pines A–E de Compare y marcador del pin libre | Hecho (`#10`). Requiere el globo `a891c85` o posterior |
 | Cierre de la escena al cambiar de sitio o entrar a History, pausa del globo bajo "Terrain detail" (`SET_PAUSED`), interruptor "Astronaut", créditos en inglés | Hecho (`#11`, `81db1e6`). Requiere el globo `f24cbe9` o posterior |
 | CI/CD: `.woodpecker/ci.yaml` (lint, typecheck, test, build) y `deploy.yaml` (publica al integrar a `main`, con smoke) | Fusionado (`#12`, Antonio, D-018). Falta ver el primer pipeline y fijar `VITE_API_BASE_URL` / `VITE_GLOBE_URL` en el servidor |
+| Fuente de teselas para el globo (`SET_CONFIG { terrainTilesUrl }`, D-019): relieve LOLA real y polo sur sombreado; PSR del polo más finas | `#14` fusionado; `#15` (renombre al nombre de `P-010`) abierto. Requiere el globo `c8d8f37` o posterior |
+| Textos de ayuda `psr` y `power` y texto de `hours_to_next_* = null` (respuestas de Backend a `P-011` y `P-012`) | Por aplicar en la spec de onboarding (Diego): ver HISTORIAL |
 | Onboarding, bloque A (teclado en la lista de sitios, P0) | En curso (Diego, rama `feat/onboarding-bloque-a`) |
 | Vista de horizonte (Lander POV) en la consola: pastilla "Horizon view", `SET_HORIZON`, `SET_SKY_STATE` | Hecho (`#9`); convive con "Terrain detail" |
 | Documentación interna (`docs/01` a `06` de la consola) | Hecho (`#6`) |

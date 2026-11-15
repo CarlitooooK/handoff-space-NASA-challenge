@@ -112,6 +112,13 @@ La consola ya distingue el mock en su chip ("Sample data" si `/health` no trae `
 ## Pendiente de decisión
 - Dónde se despliega el globo (lo hará el Woodpecker de `desktop`, D-018; URL para el iframe; el código ya vive en su repo, ver `HANDOFF.md`) y si se acepta el abanico del polo o se cambia a teselas polares. Decide el equipo.
 
+## Actualización 2026-11-15
+- **Moon Trek en el polo sur:** `LRO_WAC_Mosaic_SPole60_100m_v02` llega a nivel 5 (267 m/px); los niveles 6 y 7 devuelven 404. El mosaico trae bandas radiales por la iluminación de cada órbita y negro hacia el polo. El backend (`/terrain/tiles`) da 40 m/px de DEM LOLA allí.
+- `GET /terrain/tiles`: CORS `*`, `ETag`, `Cache-Control` de 1 h. El esquema es el mismo que Moon Trek (fila 0 al norte), niveles 0 a 9. Un backend sin v1.3 responde 404: por eso se prueba `0/0/0` antes de usarlo.
+- Cesium no limita las peticiones de un `ImageryProvider` que sobrescribe `requestImage`: hay que limitar la concurrencia a mano y no cachear los fallos.
+- Reasignar `scene.light` con una luz nueva en cada actualización fuerza trabajo de iluminación en los modelos; basta con cambiar `direction` de la misma luz.
+- Cuando la herramienta de capturas de las pruebas no refleja el archivo nuevo, copiar la captura a otro nombre.
+
 ## Actualización 2026-11-14 (verificado contra el Backend oficial)
 - **Cámara a ras de suelo en Cesium:** `minimumZoomDistance` también actúa cuando la cámara se deja de fijar: la sube hasta ese valor sobre el terreno. Para escenas a pocos metros (alunizaje, horizonte) hay que bajarlo (1 m) mientras duren y restaurarlo (1 km) al salir. `flyToBoundingSphere` sube la cámara en arco aunque la distancia sea corta: para acercamientos cortos conviene interpolar la posición uno mismo.
 - Con render por software la escena corre a ~0,5 a 1 fotograma por segundo y `dt` se recorta a 0,1 s: las duraciones en segundos de escena tardan mucho más en reloj. Las pruebas del 14-nov usaron eso.

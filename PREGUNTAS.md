@@ -26,17 +26,6 @@ Quien responde llena **Respuesta**, **Respondió** y la fecha, mueve la entrada 
 
 ## Abiertas
 
-### P-010: Cómo obtiene el globo las teselas de terreno sin llamar a la API
-
-- **Pregunta:** `P-008` se resolvió con `GET /api/v1/terrain/tiles/{z}/{row}/{col}.png` (D-016), pero [`docs/11-integracion-globo-consola.md`](docs/11-integracion-globo-consola.md) §1 y §4 (D-013) dicen que el globo **nunca** llama a la API ni guarda URLs del backend. ¿Se acepta esta excepción acotada? La consola le pasa al globo la URL base de las teselas por `SET_CONFIG` (por ejemplo `terrainTilesUrl`, armada desde `VITE_API_BASE_URL`), y el globo las pide igual que hoy pide las de Moon Trek: son recursos estáticos y cacheables (`ETag`, `max-age=3600`), no cálculo. Si no llega la URL o falla la red, el globo sigue con Moon Trek. Si se acepta, `docs/11` (§1, §3 y §4) y el protocolo del globo se actualizan en el mismo commit que la respuesta.
-- **Contexto:** `P-008`, D-016, [`contracts/lunar-landing-api-contract.md`](contracts/lunar-landing-api-contract.md) §2.9; en el globo, `fetchDemTile` en `src/terrain.ts`. Con D-015 la escena de alunizaje corre en el globo, así que su relieve es el que se ve a ras de suelo. La alternativa de que la consola descargue las teselas y se las pase por `postMessage` duplicaría la caché y la red del globo.
-
-  **Aporte de Backend (2026-11-15):** el endpoint ya está listo para que el navegador lo pida directo. En la URL de Producción de [`docs/07`](docs/07-ambientes-y-pruebas.md) responde con `Cache-Control: public, max-age=3600`, `ETag` (con `If-None-Match` da `304`), `X-Terrain-Source` y CORS `*` con `Access-Control-Expose-Headers: X-Terrain-Source` (backend oficial `#7`). CORS es indispensable porque el globo decodifica Terrarium con un `<canvas>`. Pasar la URL por `SET_CONFIG` encaja con D-018: la consola publicada toma `VITE_API_BASE_URL` de la configuración del servidor, así que un cambio de túnel no exige tocar el globo. Detalle para el globo: hoy crea el proveedor de terreno al construirse (`src/LunarGlobe.ts:105`), antes de recibir `SET_CONFIG`, así que al llegar `terrainTilesUrl` tendría que recrearlo (o leer la URL en cada petición). Con el backend oficial `#9` (abierto), las teselas fuera del polo pasarían de ~474 m/px a ~118 m/px. La decisión sigue siendo de Globo y Frontend.
-- **Bloquea:** no. Mientras tanto el globo sigue con el relieve de Moon Trek.
-- **Preguntó:** Backend / Integración · 2026-11-14
-- **Respuesta:** _pendiente_
-- **Respondió:** —
-
 ### P-013: ¿"Horizon view" y "Terrain detail" quedan como dos vistas o se unifican?
 
 - **Pregunta:** Hoy la consola tiene dos vistas del sitio a ras de suelo:
@@ -53,6 +42,21 @@ Quien responde llena **Respuesta**, **Respondió** y la fecha, mueve la entrada 
 ---
 
 ## Respondidas
+
+### P-010: Cómo obtiene el globo las teselas de terreno sin llamar a la API
+
+- **Pregunta:** `P-008` se resolvió con `GET /api/v1/terrain/tiles/{z}/{row}/{col}.png` (D-016), pero [`docs/11-integracion-globo-consola.md`](docs/11-integracion-globo-consola.md) §1 y §4 (D-013) dicen que el globo **nunca** llama a la API ni guarda URLs del backend. ¿Se acepta esta excepción acotada? La consola le pasa al globo la URL base de las teselas por `SET_CONFIG` (por ejemplo `terrainTilesUrl`, armada desde `VITE_API_BASE_URL`), y el globo las pide igual que hoy pide las de Moon Trek: son recursos estáticos y cacheables (`ETag`, `max-age=3600`), no cálculo. Si no llega la URL o falla la red, el globo sigue con Moon Trek. Si se acepta, `docs/11` (§1, §3 y §4) y el protocolo del globo se actualizan en el mismo commit que la respuesta.
+- **Contexto:** `P-008`, D-016, [`contracts/lunar-landing-api-contract.md`](contracts/lunar-landing-api-contract.md) §2.9; en el globo, `fetchDemTile` en `src/terrain.ts`. Con D-015 la escena de alunizaje corre en el globo, así que su relieve es el que se ve a ras de suelo. La alternativa de que la consola descargue las teselas y se las pase por `postMessage` duplicaría la caché y la red del globo.
+
+  **Aporte de Backend (2026-11-15):** el endpoint ya está listo para que el navegador lo pida directo. En la URL de Producción de [`docs/07`](docs/07-ambientes-y-pruebas.md) responde con `Cache-Control: public, max-age=3600`, `ETag` (con `If-None-Match` da `304`), `X-Terrain-Source` y CORS `*` con `Access-Control-Expose-Headers: X-Terrain-Source` (backend oficial `#7`). CORS es indispensable porque el globo decodifica Terrarium con un `<canvas>`. Pasar la URL por `SET_CONFIG` encaja con D-018: la consola publicada toma `VITE_API_BASE_URL` de la configuración del servidor, así que un cambio de túnel no exige tocar el globo. Detalle para el globo: hoy crea el proveedor de terreno al construirse (`src/LunarGlobe.ts:105`), antes de recibir `SET_CONFIG`, así que al llegar `terrainTilesUrl` tendría que recrearlo (o leer la URL en cada petición). Con el backend oficial `#9` (abierto), las teselas fuera del polo pasarían de ~474 m/px a ~118 m/px. La decisión sigue siendo de Globo y Frontend.
+- **Bloquea:** no. Mientras tanto el globo sigue con el relieve de Moon Trek.
+- **Preguntó:** Backend / Integración · 2026-11-14
+- **Respuesta:** Se acepta la excepción (D-019). La consola manda `SET_CONFIG { terrainTilesUrl }` con `<VITE_API_BASE_URL>/terrain/tiles`; **se conserva el nombre propuesto aquí** (una primera versión usó `SET_TERRAIN_SOURCE` y se retiró). El globo prueba `<url>/0/0/0.png` antes de usarla: si el backend no tiene v1.3, no responde o no llega la URL, sigue con Moon Trek. Con la fuente activa:
+  - el terreno (`createMoonTerrain`) se recrea con las teselas Terrarium en metros reales (niveles 0 a 9; sin la calibración de 8 bits ni el suavizado);
+  - el polo sur se dibuja como relieve sombreado a partir del mismo DEM (`hillshade.ts`), por encima del mosaico WAC polar, que queda de respaldo donde falte una tesela. La luz es fija en el marco lunar (no es el Sol de la simulación) y el crédito lo rotula como ilustrativa;
+  - las peticiones tienen un máximo de 6 en vuelo, 3 reintentos con espera y los fallos no se cachean (sin eso, una tesela fallida dejaba una franja negra permanente).
+  Motivo: el mosaico polar WAC de Moon Trek llega como máximo a 267 m/px (nivel 5; `6/…` y `7/…` dan 404): de cerca se ve en bloques y con el abanico de bandas de las órbitas. Implementado en el globo `c8d8f37` y en la consola `#14` (fusionado) y `#15` (renombre a `terrainTilesUrl`). Verificado contra el Backend oficial. Con el backend `#9` (~118 m/px fuera del polo) "Terrain detail" fuera del polo ganaría detalle sin cambios del front.
+- **Respondió:** Globo y Frontend · 2026-11-15
 
 ### P-012: Qué significa `hours_to_next_sunset` / `hours_to_next_earthset` en `null`
 

@@ -15,7 +15,7 @@ La regla para no empalmar: **cada cosa tiene un solo dueño**. Si algo no está 
 | Sol, Tierra y estrellas como referencia en el cielo (fase 2) | **Globo** | La consola no calcula posiciones de astros para el cielo |
 | Módulo de aterrizaje y astronauta (fase 3) | **Globo** | Se activan por mensaje (`SET_VEHICLES`) |
 | Paneles, veredicto, KPIs, timeline/scrubber, Compare, History, Missions | **Consola** | Ver Figma |
-| Llamadas a la API y store (`useMissionStore`) | **Consola** | El globo **nunca** llama a la API |
+| Llamadas a la API y store (`useMissionStore`) | **Consola** | El globo no llama a la API, con una excepción acotada (D-019): pide `GET /terrain/tiles` (recurso estático y cacheable) en la URL que la consola le pasa por `SET_CONFIG { terrainTilesUrl }` |
 | Escena local del sitio: malla `terrain/patch`, horizonte, luces locales, capa PSR en 3D | **Consola** | Es el detalle de ~12 km; el globo no la reemplaza |
 | Cálculo físico (Sol, Tierra, horizonte, DTE) | **Backend** | D-002 y D-006: ni la consola ni el globo lo calculan |
 
@@ -249,3 +249,10 @@ Respuesta del globo: `HORIZON_PHASE` (`arrival`, `ready`, `leaving`).
 > **Actualización 2026-11-14 (consola `#11`, globo `f24cbe9`).** Mensaje nuevo `SET_PAUSED {paused}`: la consola lo manda 600 ms después de abrir "Terrain detail" y lo revierte al volver. `PLAY_LANDING_SCENE` lleva `astronaut: false` si el interruptor "Astronaut" está apagado. Elegir o evaluar otro lugar durante la escena la cierra (`STOP_LANDING_SCENE` y vuelo al sitio nuevo), y entrar a History cierra escena y horizonte. Despliegue: los repos de la consola y del globo ya tienen `.woodpecker/` (D-018); hay que publicar juntos la consola y un globo `f24cbe9` o posterior. `P-013` pregunta si "Horizon view" absorbe a "Terrain detail".
 
 > **Actualización 2026-11-14 (globo `163cccc`, consola `#13`).** La escena de alunizaje y la vista de horizonte bajan el límite de zoom del globo a 1 m mientras están activas (`minimumZoomDistance` es 1 km en la vista global); sin eso, al posarse la cámara se alejaba a 1 km y el módulo se veía como un punto. El acercamiento final es un planeo propio de 5 s. En la consola, "Terrain detail" muestra relieve con sombras, color por pendiente (`slopes_deg`), Sol y Tierra a tamaño angular real y exageración vertical rotulada; el parche se pide a 256 × 256.
+
+> **Actualización 2026-11-15 (D-019, `P-010` respondida; globo `c8d8f37`, consola `#14` y `#15`).**
+> - **Excepción a "el globo nunca llama a la API" (§1, §4, D-013):** solo `GET /terrain/tiles`. La consola manda `SET_CONFIG { terrainTilesUrl: "<VITE_API_BASE_URL>/terrain/tiles" }` al recibir `READY`. El globo prueba `<url>/0/0/0.png`; si falla, sigue con Moon Trek. No hay URLs en el globo (D-018).
+> - **Polo sur:** con la fuente activa se dibuja relieve sombreado del DEM (luz fija, ilustrativa) en lugar del mosaico WAC de Moon Trek (máximo 267 m/px). El mosaico queda debajo como respaldo. Peticiones: máximo 6 en vuelo, 3 reintentos, fallos sin caché.
+> - **PSR del polo:** `GET /psr?limit=100&min_area_km2=50&simplify_m=250` (≈ 67 de 1.531 regiones, ~220 KB); relleno al 20 % con contorno fino. Las de `/psr/nearby` del sitio las reemplazan al evaluar.
+> - **Luz de la escena:** el globo reutiliza una sola `DirectionalLight` y solo cambia su dirección. Antes creaba una nueva en cada actualización del cielo (~6 por segundo con el scrubber en Play) y los modelos podían parpadear.
+> - **`SET_DATA_MODE`:** sigue válido en el globo, pero la consola ya no lo manda (fila de §11 obsoleta).

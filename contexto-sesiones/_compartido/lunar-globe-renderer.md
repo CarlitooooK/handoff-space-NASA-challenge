@@ -16,6 +16,7 @@ Clase `LunarGlobe` (`src/LunarGlobe.ts`) sobre un `Viewer` de Cesium sin Ion. `s
 - Cielo (`src/sky.ts`): estrellas Tycho2, Tierra con textura Natural Earth local y el Sol como billboard de tamaño angular real. Sin dirección del host no hay Sol; la Tierra queda en la posición media.
 - Escena de alunizaje (`src/landingScene.ts`): máquina de estados (llegada, descenso, posado, completa) con cámara de espectador a ras de suelo; reutiliza vehículos, terreno y cielo. Textura de regolito en `src/regolith.ts`.
 - Vehículos (`src/vehicles.ts`): módulo de aterrizaje y astronauta con modelos GLB de NASA 3D Resources (`public/models/`, con `ATTRIBUTION.md`) y columna de motor por partículas. El módulo toma su posición de la trayectoria; el astronauta, del terreno.
+- **Fuente de relieve (D-019):** por defecto Moon Trek; con `SET_CONFIG { terrainTilesUrl }` (la consola la arma desde `VITE_API_BASE_URL`) usa `GET /terrain/tiles` del backend (`terrarium.ts`, `terrain.ts`) y dibuja el polo sur como relieve sombreado (`hillshade.ts`).
 - Relieve (`src/terrain.ts`): terreno de Cesium desde el DEM de LOLA de Moon Trek con conversión calibrada. Una sola función (`fetchDemTile`) define la fuente; cambiarla por teselas del backend (`P-008`) no toca el resto.
 - Polo (`src/polar.ts`): proveedor de imagen que reproyecta el mosaico polar a la malla geográfica.
 - PSR: `src/geo.ts` convierte metros polares a lat/lon.
